@@ -3,11 +3,11 @@
 Welcome to the Parallax project!
 
 ## Overview
-Parallax is a multi-module workspace containing backend and frontend code for CodeAstras and Parallax applications.
 Parallax is a multi-module workspace containing backend and frontend code for the Parallax application.
 ## Structure
 - Parallax-Backend: Java Spring Boot backend
 - Parallax-Frontend: React/TypeScript frontend
+- codeastras-python-runner: Python runner modules
 - Design: Additional design and module files
 
 ## Getting Started
