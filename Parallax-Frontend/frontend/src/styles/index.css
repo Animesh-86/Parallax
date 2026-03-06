@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@layer theme {
+  :root {
+    --color-black: #000;
+    --color-white: #fff;
+    /* Add any other custom variables here if needed, but defaults are usually sufficient */
+  }
+}
