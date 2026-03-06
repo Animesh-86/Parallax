@@ -1,7 +1,7 @@
 
-  # CodeAstras
+  # parallax
 
-  This is a code bundle for CodeAstras. The original project is available at https://www.figma.com/design/KQ2DgNAMqt30qvoGvHR2dQ/CodeAstras.
+  This is a code bundle for parallax. The original project is available at https://www.figma.com/design/KQ2DgNAMqt30qvoGvHR2dQ/parallax.
 
   ## Running the code
 

@@ -1,4 +1,4 @@
-package com.codeastras.backend.codeastras.controller;
+package com.parallax.backend.parallax.controller;
 
 public class ChatController {
 }

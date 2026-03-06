@@ -8,11 +8,11 @@
 		<version>4.0.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.codeastras.backend</groupId>
-	<artifactId>codeastras</artifactId>
+	<groupId>com.parallax.backend</groupId>
+	<artifactId>parallax</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>codeastras</name>
-	<description>CodeAstras</description>
+	<name>parallax</name>
+	<description>parallax</description>
 	<url/>
 	<licenses>
 		<license/>

@@ -1,4 +1,4 @@
-package com.codeastras.backend.codeastras;
+package com.parallax.backend.parallax;
 
 public class WebSocketConfig {
 }

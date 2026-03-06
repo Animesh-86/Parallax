@@ -1,13 +1,13 @@
-package com.codeastras.backend.codeastras;
+package com.parallax.backend.parallax;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CodeastrasApplication {
+public class ParallaxApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CodeastrasApplication.class, args);
+		SpringApplication.run(ParallaxApplication.class, args);
 	}
 
 }

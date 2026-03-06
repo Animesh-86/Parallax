@@ -1,10 +1,10 @@
-package com.codeastras.backend.codeastras;
+package com.parallax.backend.parallax;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CodeastrasApplicationTests {
+class ParallaxApplicationTests {
 
 	@Test
 	void contextLoads() {

@@ -1,4 +1,4 @@
-package com.codeastra.backend.controller;
+package com.parallax.backend.parallax.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +9,6 @@ public class HealthController {
 
     @GetMapping("/api/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("CodeAstra backend is running!");
+        return ResponseEntity.ok("Parallax backend is running!");
     }
 }
