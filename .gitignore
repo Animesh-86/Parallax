@@ -1,0 +1,49 @@
+# Root .gitignore for Parallax project
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Node.js
+**/node_modules/
+**/dist/
+**/build/
+.npm
+.yarn-integrity
+*.log
+
+# Java
+**/target/
+.mvn/
+mvnw
+mvnw.cmd
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.venv
+**/venv/
+**/ENV/
+
+# Secrets
+**/.env
+**/.env.local
+**/application-local.properties
+**/application-*.properties
+!**/application-h2.properties
+!**/application.properties
