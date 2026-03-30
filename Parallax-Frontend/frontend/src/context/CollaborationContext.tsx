@@ -60,7 +60,6 @@ export const CollaborationProvider: React.FC<{ children: React.ReactNode }> = ({
     }, []);
 
     const handleWebSocketEvent = useCallback((event: any) => {
-        console.log("📩 WS Event:", event);
         switch (event.type) {
             case "INVITE_SENT":
                 toast.info(`New invite from ${event.actorEmail} for project "${event.projectName}"`);
@@ -79,51 +78,45 @@ export const CollaborationProvider: React.FC<{ children: React.ReactNode }> = ({
     }, [refreshInvites]);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        // If no token, we can't authenticate the socket generally (unless public)
-        // But for invites we definitely need user context.
-        if (!token) return;
+        const rawToken = localStorage.getItem("access_token");
+        if (!rawToken) return;
 
         let userId: string | undefined;
         try {
-            const decoded = jwtDecode<DecodedToken>(token);
-            // Support both standard 'sub' or custom 'userId' claims
+            const decoded = jwtDecode<DecodedToken>(rawToken);
             userId = decoded.userId || decoded.sub;
         } catch (e) {
-            console.error("Failed to decode token for WS", e);
+            console.error("❌ Failed to decode token for WS", e);
         }
 
         if (!userId) return;
 
-        console.log("🔌 Connecting to WebSocket for user:", userId);
 
         const socket = new SockJS('http://localhost:8080/ws');
         const client = new Client({
             webSocketFactory: () => socket,
             connectHeaders: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${rawToken}`
             },
             reconnectDelay: 5000,
             onConnect: () => {
-                console.log("✅ WebSocket Connected");
                 setIsConnected(true);
 
-                // Subscribe to user-specific topic
                 client.subscribe(`/topic/user/${userId}`, (message: IMessage) => {
                     try {
                         const payload = JSON.parse(message.body);
                         handleWebSocketEvent(payload);
                     } catch (err) {
-                        console.error("WS Message Parse Error", err);
+                        console.error("❌ WS Message Parse Error", err);
                     }
                 });
             },
             onDisconnect: () => {
-                console.log("❌ WebSocket Disconnected");
                 setIsConnected(false);
             },
             onStompError: (frame) => {
-                console.error('WS Broker error: ' + frame.headers['message']);
+                console.error('🛑 WS Broker error: ' + frame.headers['message']);
+                console.error('Full Frame:', frame);
             }
         });
 
