@@ -59,6 +59,12 @@ public class SessionFacade {
      * WebSocket lifecycle disconnect handler.
      * This is the ONLY method that should be used on WS disconnect.
      */
+    public void registerWs(String wsSessionId, UUID userId) {
+        require(wsSessionId, "wsSessionId");
+        require(userId, "userId");
+        sessionRegistry.registerWs(wsSessionId, userId);
+    }
+
     public void wsUserLeft(String wsSessionId) {
         require(wsSessionId, "wsSessionId");
         sessionRegistry.wsUserLeft(wsSessionId);

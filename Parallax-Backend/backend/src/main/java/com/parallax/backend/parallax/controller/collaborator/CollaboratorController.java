@@ -7,6 +7,7 @@ import com.parallax.backend.parallax.dto.collaborator.UpdateCollaboratorRoleRequ
 import com.parallax.backend.parallax.entity.collaborator.ProjectCollaborator;
 import com.parallax.backend.parallax.security.AuthUtil;
 import com.parallax.backend.parallax.service.collaborator.ProjectCollaboratorService;
+import com.parallax.backend.parallax.store.SessionRegistry;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class CollaboratorController {
 
     private final ProjectCollaboratorService collabService;
+    private final SessionRegistry sessionRegistry;
 
     // INVITE COLLABORATOR (CREATES INVITATION)
     @PostMapping
@@ -95,6 +97,7 @@ public class CollaboratorController {
                 c.getUser().getEmail(),
                 c.getRole(),
                 c.getStatus(),
+                sessionRegistry.isUserConnected(c.getUser().getId()),
                 c.getInvitedAt(),
                 c.getAcceptedAt()
         );

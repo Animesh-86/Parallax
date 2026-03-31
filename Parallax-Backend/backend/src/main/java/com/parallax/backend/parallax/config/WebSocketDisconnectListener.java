@@ -22,12 +22,10 @@ public class WebSocketDisconnectListener {
         StompHeaderAccessor accessor =
                 StompHeaderAccessor.wrap(event.getMessage());
 
-        Principal principal = accessor.getUser();
-        if (principal == null) return;
+        String sessionId = accessor.getSessionId();
+        if (sessionId == null) return;
 
-        UUID userId = UUID.fromString(principal.getName());
-
-        // 🔥 Correct cleanup
-        sessionFacade.userLeftEverywhere(userId);
+        // 🔥 Specific WebSocket Cleanup
+        sessionFacade.wsUserLeft(sessionId);
     }
 }

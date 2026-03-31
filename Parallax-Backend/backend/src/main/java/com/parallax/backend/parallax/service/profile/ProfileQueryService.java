@@ -7,6 +7,7 @@ import com.parallax.backend.parallax.exception.ResourceNotFoundException;
 import com.parallax.backend.parallax.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service

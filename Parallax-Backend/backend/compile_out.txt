@@ -1,0 +1,51 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.parallax.backend:parallax >--------------------
+[INFO] Building parallax 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ parallax ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ parallax ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 144 source files with javac [debug parameters release 17] to target\classes
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /C:/CipherVault/Code/Projects/Parallax/Parallax-Backend/backend/src/main/java/com/parallax/backend/parallax/dto/OfferMessage.java:[6,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[INFO] 1 warning
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/CipherVault/Code/Projects/Parallax/Parallax-Backend/backend/src/main/java/com/parallax/backend/parallax/service/collaborator/ProjectCollaboratorServiceImpl.java:[38,23] cannot find symbol
+  symbol:   class SessionRegistry
+  location: class com.parallax.backend.parallax.service.collaborator.ProjectCollaboratorServiceImpl
+[ERROR] /C:/CipherVault/Code/Projects/Parallax/Parallax-Backend/backend/src/main/java/com/parallax/backend/parallax/service/collaborator/ProjectCollaboratorServiceImpl.java:[29,1] cannot find symbol
+  symbol:   class SessionRegistry
+  location: class com.parallax.backend.parallax.service.collaborator.ProjectCollaboratorServiceImpl
+[INFO] 2 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.567 s
+[INFO] Finished at: 2026-03-31T00:51:16+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project parallax: Compilation failure: Compilation failure: 
+[ERROR] /C:/CipherVault/Code/Projects/Parallax/Parallax-Backend/backend/src/main/java/com/parallax/backend/parallax/service/collaborator/ProjectCollaboratorServiceImpl.java:[38,23] cannot find symbol
+[ERROR]   symbol:   class SessionRegistry
+[ERROR]   location: class com.parallax.backend.parallax.service.collaborator.ProjectCollaboratorServiceImpl
+[ERROR] /C:/CipherVault/Code/Projects/Parallax/Parallax-Backend/backend/src/main/java/com/parallax/backend/parallax/service/collaborator/ProjectCollaboratorServiceImpl.java:[29,1] cannot find symbol
+[ERROR]   symbol:   class SessionRegistry
+[ERROR]   location: class com.parallax.backend.parallax.service.collaborator.ProjectCollaboratorServiceImpl
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -138,12 +138,17 @@ public class SessionRegistry {
             return;
         }
 
-        wsToUser.put(wsSessionId, userId);
+        registerWs(wsSessionId, userId);
         wsToProject.put(wsSessionId, projectId);
 
         userJoined(projectId, userId);
 
         log.debug("🟢 WS {} joined project {}", wsSessionId, projectId);
+    }
+
+    public void registerWs(String wsSessionId, UUID userId) {
+        if (wsSessionId == null || userId == null) return;
+        wsToUser.put(wsSessionId, userId);
     }
 
     public void wsUserLeft(String wsSessionId) {
@@ -157,6 +162,10 @@ public class SessionRegistry {
             userLeft(projectId, userId);
             log.debug("🔴 WS {} left project {}", wsSessionId, projectId);
         }
+    }
+
+    public boolean isUserConnected(UUID userId) {
+        return wsToUser.containsValue(userId);
     }
 
     // ================= PRESENCE =================

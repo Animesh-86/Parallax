@@ -35,10 +35,10 @@ type Friend = {
     userId: string;
     name: string;
     email: string;
-    status: 'online' | 'offline';
+    status: 'online' | 'offline' | 'pending';
     avatar: string;
     color: string;
-    avatarUrl?: string; // Added field
+    avatarUrl?: string;
 };
 
 
@@ -141,8 +141,8 @@ export default function Dashboard() {
                                 userId: realId,
                                 email: displayEmail,
                                 name: displayName,
-                                status: 'offline', // No global presence API yet, default offline
-                                avatarUrl: c.avatarUrl, // Pass avatarUrl
+                                status: c.status === 'PENDING' ? 'pending' : (c.isOnline || (c as any).online ? 'online' : 'offline'),
+                                avatarUrl: c.avatarUrl,
                                 avatar: getAvatar(displayEmail),
                                 color: getColor(displayEmail),
                             });
@@ -553,7 +553,8 @@ export default function Dashboard() {
                                                     </div>
                                                 )}
                                                 <div
-                                                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#060910] ${friend.status === 'online' ? 'bg-[#4ADE80]' : 'bg-[#64748B]'
+                                                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#060910] ${friend.status === 'online' ? 'bg-[#4ADE80]' : 
+                                                        friend.status === 'pending' ? 'bg-[#F59E0B]' : 'bg-[#64748B]'
                                                         }`}
                                                 />
                                             </div>
@@ -562,7 +563,8 @@ export default function Dashboard() {
                                                     {displayName}
                                                 </div>
                                                 <div className="text-xs text-white/40 capitalize">
-                                                    {friend.status === 'online' ? 'Online' : 'Offline'}
+                                                    {friend.status === 'online' ? 'Online' : 
+                                                     friend.status === 'pending' ? 'Invitation Pending' : 'Offline'}
                                                 </div>
                                             </div>
                                         </div>

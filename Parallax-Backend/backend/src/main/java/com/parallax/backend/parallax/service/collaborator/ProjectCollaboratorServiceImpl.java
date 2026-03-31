@@ -16,6 +16,7 @@ import com.parallax.backend.parallax.repository.project.ProjectRepository;
 import com.parallax.backend.parallax.repository.UserRepository;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;
+import com.parallax.backend.parallax.store.SessionRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class ProjectCollaboratorServiceImpl implements ProjectCollaboratorServic
         private final ProjectInvitationRepository invitationRepo;
         private final ProjectAccessManager accessManager;
         private final InviteWebSocketPublisher inviteWsPublisher;
+        private final SessionRegistry sessionRegistry;
 
         // INVITE COLLABORATOR (OWNER ONLY)
         @Override
@@ -232,6 +234,7 @@ public class ProjectCollaboratorServiceImpl implements ProjectCollaboratorServic
                                                 c.getUser().getEmail(),
                                                 c.getRole(),
                                                 c.getStatus(),
+                                                sessionRegistry.isUserConnected(c.getUser().getId()),
                                                 c.getInvitedAt(),
                                                 c.getAcceptedAt()))
                                 .collect(Collectors.toList());
@@ -244,7 +247,8 @@ public class ProjectCollaboratorServiceImpl implements ProjectCollaboratorServic
                                                 i.getInvitee().getId(),
                                                 i.getInvitee().getEmail(),
                                                 i.getRole(),
-                                                CollaboratorStatus.PENDING, // Explicitly map to PENDING status
+                                                CollaboratorStatus.PENDING,
+                                                sessionRegistry.isUserConnected(i.getInvitee().getId()),
                                                 i.getCreatedAt(),
                                                 null))
                                 .collect(Collectors.toList());
@@ -266,6 +270,7 @@ public class ProjectCollaboratorServiceImpl implements ProjectCollaboratorServic
                                                 c.getProject().getName(),
                                                 c.getRole(),
                                                 c.getStatus(),
+                                                sessionRegistry.isUserConnected(c.getUser().getId()),
                                                 c.getInvitedAt(),
                                                 c.getAcceptedAt()))
                                 .collect(Collectors.toList());

@@ -13,6 +13,7 @@ export interface Collaborator {
     avatarUrl?: string;
     role: "OWNER" | "COLLABORATOR" | "VIEWER";
     status: "ACCEPTED" | "PENDING";
+    isOnline: boolean;
     invitedAt?: string;
     acceptedAt?: string;
 }

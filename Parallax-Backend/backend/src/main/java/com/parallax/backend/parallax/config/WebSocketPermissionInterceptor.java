@@ -3,12 +3,14 @@ package com.parallax.backend.parallax.config;
 import com.parallax.backend.parallax.security.JwtUtils;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;
+import com.parallax.backend.parallax.service.session.SessionFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,7 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
 
     private final JwtUtils jwtUtils;
     private final ProjectAccessManager accessManager;
+    private final SessionFacade sessionFacade;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -57,7 +60,12 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
             accessor.getSessionAttributes()
                     .put("jwt_expiry", expiresAt);
 
-            return message;
+            String sessionId = accessor.getSessionId();
+            if (sessionId != null) {
+                sessionFacade.registerWs(sessionId, userId);
+            }
+
+            return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
         }
 
         // ================= EXPIRY =================
