@@ -1,6 +1,10 @@
 package com.parallax.backend.parallax.dto.project;
 
+<<<<<<< HEAD
+import com.parallax.backend.parallax.entity.ProjectFile;
+=======
 import com.parallax.backend.parallax.entity.file.ProjectFile;
+>>>>>>> origin/main
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

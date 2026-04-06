@@ -35,8 +35,11 @@ build/
 ### Custom Secrets ###
 .env
 .env.local
+<<<<<<< HEAD
+=======
 .env.*
 !.env.example
+>>>>>>> origin/main
 application-local.properties
 application-*.properties
 !application-h2.properties

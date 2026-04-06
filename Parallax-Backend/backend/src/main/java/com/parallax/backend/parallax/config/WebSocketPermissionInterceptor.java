@@ -3,7 +3,10 @@ package com.parallax.backend.parallax.config;
 import com.parallax.backend.parallax.security.JwtUtils;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;
+<<<<<<< HEAD
 import com.parallax.backend.parallax.service.room.MeetingRoomService;
+=======
+>>>>>>> origin/main
 import com.parallax.backend.parallax.service.session.SessionFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
@@ -25,7 +28,10 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
 
     private final JwtUtils jwtUtils;
     private final ProjectAccessManager accessManager;
+<<<<<<< HEAD
     private final MeetingRoomService meetingRoomService;
+=======
+>>>>>>> origin/main
     private final SessionFacade sessionFacade;
 
     @Override
@@ -95,6 +101,7 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
         }
 
         UUID projectId = extractProjectId(destination);
+<<<<<<< HEAD
         UUID roomId = extractRoomId(destination);
         if (projectId == null) {
             if (roomId == null) {
@@ -114,6 +121,10 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
                 throw new SecurityException("Whiteboard is private in this room");
             }
             return message;
+=======
+        if (projectId == null) {
+            return message; // non-project topic
+>>>>>>> origin/main
         }
 
         Principal principal = accessor.getUser();
@@ -201,6 +212,7 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
         }
         return null;
     }
+<<<<<<< HEAD
 
     private UUID extractRoomId(String destination) {
 
@@ -216,4 +228,6 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
         }
         return null;
     }
+=======
+>>>>>>> origin/main
 }

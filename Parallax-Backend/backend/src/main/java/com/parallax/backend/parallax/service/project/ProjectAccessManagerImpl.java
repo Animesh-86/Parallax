@@ -77,6 +77,10 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
             case OWNER -> EnumSet.allOf(ProjectPermission.class);
 
             case COLLABORATOR -> EnumSet.of(
+<<<<<<< HEAD
+                    ProjectPermission.READ_PROJECT,
+=======
+>>>>>>> origin/main
                     ProjectPermission.READ_TREE,
                     ProjectPermission.READ_FILE,
                     ProjectPermission.READ_COLLABORATORS,
@@ -90,6 +94,10 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
             );
 
             case VIEWER -> EnumSet.of(
+<<<<<<< HEAD
+                    ProjectPermission.READ_PROJECT,
+=======
+>>>>>>> origin/main
                     ProjectPermission.READ_TREE,
                     ProjectPermission.READ_FILE,
                     ProjectPermission.READ_COLLABORATORS

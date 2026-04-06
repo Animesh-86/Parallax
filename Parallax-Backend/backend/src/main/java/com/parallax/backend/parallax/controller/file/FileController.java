@@ -3,7 +3,11 @@ package com.parallax.backend.parallax.controller.file;
 import com.parallax.backend.parallax.dto.file.CreateFileRequest;
 import com.parallax.backend.parallax.dto.project.ProjectFileContentDto;
 import com.parallax.backend.parallax.dto.project.ProjectFileInfoDto;
+<<<<<<< HEAD
+import com.parallax.backend.parallax.entity.ProjectFile;
+=======
 import com.parallax.backend.parallax.entity.file.ProjectFile;
+>>>>>>> origin/main
 import com.parallax.backend.parallax.security.AuthUtil;
 import com.parallax.backend.parallax.service.file.FileService;
 import org.springframework.http.MediaType;

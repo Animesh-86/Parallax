@@ -66,7 +66,11 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
 
             // Fetch Username (for chat display)
             String username = userRepository.findById(userId)
+<<<<<<< HEAD
+                    .map(u -> u.getFullName())
+=======
                     .map(u -> u.getUsername()) // Assuming getUsername() exists
+>>>>>>> origin/main
                     .orElse("Unknown");
 
             // Store attributes for the session

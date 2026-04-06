@@ -1,7 +1,12 @@
 package com.parallax.backend.parallax.service.file;
 
+<<<<<<< HEAD
+import com.parallax.backend.parallax.entity.ProjectFile;
+import com.parallax.backend.parallax.repository.ProjectFileRepository;
+=======
 import com.parallax.backend.parallax.entity.file.ProjectFile;
 import com.parallax.backend.parallax.repository.file.ProjectFileRepository;
+>>>>>>> origin/main
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;

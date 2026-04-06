@@ -1,9 +1,15 @@
 package com.parallax.backend.parallax.service.file;
 
 import com.parallax.backend.parallax.config.StorageProperties;
+<<<<<<< HEAD
+import com.parallax.backend.parallax.entity.ProjectFile;
+import com.parallax.backend.parallax.exception.ResourceNotFoundException;
+import com.parallax.backend.parallax.repository.ProjectFileRepository;
+=======
 import com.parallax.backend.parallax.entity.file.ProjectFile;
 import com.parallax.backend.parallax.exception.ResourceNotFoundException;
 import com.parallax.backend.parallax.repository.file.ProjectFileRepository;
+>>>>>>> origin/main
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;
 import com.parallax.backend.parallax.store.SessionRegistry;
