@@ -12,7 +12,6 @@ import { ParticipantsList } from "../components/workspace/ParticipantsList";
 import { ChatPanel } from "../components/workspace/ChatPanel";
 import { CosmicStars } from "../components/workspace/CosmicStars";
 import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X } from "lucide-react";
-import { FileExplorerSkeleton, EditorSkeleton } from "../components/DashboardSkeletons";
 import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
 
@@ -245,7 +244,12 @@ export default function Workspace() {
               <div className="flex-1 overflow-hidden flex flex-col">
                 {activeLeftTool === "explorer" && (
                   loadingTree ? (
-                    <FileExplorerSkeleton />
+                    <div className="space-y-3 p-4">
+                      <Skeleton className="h-6 w-2/3 bg-white/10" />
+                      <Skeleton className="h-4 w-full bg-white/10" />
+                      <Skeleton className="h-4 w-5/6 bg-white/10" />
+                      <Skeleton className="h-4 w-3/4 bg-white/10" />
+                    </div>
                   ) : (
                     <FileExplorer
                       tree={fileTree}
@@ -350,7 +354,12 @@ export default function Workspace() {
             <div className="flex-1 overflow-hidden relative">
               {loadingContent && (
                 <div className="absolute inset-0 z-50 bg-[#060910]">
-                  <EditorSkeleton />
+                  <div className="space-y-3 p-4">
+                    <Skeleton className="h-6 w-1/3 bg-white/10" />
+                    <Skeleton className="h-4 w-full bg-white/10" />
+                    <Skeleton className="h-4 w-11/12 bg-white/10" />
+                    <Skeleton className="h-4 w-10/12 bg-white/10" />
+                  </div>
                 </div>
               )}
               <CodeEditor
