@@ -8,7 +8,6 @@ Parallax is a modular collaboration platform for building, reviewing, and runnin
 - [Parallax-Backend](Parallax-Backend) - Java Spring Boot backend that provides authentication, REST APIs, WebSocket collaboration, file/project services, and room management.
 - [Parallax-Frontend](Parallax-Frontend) - React and TypeScript frontend for the dashboard, workspace, meeting room, and collaborative tooling.
 - [parallax-python-runner](Parallax-Backend/parallax-python-runner) - Python-based execution helpers and runner containers used for code execution features.
-- [Design](Design) - Archived design assets, prototypes, and reference material.
 
 ## Core Capabilities
 
@@ -44,7 +43,6 @@ Environment-specific values are configured through the backend and frontend `.en
 
 ## Notes
 
-- The root `Design` directory is kept as archived reference material and is not required for normal application execution.
 - The backend and frontend are developed independently, so changes in one module may require a corresponding API or configuration update in the other.
 
 ## Contributing
