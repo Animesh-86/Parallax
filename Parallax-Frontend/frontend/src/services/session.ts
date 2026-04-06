@@ -1,9 +1,11 @@
+import { apiPath } from "./env";
+
 // services/session.ts
 export async function startSession(projectId: string, maxAttempts = 3): Promise<string> {
   const token = localStorage.getItem("access_token");
   if (!token) throw new Error("No access token found");
 
-  const url = `http://localhost:8080/api/session/${projectId}/start`;
+  const url = apiPath(`/api/session/${projectId}/start`);
 
   const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 

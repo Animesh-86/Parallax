@@ -5,6 +5,8 @@ import { CosmicStars } from "../components/workspace/CosmicStars";
 import { DashboardHeader } from "../components/DashboardHeader";
 import { collabApi } from '../services/collabApi';
 import { useCollab } from '../context/CollaborationContext';
+import { FriendSkeleton } from '../components/DashboardSkeletons';
+import { apiPath } from '../services/env';
 
 type Friend = {
     userId: string;
@@ -41,7 +43,7 @@ export default function Friends() {
 
             // Fetch recent projects first
             // Note: Ideally we'd have a specific /friends API, but we're aggregating from projects as per Dashboard logic
-            const res = await fetch("http://localhost:8080/api/projects", {
+            const res = await fetch(apiPath('/api/projects'), {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!res.ok) return; // Handle quietly on this page for now
@@ -133,7 +135,14 @@ export default function Friends() {
             </div>
 
             {loading ? (
-                <div className="text-center py-12 text-white/40">Loading network...</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                </div>
             ) : friends.length === 0 ? (
                 <div className="bg-[#060910] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
                     <div className="text-white/40 font-medium text-lg">No friends found yet</div>

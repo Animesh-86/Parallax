@@ -3,6 +3,7 @@ import { ArrowRight, Chrome, Code2, Github, Lock, Mail, Terminal } from "lucide-
 import { CosmicStars } from "../components/workspace/CosmicStars";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { oauthAuthorizationUrl } from "../services/env";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -69,11 +70,11 @@ export default function Login() {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:8080/oauth2/authorization/google";
+        window.location.href = oauthAuthorizationUrl("google");
     };
 
     const handleGitHubLogin = () => {
-        window.location.href = "http://localhost:8080/oauth2/authorization/github";
+        window.location.href = oauthAuthorizationUrl("github");
     };
 
 

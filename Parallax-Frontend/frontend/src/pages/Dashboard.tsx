@@ -19,9 +19,13 @@ import {
 import { CosmicStars } from "../components/workspace/CosmicStars";
 import { QuickCreateModal } from "../components/modals/QuickCreateModal";
 import { NotificationBell } from "../components/NotificationBell";
-import { collabApi, Collaborator } from '../services/collabApi';
+import { collabApi, Collaborator, MeetingRoom } from '../services/collabApi';
 import { useCollab } from '../context/CollaborationContext';
 import { DashboardHeader } from '../components/DashboardHeader';
+import { CreateRoomModal } from '../components/modals/CreateRoomModal';
+import { ProjectSkeleton, FriendSkeleton, RoomSkeleton } from '../components/DashboardSkeletons';
+import { toast } from "sonner";
+import { apiPath } from '../services/env';
 
 type DashboardProject = {
     id: string;
@@ -52,6 +56,11 @@ export default function Dashboard() {
     const [loadingProjects, setLoadingProjects] = useState(false);
     const [projectsError, setProjectsError] = useState<string | null>(null);
     const [showAllProjects, setShowAllProjects] = useState(false);
+
+    // Dynamic Rooms State
+    const [rooms, setRooms] = useState<MeetingRoom[]>([]);
+    const [loadingRooms, setLoadingRooms] = useState(false);
+    const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
 
 
     // Dynamic Friends State
@@ -180,7 +189,7 @@ export default function Dashboard() {
             }
 
             // 4️⃣ Make request
-            const res = await fetch("http://localhost:8080/api/projects", {
+            const res = await fetch(apiPath('/api/projects'), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -249,7 +258,7 @@ export default function Dashboard() {
                 return;
             }
 
-            const res = await fetch("http://localhost:8080/api/projects", {
+            const res = await fetch(apiPath('/api/projects'), {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -304,12 +313,31 @@ export default function Dashboard() {
 
     const { lastUpdate } = useCollab();
 
+    const fetchRooms = async () => {
+        try {
+            setLoadingRooms(true);
+            const myRooms = await collabApi.getActiveRooms();
+            setRooms(myRooms);
+        } catch (err) {
+            console.error("Fetch rooms error:", err);
+        } finally {
+            setLoadingRooms(false);
+        }
+    };
+    
+    const handleCreateRoom = async (name: string) => {
+        const newRoom = await collabApi.createRoom(name);
+        // Refresh the rooms list in the background
+        fetchRooms();
+        // Return data so the modal can show step 2
+        return { roomCode: newRoom.roomCode, name: newRoom.name };
+    };
+
     useEffect(() => {
         fetchProjects();
+        fetchRooms();
     }, [lastUpdate]);
 
-
-    const rooms: any[] = [];
 
     const teams: any[] = [];
 
@@ -440,9 +468,12 @@ export default function Dashboard() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {loadingProjects && (
-                                <div className="col-span-full text-center py-8 text-white/40 animate-pulse">
-                                    Loading ongoing projects...
-                                </div>
+                                <>
+                                    <ProjectSkeleton />
+                                    <ProjectSkeleton />
+                                    <ProjectSkeleton />
+                                    <ProjectSkeleton />
+                                </>
                             )}
 
                             {projectsError && (
@@ -516,7 +547,11 @@ export default function Dashboard() {
 
                         <div className="bg-[#060910] border border-white/5 rounded-2xl p-4 space-y-2 min-h-[150px]">
                             {loadingCollaborators && (
-                                <div className="text-center text-white/40 text-sm py-4">Finding friends...</div>
+                                <div className="space-y-2">
+                                    <FriendSkeleton />
+                                    <FriendSkeleton />
+                                    <FriendSkeleton />
+                                </div>
                             )}
 
                             {!loadingCollaborators && recentCollaborators.length === 0 && (
@@ -588,13 +623,20 @@ export default function Dashboard() {
                             Your Rooms
                         </h2>
                         <button
+                            onClick={() => setIsCreateRoomModalOpen(true)}
                             className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Create Room
                         </button>
                     </div>
 
-                    {rooms.length === 0 ? (
+                    {loadingRooms ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <RoomSkeleton />
+                            <RoomSkeleton />
+                            <RoomSkeleton />
+                        </div>
+                    ) : rooms.length === 0 ? (
                         <div className="text-center text-white/40 text-sm py-8 bg-[#060910] border border-white/5 rounded-2xl">
                             No active rooms
                         </div>
@@ -610,7 +652,7 @@ export default function Dashboard() {
                                             <h3 className="text-lg font-semibold mb-2">{room.name}</h3>
                                             <div className="flex items-center gap-2 text-sm text-white/50">
                                                 <Users className="w-4 h-4" />
-                                                {room.participants} participants
+                                                Code: {room.roomCode}
                                             </div>
                                         </div>
                                         {room.active && (
@@ -623,7 +665,7 @@ export default function Dashboard() {
                                     </div>
 
                                     <button
-                                        onClick={() => navigate('/room')}
+                                        onClick={() => navigate(`/room/${room.roomCode}`)}
                                         className="w-full px-4 py-2 bg-gradient-to-r from-[#94A3B8]/20 to-[#94A3B8]/20 border border-[#94A3B8]/30 rounded-xl text-sm font-medium hover:from-[#94A3B8]/30 hover:to-[#94A3B8]/30 transition-all"
                                     >
                                         Join Room
@@ -693,10 +735,17 @@ export default function Dashboard() {
                     )}
                 </section>
             </main>
-            <QuickCreateModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
+            <QuickCreateModal 
+                isOpen={isCreateModalOpen} 
+                onClose={() => setIsCreateModalOpen(false)} 
                 onCreateProject={handleCreateProject}
+            />
+
+            <CreateRoomModal
+                isOpen={isCreateRoomModalOpen}
+                onClose={() => setIsCreateRoomModalOpen(false)}
+                onCreateRoom={handleCreateRoom}
+                onJoinRoom={(code) => navigate(`/room/${code}`)}
             />
         </>
     );

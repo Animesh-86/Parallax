@@ -1,6 +1,7 @@
 import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { RunCodeBroadcastMessage, RunCodeRequestWS } from "../types/wsTypes";
+import { wsSockJsEndpoint } from "./env";
 
 let runClient: Client | null = null;
 let currentOutputCallback: ((msg: RunCodeBroadcastMessage) => void) | null = null;
@@ -14,7 +15,7 @@ export function connectRunSocket(projectId: string, onOutput: (msg: RunCodeBroad
     const token = localStorage.getItem("access_token");
 
     runClient = new Client({
-        webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+        webSocketFactory: () => new SockJS(wsSockJsEndpoint),
         reconnectDelay: 5000,
         connectHeaders: {
             Authorization: `Bearer ${token}`,

@@ -1,6 +1,7 @@
 import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { CodeEditMessage } from "../types/wsTypes";
+import { wsSockJsEndpoint } from "./env";
 
 class CodeWebSocketService {
     private client: Client | null = null;
@@ -25,7 +26,7 @@ class CodeWebSocketService {
         const token = localStorage.getItem("access_token");
 
         this.client = new Client({
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+            webSocketFactory: () => new SockJS(wsSockJsEndpoint),
             reconnectDelay: 5000,
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
