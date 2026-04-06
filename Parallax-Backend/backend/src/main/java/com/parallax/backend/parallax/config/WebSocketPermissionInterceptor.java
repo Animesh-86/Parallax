@@ -3,6 +3,7 @@ package com.parallax.backend.parallax.config;
 import com.parallax.backend.parallax.security.JwtUtils;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;
+import com.parallax.backend.parallax.service.room.MeetingRoomService;
 import com.parallax.backend.parallax.service.session.SessionFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
@@ -24,6 +25,7 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
 
     private final JwtUtils jwtUtils;
     private final ProjectAccessManager accessManager;
+    private final MeetingRoomService meetingRoomService;
     private final SessionFacade sessionFacade;
 
     @Override
@@ -93,8 +95,25 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
         }
 
         UUID projectId = extractProjectId(destination);
+        UUID roomId = extractRoomId(destination);
         if (projectId == null) {
-            return message; // non-project topic
+            if (roomId == null) {
+                return message; // non-project, non-room topic
+            }
+
+            Principal principal = accessor.getUser();
+            if (principal == null) {
+                throw new IllegalStateException("Unauthenticated WebSocket user");
+            }
+
+            UUID userId = UUID.fromString(principal.getName());
+            meetingRoomService.requireRoomMember(roomId, userId);
+
+            if (destination.contains("/whiteboard")
+                    && !meetingRoomService.isWhiteboardVisibleToUser(roomId, userId)) {
+                throw new SecurityException("Whiteboard is private in this room");
+            }
+            return message;
         }
 
         Principal principal = accessor.getUser();
@@ -174,6 +193,21 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
 
         for (int i = 0; i < parts.length; i++) {
             if ("projects".equals(parts[i]) && i + 1 < parts.length) {
+                try {
+                    return UUID.fromString(parts[i + 1]);
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        }
+        return null;
+    }
+
+    private UUID extractRoomId(String destination) {
+
+        String[] parts = destination.split("/");
+
+        for (int i = 0; i < parts.length; i++) {
+            if ("rooms".equals(parts[i]) && i + 1 < parts.length) {
                 try {
                     return UUID.fromString(parts[i + 1]);
                 } catch (IllegalArgumentException ignored) {

@@ -4,6 +4,11 @@ import { CosmicStars } from "../workspace/CosmicStars";
 
 export default function DashboardLayout() {
     const location = useLocation();
+    const isFullScreenRoute =
+        location.pathname.startsWith('/editor') ||
+        location.pathname.startsWith('/workspace') ||
+        location.pathname === '/room' ||
+        location.pathname.startsWith('/room/');
     return (
         <div className="min-h-screen bg-[#060910] text-white relative overflow-x-hidden selection:bg-[#38BDF8]/30">
             {/* Global Background Elements */}
@@ -13,8 +18,8 @@ export default function DashboardLayout() {
                 <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#94A3B8] rounded-full blur-[150px]" />
             </div>
 
-            {/* Persistent Header - Hidden on Workspace/Editor pages */}
-            {!location.pathname.startsWith('/editor') && !location.pathname.startsWith('/workspace') && (
+            {/* Persistent Header - Hidden on Workspace/Editor/Room pages */}
+            {!isFullScreenRoute && (
                 <DashboardHeader />
             )}
 

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
@@ -71,7 +71,8 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/workspace" element={<Workspace />} />
           <Route path="/workspace/:projectId" element={<Workspace />} />
-          <Route path="/room" element={<MeetingRoom />} />
+          <Route path="/room" element={<Navigate to="/rooms" replace />} />
+          <Route path="/room/:roomCode" element={<MeetingRoom />} />
           <Route path="/team" element={<TeamWorkspace />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/editor/:projectId" element={<Workspace />} />

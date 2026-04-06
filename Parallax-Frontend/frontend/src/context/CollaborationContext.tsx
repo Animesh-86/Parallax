@@ -67,6 +67,10 @@ export const CollaborationProvider: React.FC<{ children: React.ReactNode }> = ({
                 refreshInvites();
                 setLastUpdate(Date.now());
                 break;
+            case "ROOM_INVITE":
+                toast.info(`Room invite from ${event.actorEmail}: ${event.projectName}`);
+                setLastUpdate(Date.now());
+                break;
             case "INVITE_ACCEPTED":
                 toast.success(`${event.actorEmail} accepted your invite`);
                 setLastUpdate(Date.now());

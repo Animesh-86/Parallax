@@ -6,7 +6,7 @@ import { DashboardHeader } from "../components/DashboardHeader";
 import { collabApi } from '../services/collabApi';
 import { useCollab } from '../context/CollaborationContext';
 import { FriendSkeleton } from '../components/DashboardSkeletons';
-import { apiPath } from '../services/env';
+import { apiBaseUrl } from '../services/env';
 
 type Friend = {
     userId: string;
@@ -43,7 +43,7 @@ export default function Friends() {
 
             // Fetch recent projects first
             // Note: Ideally we'd have a specific /friends API, but we're aggregating from projects as per Dashboard logic
-            const res = await fetch(apiPath('/api/projects'), {
+            const res = await fetch(`${apiBaseUrl}/api/projects`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!res.ok) return; // Handle quietly on this page for now

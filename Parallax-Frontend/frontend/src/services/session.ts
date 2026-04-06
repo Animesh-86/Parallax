@@ -1,11 +1,11 @@
-import { apiPath } from "./env";
-
 // services/session.ts
+import { apiBaseUrl } from "./env";
+
 export async function startSession(projectId: string, maxAttempts = 3): Promise<string> {
   const token = localStorage.getItem("access_token");
   if (!token) throw new Error("No access token found");
 
-  const url = apiPath(`/api/session/${projectId}/start`);
+  const url = `${apiBaseUrl}/api/session/${projectId}/start`;
 
   const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 

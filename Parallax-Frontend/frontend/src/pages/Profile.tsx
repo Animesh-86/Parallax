@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 import ProfileSettings from '../components/profile/ProfileSettings';
 import { ProfileBanner } from '../components/profile/ProfileBanner';
 import { ProfileSkeleton } from '../components/profile/ProfileSkeleton';
-import { apiPath } from '../services/env';
+import { apiBaseUrl } from '../services/env';
 
 type TabView = 'profile' | 'badges' | 'streaks' | 'contributions' | 'settings' | 'preferences';
 
@@ -102,7 +102,7 @@ export default function Profile() {
           const token = localStorage.getItem("access_token");
           if (!token) return;
 
-          const res = await fetch(apiPath('/api/projects'), {
+          const res = await fetch(`${apiBaseUrl}/api/projects`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {

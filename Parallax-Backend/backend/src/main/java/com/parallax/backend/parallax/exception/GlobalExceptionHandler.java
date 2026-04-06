@@ -42,6 +42,16 @@ public class GlobalExceptionHandler {
                                                 "timestamp", Instant.now().toString()));
         }
 
+        @ExceptionHandler(SecurityException.class)
+        public ResponseEntity<Map<String, Object>> handleSecurity(SecurityException ex) {
+                return ResponseEntity
+                                .status(HttpStatus.FORBIDDEN)
+                                .body(Map.of(
+                                                "error", "forbidden",
+                                                "message", ex.getMessage(),
+                                                "timestamp", Instant.now().toString()));
+        }
+
         @ExceptionHandler(RuntimeException.class)
         public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
                 return ResponseEntity

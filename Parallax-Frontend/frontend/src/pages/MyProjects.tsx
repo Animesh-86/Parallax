@@ -12,7 +12,7 @@ import { CosmicStars } from "../components/workspace/CosmicStars";
 import { QuickCreateModal } from "../components/modals/QuickCreateModal";
 import { NotificationBell } from "../components/NotificationBell";
 import { ProjectSkeleton } from '../components/DashboardSkeletons';
-import { apiPath } from '../services/env';
+import { apiBaseUrl } from '../services/env';
 
 type Project = {
     id: string;
@@ -38,7 +38,7 @@ export default function MyProjects() {
             const token = localStorage.getItem("access_token");
             if (!token) return;
 
-            const res = await fetch(apiPath('/api/projects'), {
+            const res = await fetch(`${apiBaseUrl}/api/projects`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -81,7 +81,7 @@ export default function MyProjects() {
             const token = localStorage.getItem("access_token");
             if (!token) return;
 
-            const res = await fetch(apiPath('/api/projects'), {
+            const res = await fetch(`${apiBaseUrl}/api/projects`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -24,6 +24,7 @@ class VoiceWebSocketService {
     private channelId: string | null = null;
     private channelType: "project" | "room" = "project";
     private onSignal: ((signal: SignalMessage | CallParticipantsMessage) => void) | null = null;
+    private verboseLogsEnabled = localStorage.getItem("voice_ws_debug") === "1";
 
     connect(channelId: string, channelType: "project" | "room" = "project", onSignal: (signal: SignalMessage | CallParticipantsMessage) => void, onDisconnect?: () => void): Promise<void> {
         this.channelId = channelId;
@@ -55,7 +56,11 @@ class VoiceWebSocketService {
                 heartbeatIncoming: 10000,
                 heartbeatOutgoing: 10000,
                 reconnectDelay: 5000,
-                debug: (str) => console.log(`[VoiceWS]: ${str}`),
+                debug: (str) => {
+                    if (this.verboseLogsEnabled) {
+                        console.log(`[VoiceWS]: ${str}`);
+                    }
+                },
                 onStompError: (frame) => {
                     console.error('Broker reported error: ' + frame.headers['message']);
                     console.error('Additional details: ' + frame.body);

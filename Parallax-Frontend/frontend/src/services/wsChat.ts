@@ -1,5 +1,5 @@
 
-import { wsChatEndpoint } from "./env";
+import { wsBaseUrl } from "./env";
 
 export type ChatMessage = {
     id?: string;
@@ -42,7 +42,7 @@ class ChatWebSocketService {
         this.isExplicitDisconnect = false;
 
         const token = localStorage.getItem("access_token");
-        const url = wsChatEndpoint(projectId, token ?? "");
+        const url = `${wsBaseUrl}/ws/chat/${projectId}?token=${token}`;
 
         this.ws = new WebSocket(url);
 

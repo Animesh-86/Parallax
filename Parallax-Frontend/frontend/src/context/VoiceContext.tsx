@@ -2,13 +2,13 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 import { voiceWs, SignalMessage, CallParticipantsMessage } from "../services/wsVoice";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
-import { Client } from "@stomp/stompjs";
 
 interface VoiceContextType {
-    joinCall: (projectId: string) => Promise<void>;
+    joinCall: (channelId: string, channelType?: "project" | "room", initialAudio?: boolean, initialVideo?: boolean) => Promise<void>;
     leaveCall: (manual?: boolean) => void;
     toggleMute: () => void;
     toggleVideo: () => void;
+    setIsMuted: (muted: boolean) => void;
     isMuted: boolean;
     isVideoEnabled: boolean;
     isConnected: boolean;
@@ -16,6 +16,13 @@ interface VoiceContextType {
     peers: Map<string, RTCPeerConnection>;
     localStream: MediaStream | null;
     remoteStreams: Map<string, MediaStream>;
+    remoteScreenStreams: Map<string, MediaStream>;
+    peerNames: Map<string, string>;
+    changeAudioSource: (deviceId: string) => Promise<void>;
+    changeVideoSource: (deviceId: string) => Promise<void>;
+    beginScreenShare: (stream: MediaStream) => Promise<void>;
+    endScreenShare: () => Promise<void>;
+    isLocalScreenSharing: boolean;
 }
 
 const VoiceContext = createContext<VoiceContextType | null>(null);
@@ -34,7 +41,6 @@ const RTC_CONFIG: RTCConfiguration = {
     ]
 };
 
-// GLOBAL AudioContext Singleton
 let globalAudioContext: AudioContext | null = null;
 function getAudioContext() {
     if (!globalAudioContext) {
@@ -50,25 +56,21 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [isConnected, setIsConnected] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [activeSpeakers, setActiveSpeakers] = useState<string[]>([]);
-
-    // State for streams
+    const [isLocalScreenSharing, setIsLocalScreenSharing] = useState(false);
     const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+    const [remoteScreenStreams, setRemoteScreenStreams] = useState<Map<string, MediaStream>>(new Map());
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [isVideoEnabled, setIsVideoEnabled] = useState(false);
-
-    // State to force re-render when peers map changes
     const [peersMapVersion, setPeersMapVersion] = useState(0);
+    const [peerNames, setPeerNames] = useState<Map<string, string>>(new Map());
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
     const projectIdRef = useRef<string | null>(null);
     const userIdRef = useRef<string>("");
-
-    // Active Speaker Detection Refs
     const analysersRef = useRef<Map<string, AnalyserNode>>(new Map());
     const speakingFramesRef = useRef<Map<string, number>>(new Map());
 
-    // Get User ID from token
     useEffect(() => {
         const token = localStorage.getItem("access_token");
         if (token) {
@@ -81,26 +83,18 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     }, []);
 
-    const initLocalStream = async () => {
+    const initLocalStream = async (forceMute?: boolean) => {
         try {
-            // V1 Rule 6: Audio Only, acquire once
-            if (localStreamRef.current) return localStreamRef.current;
-
+            const activeMute = forceMute !== undefined ? forceMute : isMuted;
+            if (localStreamRef.current) {
+                localStreamRef.current.getAudioTracks().forEach(t => t.enabled = !activeMute);
+                return localStreamRef.current;
+            }
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             localStreamRef.current = stream;
             setLocalStream(stream);
-
-            // Apply initial mute state
-            stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-
-            // SETUP LOCAL AUDIO ANALYSIS (Crucial Fix: Analyze OWN audio)
-            // We verify userId is present first
-            if (userIdRef.current) {
-                setupAudioAnalysis(userIdRef.current, stream);
-            } else {
-                console.warn("User ID not available during initLocalStream, analytics might fail for self");
-            }
-
+            stream.getAudioTracks().forEach(track => track.enabled = !activeMute);
+            if (userIdRef.current) setupAudioAnalysis(userIdRef.current, stream);
             return stream;
         } catch (error) {
             console.error("Failed to get local audio", error);
@@ -109,61 +103,49 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
+    const negotiate = async (targetId: string, pc: RTCPeerConnection) => {
+        try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            voiceWs.sendSignal({
+                type: "CALL_OFFER",
+                payload: offer,
+                senderId: userIdRef.current,
+                targetId
+            });
+        } catch (err) {
+            console.error(`Negotiation failed with ${targetId}:`, err);
+        }
+    };
+
     const toggleVideo = async () => {
         if (!localStreamRef.current) return;
-
         const videoTracks = localStreamRef.current.getVideoTracks();
-
         if (videoTracks.length > 0) {
-            // Turning OFF: Fully Stop Track to release hardware (Light OFF)
-            videoTracks.forEach(track => {
-                track.stop();
-                localStreamRef.current?.removeTrack(track);
-            });
+            videoTracks.forEach(track => { track.stop(); localStreamRef.current?.removeTrack(track); });
             setIsVideoEnabled(false);
-
-            // Force React re-render of local stream consumers
-            // We create a new object reference to ensure components detect the change
             setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
-
-            // Update peers?
-            // Since we removed the track, we might need to renegotiate or simply let the 'mute' happen.
-            // But stripping the track is cleaner for hardware.
-            // Ideally we should replaceTrack(null) or wait for renegotiation.
-            // For now, this is enough to kill the local preview and light.
-
+            peersRef.current.forEach(async (pc, peerId) => {
+                const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+                if (sender) await sender.replaceTrack(null);
+                negotiate(peerId, pc);
+            });
         } else {
-            // Turning ON
             try {
                 const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 const newVideoTrack = videoStream.getVideoTracks()[0];
-
                 localStreamRef.current.addTrack(newVideoTrack);
                 setIsVideoEnabled(true);
-
-                // Force Update
                 setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
-
-                // Add to existing connections
-                peersRef.current.forEach((pc, peerId) => {
-                    // Check if there is a sender for video
+                peersRef.current.forEach(async (pc, peerId) => {
                     const sender = pc.getSenders().find(s => s.track?.kind === 'video');
                     if (sender) {
-                        sender.replaceTrack(newVideoTrack);
+                        await sender.replaceTrack(newVideoTrack);
                     } else {
                         pc.addTrack(newVideoTrack, localStreamRef.current!);
-                        // Trigger renegotiation if possible/needed
-                        // In this simplified context, we just add the track. 
-                        // If renegotiation is required, we call createPeerConnection(..., true) again usually, 
-                        // but that creates a new offer which might be complex mid-call.
-                        // Assuming stable connection allows "addTrack" -> "negotiationneeded"
-                        pc.createOffer().then(offer => {
-                            pc.setLocalDescription(offer);
-                            voiceWs.sendSignal({ type: "CALL_OFFER", payload: offer, senderId: userIdRef.current, targetId: peerId });
-                        }).catch(e => console.error("Renegotiation failed", e));
                     }
+                    negotiate(peerId, pc);
                 });
-
             } catch (e) {
                 console.error("Failed to enable camera", e);
                 toast.error("Could not access camera");
@@ -171,45 +153,179 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
-    const joinCall = useCallback(async (projectId: string) => {
-        if (isConnected) return;
+    const changeAudioSource = async (deviceId: string) => {
+        if (!localStreamRef.current) return;
+        try {
+            const newStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: deviceId } } });
+            const newTrack = newStream.getAudioTracks()[0];
+            const oldTrack = localStreamRef.current.getAudioTracks()[0];
+            if (oldTrack) { oldTrack.stop(); localStreamRef.current.removeTrack(oldTrack); }
+            localStreamRef.current.addTrack(newTrack);
+            newTrack.enabled = !isMuted;
+            peersRef.current.forEach(pc => {
+                const sender = pc.getSenders().find(s => s.track?.kind === 'audio');
+                if (sender) sender.replaceTrack(newTrack);
+            });
+            setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+            setupAudioAnalysis(userIdRef.current, localStreamRef.current);
+        } catch (e) {
+            console.error("Failed to switch microphone", e);
+            toast.error("Could not switch microphone");
+        }
+    };
 
-        console.log(`📞 V1 Joining call for project: ${projectId}`);
-        projectIdRef.current = projectId;
+    const changeVideoSource = async (deviceId: string) => {
+        if (!localStreamRef.current || !isVideoEnabled) return;
+        try {
+            const newStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } } });
+            const newTrack = newStream.getVideoTracks()[0];
+            const oldTrack = localStreamRef.current.getVideoTracks()[0];
+            if (oldTrack) { oldTrack.stop(); localStreamRef.current.removeTrack(oldTrack); }
+            localStreamRef.current.addTrack(newTrack);
+            peersRef.current.forEach(pc => {
+                const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+                if (sender) sender.replaceTrack(newTrack);
+            });
+            setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+        } catch (e) {
+            console.error("Failed to switch camera", e);
+            toast.error("Could not switch camera");
+        }
+    };
+
+    const beginScreenShare = async (stream: MediaStream) => {
+        if (!localStreamRef.current) return;
+        const screenTrack = stream.getVideoTracks()[0];
+        if (!screenTrack) return;
+
+        setIsLocalScreenSharing(true);
+        const oldVideoTrack = localStreamRef.current.getVideoTracks()[0];
+        if (oldVideoTrack) { oldVideoTrack.stop(); localStreamRef.current.removeTrack(oldVideoTrack); }
+        localStreamRef.current.addTrack(screenTrack);
+
+        screenTrack.onended = () => { endScreenShare(); };
+
+        peersRef.current.forEach(async (pc, peerId) => {
+            const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+            if (sender) {
+                await sender.replaceTrack(screenTrack);
+            } else {
+                pc.addTrack(screenTrack, localStreamRef.current!);
+            }
+            negotiate(peerId, pc);
+        });
+
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+    };
+
+    const endScreenShare = async () => {
+        if (!localStreamRef.current) return;
+
+        // Handle both explicit stop from our UI and browser-level "Stop sharing" events.
+        const hadVideoTrack = localStreamRef.current.getVideoTracks().length > 0;
+        if (!hadVideoTrack && !isLocalScreenSharing) return;
+
+        setIsLocalScreenSharing(false);
+        const tracks = localStreamRef.current.getVideoTracks();
+        tracks.forEach(track => { track.stop(); localStreamRef.current?.removeTrack(track); });
+
+        // Signaling is done via regular track update logic, which should trigger Spotlight reset if others watchCALL_JOIN/PRESENCE
+        // But for local user, we need to explicitly re-enable camera if it was on
+        if (isVideoEnabled) {
+            try {
+                const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const newVideoTrack = videoStream.getVideoTracks()[0];
+                localStreamRef.current.addTrack(newVideoTrack);
+                peersRef.current.forEach(async (pc, peerId) => {
+                    const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+                    if (sender) await sender.replaceTrack(newVideoTrack);
+                    negotiate(peerId, pc);
+                });
+            } catch (e) {
+                console.error("Failed to re-acquire camera", e);
+                setIsVideoEnabled(false);
+                peersRef.current.forEach(async (pc, peerId) => {
+                    const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+                    if (sender) await sender.replaceTrack(null);
+                    negotiate(peerId, pc);
+                });
+            }
+        } else {
+            peersRef.current.forEach(async (pc, peerId) => {
+                const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+                if (sender) await sender.replaceTrack(null);
+                negotiate(peerId, pc);
+            });
+        }
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+        
+        // Explicitly notify others about sharing stop
+        voiceWs.sendSignal({
+            type: "CALL_SCREEN_SHARE",
+            senderId: userIdRef.current,
+            payload: { isSharing: false }
+        });
+    };
+
+    const joinCall = useCallback(async (channelId: string, channelType: "project" | "room" = "project", initialAudio: boolean = true, initialVideo: boolean = false) => {
+        if (isConnected) return;
+        projectIdRef.current = channelId;
+        setIsMuted(!initialAudio);
+        setIsVideoEnabled(initialVideo);
 
         try {
-            await initLocalStream();
-            await voiceWs.connect(
-                projectId,
-                handleSignal,
-                () => {
-                    // On Disconnect Callback (from wsVoice)
-                    console.warn("⚠️ Voice WS Disconnected (Timeout or Network)");
-                    // We call leaveCall but suppress the "Left voice channel" toast if needed, 
-                    // or show a different one.
-                    handleDisconnection();
+            const stream = await initLocalStream(!initialAudio); 
+            if (stream) {
+                stream.getAudioTracks().forEach(t => t.enabled = initialAudio);
+                if (initialVideo) {
+                    try {
+                        const vStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        const vTrack = vStream.getVideoTracks()[0];
+                        stream.addTrack(vTrack);
+                        setLocalStream(new MediaStream(stream.getTracks()));
+                    } catch (e) {
+                        console.warn("Lobby video failed", e);
+                        setIsVideoEnabled(false);
+                    }
                 }
-            );
+            }
 
+            await voiceWs.connect(channelId, channelType, handleSignal, handleDisconnection);
             setIsConnected(true);
+
+            const getDisplayName = () => {
+                const token = localStorage.getItem("access_token");
+                if (!token) return "User";
+                try {
+                    const decoded: any = jwtDecode(token);
+                    const name = decoded.displayName || decoded.fullName || decoded.username || decoded.name || decoded.sub?.substring(0, 8);
+                    return name || "User";
+                } catch { return "User"; }
+            };
+
+            voiceWs.sendSignal({ 
+                type: "CALL_JOIN", 
+                senderId: userIdRef.current,
+                payload: { displayName: getDisplayName() } 
+            });
             toast.success("Joined voice channel");
         } catch (error) {
             console.error("Failed to join voice call:", error);
-            toast.error("Failed to connect to voice server");
+            // toast.error("Failed to connect to voice server");
             setIsConnected(false);
         }
-    }, [isConnected]);
+    }, [isConnected, initLocalStream]);
 
-    // Internal cleaner without Toast for timeouts
     const handleDisconnection = useCallback(() => {
         cleanupVoiceState();
-        // toast.error("Voice connection lost (Timeout)"); // User requested no popup on timeout
     }, []);
 
     const cleanupVoiceState = () => {
         peersRef.current.forEach(pc => pc.close());
         peersRef.current.clear();
         setRemoteStreams(new Map());
+        setRemoteScreenStreams(new Map());
+        setPeerNames(new Map());
         setPeersMapVersion(v => v + 1);
 
         if (localStreamRef.current) {
@@ -220,33 +336,24 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         setIsConnected(false);
         setIsVideoEnabled(false);
+        setIsLocalScreenSharing(false);
         setActiveSpeakers([]);
         analysersRef.current.clear();
         speakingFramesRef.current.clear();
     };
 
     const leaveCall = useCallback((manual: boolean = false) => {
-        console.group("leaveCall Trace");
-        console.trace("Who called leaveCall?");
-        console.groupEnd();
-
         if (!isConnected) return;
-
         voiceWs.disconnect();
         cleanupVoiceState();
-
-        if (manual) {
-            toast.info("You left the voice channel");
-        }
+        if (manual) toast.info("You left the voice channel");
     }, [isConnected]);
 
     const handleSignal = async (signal: SignalMessage | CallParticipantsMessage) => {
         if ('participants' in signal) {
             const { participants } = signal;
             participants.forEach(pId => {
-                if (pId !== userIdRef.current) {
-                    createPeerConnection(pId, false);
-                }
+                if (pId !== userIdRef.current) createPeerConnection(pId, false);
             });
             return;
         }
@@ -254,10 +361,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const { type, payload, senderId, targetId } = signal;
         if (targetId && targetId !== userIdRef.current) return;
 
-        console.log(`📶 Received V1 signal: ${type} from ${senderId}`);
-
         switch (type) {
             case "CALL_JOIN":
+                if (payload?.displayName) {
+                    setPeerNames(prev => new Map(prev).set(senderId, payload.displayName));
+                }
                 createPeerConnection(senderId, true);
                 break;
             case "CALL_OFFER":
@@ -269,6 +377,20 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             case "CALL_ICE":
                 await handleIceCandidate(senderId, payload);
                 break;
+            case "CALL_SCREEN_SHARE":
+                setRemoteScreenStreams(prev => {
+                    const next = new Map(prev);
+                    if (payload.isSharing) {
+                        // The track itself will arrive via joinCall/ontrack, 
+                        // this signal just helps our UI know which peer is sharing.
+                        // We set a marker here.
+                        next.set(senderId, new MediaStream()); // Placeholder to indicate sharing
+                    } else {
+                        next.delete(senderId);
+                    }
+                    return next;
+                });
+                break;
             case "CALL_LEAVE":
                 removePeer(senderId);
                 break;
@@ -279,7 +401,6 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         let pc = peersRef.current.get(targetId);
 
         if (!pc) {
-            console.log(`🔗 Creating PC for ${targetId}. Initiator: ${initiator}`);
             pc = new RTCPeerConnection(RTC_CONFIG);
             peersRef.current.set(targetId, pc);
             setPeersMapVersion(v => v + 1);
@@ -287,96 +408,72 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (localStreamRef.current) {
             localStreamRef.current.getTracks().forEach(track => {
-                if (pc!.getSenders().some(s => s.track?.id === track.id)) return;
-                pc!.addTrack(track, localStreamRef.current!);
+                if (!pc!.getSenders().some(s => s.track?.id === track.id)) {
+                    pc!.addTrack(track, localStreamRef.current!);
+                }
             });
         }
 
         pc.ontrack = (event) => {
-            console.log(`🔊/📹 Received remote track from ${targetId} (${event.track.kind})`);
             const stream = event.streams[0];
-
             setRemoteStreams(prev => {
                 const newMap = new Map(prev);
                 newMap.set(targetId, stream);
                 return newMap;
             });
 
-            if (event.track.kind === 'audio') {
-                setupAudioAnalysis(targetId, stream);
-            }
+            const handleTrackEvent = () => {
+                setPeersMapVersion(v => v + 1);
+            };
+
+            event.track.onmute = handleTrackEvent;
+            event.track.onunmute = handleTrackEvent;
+            event.track.onended = handleTrackEvent;
+
+            if (event.track.kind === 'audio') setupAudioAnalysis(targetId, stream);
         };
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
-                voiceWs.sendSignal({
-                    type: "CALL_ICE",
-                    payload: event.candidate,
-                    senderId: userIdRef.current,
-                    targetId
-                });
+                voiceWs.sendSignal({ type: "CALL_ICE", payload: event.candidate, senderId: userIdRef.current, targetId });
             }
         };
 
-        if (initiator) {
-            try {
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                voiceWs.sendSignal({
-                    type: "CALL_OFFER",
-                    payload: offer,
-                    senderId: userIdRef.current,
-                    targetId
-                });
-            } catch (err) {
-                console.error("Error creating offer", err);
-            }
-        }
-
+        if (initiator) await negotiate(targetId, pc);
         return pc;
     };
 
     const handleOffer = async (senderId: string, offer: RTCSessionDescriptionInit) => {
-        const pc = await createPeerConnection(senderId, false);
+        let pc = peersRef.current.get(senderId);
+        if (!pc) pc = await createPeerConnection(senderId, false);
         if (!pc) return;
 
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-
-        voiceWs.sendSignal({
-            type: "CALL_ANSWER",
-            payload: answer,
-            senderId: userIdRef.current,
-            targetId: senderId
-        });
+        try {
+            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            voiceWs.sendSignal({ type: "CALL_ANSWER", payload: answer, senderId: userIdRef.current, targetId: senderId });
+        } catch (err) {
+            console.error("Error in handleOffer", err);
+        }
     };
 
     const handleAnswer = async (senderId: string, answer: RTCSessionDescriptionInit) => {
         const pc = peersRef.current.get(senderId);
-        if (pc) {
-            await pc.setRemoteDescription(new RTCSessionDescription(answer));
-        }
+        if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
     };
 
     const handleIceCandidate = async (senderId: string, candidate: RTCIceCandidateInit) => {
         const pc = peersRef.current.get(senderId);
-        if (pc) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        }
+        if (pc) await pc.addIceCandidate(new RTCIceCandidate(candidate));
     };
 
     const removePeer = (senderId: string) => {
-        // Double check we don't process our own leave signal if it somehow loops back
         if (senderId === userIdRef.current) return;
-
         const pc = peersRef.current.get(senderId);
         if (pc) {
             const analyser = analysersRef.current.get(senderId);
-            if (analyser) {
-                analyser.disconnect();
-                analysersRef.current.delete(senderId);
-            }
+            if (analyser) { analyser.disconnect(); analysersRef.current.delete(senderId); }
             pc.close();
             peersRef.current.delete(senderId);
             setRemoteStreams(prev => {
@@ -384,21 +481,24 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 newMap.delete(senderId);
                 return newMap;
             });
+            setPeerNames(prev => {
+                const newMap = new Map(prev);
+                newMap.delete(senderId);
+                return newMap;
+            });
+            setRemoteScreenStreams(prev => {
+                const next = new Map(prev);
+                next.delete(senderId);
+                return next;
+            });
             setPeersMapVersion(v => v + 1);
-            // toast.info("User left call"); // Removed per user request to avoid ghost notification spam
-        } else {
-            // If peer didn't exist in our map, it might be a ghost or duplicate signal.
-            // Suppress the toast.
-            console.warn(`Ignored CALL_LEAVE from unknown/unconnected peer: ${senderId}`);
         }
     };
 
     const toggleMute = () => {
         if (localStreamRef.current) {
             const newState = !isMuted;
-            localStreamRef.current.getAudioTracks().forEach(track => {
-                track.enabled = !newState;
-            });
+            localStreamRef.current.getAudioTracks().forEach(track => { track.enabled = !newState; });
             setIsMuted(newState);
         }
     };
@@ -406,121 +506,49 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const setupAudioAnalysis = (userId: string, stream: MediaStream) => {
         const ctx = getAudioContext();
         if (!ctx) return;
-
-        // V1 Phase 2.2: Source -> Analyser
         const source = ctx.createMediaStreamSource(stream);
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 512;
         source.connect(analyser);
-
         analysersRef.current.set(userId, analyser);
         speakingFramesRef.current.set(userId, 0);
     };
 
     useEffect(() => {
         let animationFrameId: number;
-
         const detectSpeaking = () => {
             if (!isConnected) return;
             const speaking: string[] = [];
-
-            // Reduced threshold to 20 for easier triggering
             const SPEAKING_THRESHOLD = 20;
 
             analysersRef.current.forEach((analyser, userId) => {
                 const dataArray = new Uint8Array(analyser.frequencyBinCount);
                 analyser.getByteFrequencyData(dataArray);
-
                 const sum = dataArray.reduce((acc, val) => acc + val, 0);
                 const average = sum / dataArray.length;
-
                 let frames = speakingFramesRef.current.get(userId) || 0;
-
-                if (average > SPEAKING_THRESHOLD) {
-                    frames++;
-                } else {
-                    frames = Math.max(0, frames - 1);
-                }
+                if (average > SPEAKING_THRESHOLD) frames++;
+                else frames = Math.max(0, frames - 1);
                 speakingFramesRef.current.set(userId, frames);
-
-                if (frames > 3) { // Reduced frame count for faster response
-                    speaking.push(userId);
-                }
+                if (frames > 3) speaking.push(userId);
             });
 
             setActiveSpeakers(prev => {
                 const isSame = prev.length === speaking.length && prev.every(id => speaking.includes(id));
                 return isSame ? prev : speaking;
             });
-
             animationFrameId = requestAnimationFrame(detectSpeaking);
         };
-
         const raf = requestAnimationFrame(detectSpeaking);
-        return () => {
-            cancelAnimationFrame(raf);
-        };
+        return () => { cancelAnimationFrame(raf); };
     }, [isConnected]);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.code === "Space" && isMuted && isConnected && !e.repeat) {
-                const active = document.activeElement;
-                const tagName = active?.tagName;
-                const isInput = tagName === "INPUT" || tagName === "TEXTAREA";
-                const isEditor = active?.classList.contains("monaco-mouse-cursor-text") || active?.closest(".monaco-editor");
-
-                if (isInput || isEditor) return;
-
-                e.preventDefault();
-
-                if (localStreamRef.current) {
-                    localStreamRef.current.getAudioTracks().forEach(t => t.enabled = true);
-                    setIsMuted(false);
-                }
-            }
-        };
-
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.code === "Space" && !isMuted && isConnected) {
-                if (localStreamRef.current) {
-                    localStreamRef.current.getAudioTracks().forEach(t => t.enabled = false);
-                    setIsMuted(true);
-                }
-            }
-        };
-
-        const handleBlur = () => {
-            if (!isMuted && isConnected && localStreamRef.current) {
-                localStreamRef.current.getAudioTracks().forEach(t => t.enabled = false);
-                setIsMuted(true);
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("keyup", handleKeyUp);
-        window.addEventListener("blur", handleBlur);
-
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("keyup", handleKeyUp);
-            window.removeEventListener("blur", handleBlur);
-        };
-    }, [isConnected, isMuted]);
 
     return (
         <VoiceContext.Provider value={{
-            joinCall,
-            leaveCall,
-            toggleMute,
-            toggleVideo,
-            isMuted,
-            isVideoEnabled,
-            isConnected,
-            activeSpeakers,
-            peers: peersRef.current,
-            localStream,
-            remoteStreams
+            joinCall, leaveCall, toggleMute, toggleVideo, setIsMuted,
+            isMuted, isVideoEnabled, isConnected, activeSpeakers,
+            peers: peersRef.current, localStream, remoteStreams, remoteScreenStreams, peerNames,
+            changeAudioSource, changeVideoSource, beginScreenShare, endScreenShare, isLocalScreenSharing
         }}>
             {children}
         </VoiceContext.Provider>

@@ -11,6 +11,7 @@ import {
     MessageCircle,
     Play,
     Plus,
+    Trash2,
     UserPlus,
     Users,
     Video,
@@ -25,7 +26,7 @@ import { DashboardHeader } from '../components/DashboardHeader';
 import { CreateRoomModal } from '../components/modals/CreateRoomModal';
 import { ProjectSkeleton, FriendSkeleton, RoomSkeleton } from '../components/DashboardSkeletons';
 import { toast } from "sonner";
-import { apiPath } from '../services/env';
+import { apiBaseUrl } from '../services/env';
 
 type DashboardProject = {
     id: string;
@@ -189,7 +190,7 @@ export default function Dashboard() {
             }
 
             // 4️⃣ Make request
-            const res = await fetch(apiPath('/api/projects'), {
+            const res = await fetch(`${apiBaseUrl}/api/projects`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -258,7 +259,7 @@ export default function Dashboard() {
                 return;
             }
 
-            const res = await fetch(apiPath('/api/projects'), {
+            const res = await fetch(`${apiBaseUrl}/api/projects`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -325,12 +326,23 @@ export default function Dashboard() {
         }
     };
     
-    const handleCreateRoom = async (name: string) => {
-        const newRoom = await collabApi.createRoom(name);
+    const handleCreateRoom = async (name: string, collaborationMode: 'INTERVIEW' | 'TEAM') => {
+        const newRoom = await collabApi.createRoom(name, collaborationMode);
         // Refresh the rooms list in the background
         fetchRooms();
         // Return data so the modal can show step 2
         return { roomCode: newRoom.roomCode, name: newRoom.name };
+    };
+
+    const handleDeleteRoom = async (roomId: string) => {
+        if (!window.confirm('Delete this room? This cannot be undone.')) return;
+        try {
+            await collabApi.deleteRoom(roomId);
+            fetchRooms();
+        } catch (err) {
+            console.error('Delete room error:', err);
+            toast.error('Failed to delete room');
+        }
     };
 
     useEffect(() => {
@@ -340,6 +352,7 @@ export default function Dashboard() {
 
 
     const teams: any[] = [];
+    const createRoomButtonClass = "px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2";
 
     const projectsToShow = showAllProjects ? projects : projects.slice(0, 4);
 
@@ -386,9 +399,9 @@ export default function Dashboard() {
 
                                 <div className="flex items-center gap-4">
                                     <button
-                                        onClick={() => navigate('/room')}
-                                        className="px-6 py-3 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl font-medium hover:shadow-xl hover:shadow-[#38BDF8]/40 transition-all duration-300 flex items-center gap-2">
-                                        <Plus className="w-5 h-5" />
+                                        onClick={() => setIsCreateRoomModalOpen(true)}
+                                        className={createRoomButtonClass}>
+                                        <Plus className="w-4 h-4" />
                                         Create Room
                                     </button>
                                     <button
@@ -624,7 +637,7 @@ export default function Dashboard() {
                         </h2>
                         <button
                             onClick={() => setIsCreateRoomModalOpen(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2">
+                            className={createRoomButtonClass}>
                             <Plus className="w-4 h-4" />
                             Create Room
                         </button>
@@ -654,14 +667,32 @@ export default function Dashboard() {
                                                 <Users className="w-4 h-4" />
                                                 Code: {room.roomCode}
                                             </div>
-                                        </div>
-                                        {room.active && (
-                                            <div
-                                                className="flex items-center gap-1.5 px-2 py-1 bg-[#4ADE80]/20 border border-[#4ADE80]/30 rounded-full">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
-                                                <span className="text-xs text-[#4ADE80]">Live</span>
+                                            <div className="mt-2 text-xs text-white/60">
+                                                {room.codeOpen ? 'Join by code: Open' : 'Join by code: Invite-only'}
                                             </div>
-                                        )}
+                                            <div className="mt-1 text-[11px] text-white/40">
+                                                Mode: {room.collaborationMode}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {room.active && (
+                                                <div
+                                                    className="flex items-center gap-1.5 px-2 py-1 bg-[#4ADE80]/20 border border-[#4ADE80]/30 rounded-full">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
+                                                    <span className="text-xs text-[#4ADE80]">Live</span>
+                                                </div>
+                                            )}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteRoom(room.id);
+                                                }}
+                                                className="p-1.5 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
+                                                title="Delete room"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <button

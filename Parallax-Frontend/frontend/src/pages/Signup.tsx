@@ -4,7 +4,7 @@ import { CosmicStars } from "../components/workspace/CosmicStars";
 
 import { useNavigate } from 'react-router-dom';
 import api from "../services/api";
-import { oauthAuthorizationUrl } from "../services/env";
+import { apiBaseUrl } from "../services/env";
 
 export default function Signup() {
     const [formData, setFormData] = useState({
@@ -75,11 +75,11 @@ export default function Signup() {
 
     // SOCIAL AUTH
     const handleGoogleSignup = () => {
-        window.location.href = oauthAuthorizationUrl("google");
+        window.location.href = `${apiBaseUrl}/oauth2/authorization/google`;
     };
 
     const handleGitHubSignup = () => {
-        window.location.href = oauthAuthorizationUrl("github");
+        window.location.href = `${apiBaseUrl}/oauth2/authorization/github`;
     };
 
     return (
