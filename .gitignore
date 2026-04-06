@@ -43,7 +43,14 @@ mvnw.cmd
 # Secrets
 **/.env
 **/.env.local
+**/.env.*
+!**/.env.example
 **/application-local.properties
 **/application-*.properties
 !**/application-h2.properties
 !**/application.properties
+**/client_secret_*.json
+**/credentials*.json
+**/*.key
+**/*.pem
+**/secrets/

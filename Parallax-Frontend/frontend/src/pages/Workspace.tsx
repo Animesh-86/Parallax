@@ -12,6 +12,9 @@ import { ParticipantsList } from "../components/workspace/ParticipantsList";
 import { ChatPanel } from "../components/workspace/ChatPanel";
 import { CosmicStars } from "../components/workspace/CosmicStars";
 import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X } from "lucide-react";
+import { FileExplorerSkeleton, EditorSkeleton } from "../components/DashboardSkeletons";
+import { Skeleton } from "../components/ui/skeleton";
+import { apiBaseUrl } from "../services/env";
 
 type FileNode = {
   name: string;
@@ -22,7 +25,7 @@ type FileNode = {
 
 /* ✅ FIXED AXIOS INSTANCE (DO NOT REMOVE) */
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: `${apiBaseUrl}/api`,
   withCredentials: true,
 });
 
@@ -62,6 +65,8 @@ export default function Workspace() {
 
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
   const [leftPanelWidth, setLeftPanelWidth] = useState(250);
+  const [loadingTree, setLoadingTree] = useState(false);
+  const [loadingContent, setLoadingContent] = useState(false);
 
 
   /* Right Panel Tools State */
@@ -79,19 +84,23 @@ export default function Workspace() {
   /* Project Name Management */
   const location = useLocation();
   const state = location.state as { projectName?: string } | null;
-  const [projectName, setProjectName] = useState<string>(state?.projectName || "Loading...");
+  const [projectName, setProjectName] = useState<string>(state?.projectName || "");
+  const [loadingName, setLoadingName] = useState(!state?.projectName);
 
   useEffect(() => {
     const fetchProjectName = async () => {
       if (!projectId) return;
       try {
-        if (projectName === "Loading..." || !state?.projectName) {
+        if (!projectName || !state?.projectName) {
+          setLoadingName(true);
           const res = await api.get(`/projects/${projectId}`);
           setProjectName(res.data.name);
         }
       } catch (err) {
         console.error("Failed to fetch project details", err);
         setProjectName("Parallax Workspace");
+      } finally {
+        setLoadingName(false);
       }
     };
     fetchProjectName();
@@ -101,8 +110,15 @@ export default function Workspace() {
 
   const loadTree = async () => {
     if (!projectId) return;
-    const res = await api.get(`/projects/${projectId}/files/tree`);
-    setFileTree(res.data);
+    try {
+      setLoadingTree(true);
+      const res = await api.get(`/projects/${projectId}/files/tree`);
+      setFileTree(res.data);
+    } catch (e) {
+      console.error("Tree load fail", e);
+    } finally {
+      setLoadingTree(false);
+    }
   };
 
   const openFile = async (path: string) => {
@@ -112,12 +128,19 @@ export default function Workspace() {
       setOpenFiles((prev) => [...prev, path]);
     }
 
-    const res = await api.get(`/projects/${projectId}/file`, {
-      params: { path },
-    });
+    try {
+      setLoadingContent(true);
+      const res = await api.get(`/projects/${projectId}/file`, {
+        params: { path },
+      });
 
-    setActiveFile(path);
-    setFileContent(res.data.content ?? "");
+      setActiveFile(path);
+      setFileContent(res.data.content ?? "");
+    } catch (e) {
+      console.error("File load fail", e);
+    } finally {
+      setLoadingContent(false);
+    }
   };
 
   const closeFile = (path: string) => {
@@ -221,13 +244,17 @@ export default function Workspace() {
             <div style={{ width: leftPanelWidth }} className="flex-shrink-0 flex bg-[#060910] border-r border-white/5">
               <div className="flex-1 overflow-hidden flex flex-col">
                 {activeLeftTool === "explorer" && (
-                  <FileExplorer
-                    tree={fileTree}
-                    onSelect={openFile}
-                    onCreate={createEntry}
-                    onDelete={deleteEntry}
-                    onClose={() => setActiveLeftTool(null)}
-                  />
+                  loadingTree ? (
+                    <FileExplorerSkeleton />
+                  ) : (
+                    <FileExplorer
+                      tree={fileTree}
+                      onSelect={openFile}
+                      onCreate={createEntry}
+                      onDelete={deleteEntry}
+                      onClose={() => setActiveLeftTool(null)}
+                    />
+                  )
                 )}
 
                 {activeLeftTool === "git" && (
@@ -303,7 +330,7 @@ export default function Workspace() {
 
           <div className="flex-1 min-w-0 flex flex-col">
             <EditorTabs
-              projectName={projectName}
+              projectName={loadingName ? <Skeleton className="h-5 w-32 inline-block" /> : projectName}
               files={openFiles}
               activeFile={activeFile}
               onSelect={(path) => {
@@ -320,7 +347,12 @@ export default function Workspace() {
               }}
             />
 
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
+              {loadingContent && (
+                <div className="absolute inset-0 z-50 bg-[#060910]">
+                  <EditorSkeleton />
+                </div>
+              )}
               <CodeEditor
                 filePath={activeFile}
                 content={fileContent}

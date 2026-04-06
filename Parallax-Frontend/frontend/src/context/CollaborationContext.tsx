@@ -4,6 +4,7 @@ import SockJS from "sockjs-client";
 import { collabApi, Invitation, Collaborator } from "../services/collabApi";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
+import { wsSockJsEndpoint } from "../services/env";
 
 interface CollabContextType {
     pendingInvites: Invitation[];
@@ -92,7 +93,7 @@ export const CollaborationProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!userId) return;
 
 
-        const socket = new SockJS('http://localhost:8080/ws');
+        const socket = new SockJS(wsSockJsEndpoint);
         const client = new Client({
             webSocketFactory: () => socket,
             connectHeaders: {

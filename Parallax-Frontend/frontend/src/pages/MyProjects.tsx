@@ -11,6 +11,8 @@ import {
 import { CosmicStars } from "../components/workspace/CosmicStars";
 import { QuickCreateModal } from "../components/modals/QuickCreateModal";
 import { NotificationBell } from "../components/NotificationBell";
+import { ProjectSkeleton } from '../components/DashboardSkeletons';
+import { apiPath } from '../services/env';
 
 type Project = {
     id: string;
@@ -36,7 +38,7 @@ export default function MyProjects() {
             const token = localStorage.getItem("access_token");
             if (!token) return;
 
-            const res = await fetch("http://localhost:8080/api/projects", {
+            const res = await fetch(apiPath('/api/projects'), {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -79,7 +81,7 @@ export default function MyProjects() {
             const token = localStorage.getItem("access_token");
             if (!token) return;
 
-            const res = await fetch("http://localhost:8080/api/projects", {
+            const res = await fetch(apiPath('/api/projects'), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -178,7 +180,16 @@ export default function MyProjects() {
 
                 {/* Projects Grid */}
                 {loading ? (
-                    <div className="text-center py-12 text-white/40">Loading your universe...</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <ProjectSkeleton />
+                        <ProjectSkeleton />
+                        <ProjectSkeleton />
+                        <ProjectSkeleton />
+                        <ProjectSkeleton />
+                        <ProjectSkeleton />
+                        <ProjectSkeleton />
+                        <ProjectSkeleton />
+                    </div>
                 ) : filteredProjects.length === 0 ? (
                     <div className="text-center py-12 border border-dashed border-white/10 rounded-3xl">
                         <div className="text-xl font-semibold mb-2">No projects found</div>
