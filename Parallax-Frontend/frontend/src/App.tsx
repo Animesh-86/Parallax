@@ -20,6 +20,7 @@ import Status from "./pages/Status";
 import Contact from "./pages/Contact";
 import RequireAuth from "./auth/RequireAuth";
 import OAuthSuccessPage from "./pages/0AuthSuccessPage";
+import OAuthFailurePage from "./pages/OAuthFailurePage";
 import CodeEditor from "./components/workspace/CodeEditor";
 import { Outlet } from "react-router-dom";
 import { CollaborationProvider } from "./context/CollaborationContext";
@@ -91,6 +92,7 @@ export default function App() {
 
         {/* OAuth callback (public) */}
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
+        <Route path="/oauth-failure" element={<OAuthFailurePage />} />
       </Routes>
     </BrowserRouter>
   );

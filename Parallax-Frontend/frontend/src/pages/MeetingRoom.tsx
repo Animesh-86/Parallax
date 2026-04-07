@@ -52,6 +52,7 @@ import { useVoice } from '../context/VoiceContext';
 import { collabApi, MeetingRoom as RoomData, RoomSettingsUpdatePayload } from '../services/collabApi';
 import { voiceWs } from '../services/wsVoice';
 import Whiteboard from '../components/workspace/Whiteboard';
+import { StompSubscription } from '@stomp/stompjs';
 
 // ─── TYPES ───────────────────────────────────────────────
 
@@ -142,6 +143,7 @@ function VideoTile({
   onPin,
   isPinned,
   hasHandRaised,
+  forceVideoOff,
 }: {
   stream: MediaStream | null;
   label: string;
@@ -153,10 +155,11 @@ function VideoTile({
   onPin?: () => void;
   isPinned?: boolean;
   hasHandRaised?: boolean;
+  forceVideoOff?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const hasVideo = !!stream?.getVideoTracks().some(t => t.enabled && t.readyState === 'live' && !t.muted);
+  const hasVideo = !forceVideoOff && !!stream?.getVideoTracks().some(t => t.enabled && t.readyState === 'live' && !t.muted);
   const color = getColor(label);
 
   useEffect(() => {
@@ -446,6 +449,7 @@ export default function MeetingRoom() {
   const skipNextCodeBroadcastRef = useRef(false);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement>(null);
+  const chatSubscriptionRef = useRef<StompSubscription | null>(null);
   const isDragging = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -454,6 +458,7 @@ export default function MeetingRoom() {
     joinCall, leaveCall, toggleMute, toggleVideo, setIsMuted,
     isMuted: voiceMuted, isVideoEnabled, isConnected,
     activeSpeakers, localStream, remoteStreams, remoteScreenStreams, peerNames,
+    peerVideoEnabled,
     changeAudioSource, changeVideoSource,
     beginScreenShare, endScreenShare, isLocalScreenSharing
   } = useVoice();
@@ -469,15 +474,30 @@ export default function MeetingRoom() {
   const canEditWhiteboard = useMemo(() => {
     if (!roomData) return false;
     if (!canViewWhiteboard) return false;
-    return isHost || roomData.whiteboardEditPolicy === 'EVERYONE';
+    if (isHost) return true;
+    if (roomData.whiteboardEditPolicy === 'EVERYONE') return true;
+    return (roomData.whiteboardEditorUserIds || []).includes(currentUserId);
   }, [roomData, isHost, canViewWhiteboard]);
   const canViewCode = useMemo(() => {
     if (!roomData) return false;
     return isHost || roomData.codeVisibility === 'PUBLIC';
   }, [roomData, isHost]);
+  const canEditCode = useMemo(() => {
+    if (!roomData) return false;
+    if (!canViewCode) return false;
+    if (isHost) return true;
+    return (roomData.codeEditorUserIds || []).includes(currentUserId);
+  }, [roomData, canViewCode, isHost, currentUserId]);
   const canViewTasks = useMemo(() => {
     if (!roomData) return false;
     return isHost || roomData.taskVisibility === 'PUBLIC';
+  }, [roomData, isHost]);
+  const canMutateTasks = useMemo(() => {
+    if (!roomData) return false;
+    if (isHost) return true;
+    if (roomData.collaborationMode === 'INTERVIEW') return false;
+    if (roomData.taskVisibility === 'PRIVATE') return false;
+    return roomData.taskEditPolicy === 'EVERYONE';
   }, [roomData, isHost]);
 
   // Derive chat and screen share disabled state from roomData
@@ -572,13 +592,22 @@ export default function MeetingRoom() {
         : await collabApi.updateRoomSettings(roomData.id, payload);
 
       setRoomData(updated);
+      if (isConnected) {
+        voiceWs.publishChat({
+          isAdminAction: true,
+          action: 'SYNC_ROOM_SETTINGS',
+          roomSettings: updated,
+          displayName: getDisplayName(),
+          message: ''
+        });
+      }
       toast.success(successMessage);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to update room settings');
     } finally {
       setIsUpdatingRoomConfig(false);
     }
-  }, [isAdmin, roomData, roomCode]);
+  }, [isAdmin, roomData, roomCode, isConnected]);
 
   const handleToggleRoomConfig = useCallback((setting: 'codeOpen' | 'whiteboardEnabled', value: boolean) => {
     if (setting === 'codeOpen') {
@@ -591,13 +620,35 @@ export default function MeetingRoom() {
   const handleSetMode = useCallback((mode: 'INTERVIEW' | 'TEAM') => {
     handleUpdateRoomConfig(
       { collaborationMode: mode },
-      mode === 'INTERVIEW' ? 'Interview mode enabled (restrictive defaults applied)' : 'Team mode enabled (customization unlocked)'
+      mode === 'INTERVIEW' ? 'Interview mode enabled (chat on, screen share off, host-controlled edits/tasks)' : 'Team mode enabled (open join, chat on, screen share on)'
     );
   }, [handleUpdateRoomConfig]);
 
+  const handleToggleEditorGrant = useCallback((tool: 'whiteboard' | 'code', userId: string) => {
+    if (!roomData || !isHost) return;
+    const current = tool === 'whiteboard'
+      ? [...(roomData.whiteboardEditorUserIds || [])]
+      : [...(roomData.codeEditorUserIds || [])];
+
+    const idx = current.indexOf(userId);
+    const next = idx >= 0 ? current.filter(id => id !== userId) : [...current, userId];
+    const payload: RoomSettingsUpdatePayload = tool === 'whiteboard'
+      ? { whiteboardEditorUserIds: next }
+      : { codeEditorUserIds: next };
+    const target = participants.find(p => p.id === userId);
+    const targetName = target?.label || 'user';
+
+    handleUpdateRoomConfig(
+      payload,
+      tool === 'whiteboard'
+        ? `Whiteboard edit ${idx >= 0 ? 'revoked' : 'granted'} for ${targetName}`
+        : `Code edit ${idx >= 0 ? 'revoked' : 'granted'} for ${targetName}`
+    );
+  }, [roomData, isHost, handleUpdateRoomConfig, participants]);
+
   const handleSendChat = useCallback(() => {
     if (!chatMessage.trim()) return;
-    if (isChatDisabled && !isAdmin) return;
+    if (isChatDisabled) return;
     const name = getDisplayName();
     voiceWs.publishChat({ message: chatMessage.trim(), displayName: name });
     setChatMessages(prev => [...prev, {
@@ -607,7 +658,7 @@ export default function MeetingRoom() {
       color: '#F472B6', avatar: name.substring(0, 2).toUpperCase(),
     }]);
     setChatMessage('');
-  }, [chatMessage, isChatDisabled, isAdmin]);
+  }, [chatMessage, isChatDisabled]);
 
   const handleRaiseHand = useCallback(() => {
     const next = !isHandRaised;
@@ -684,7 +735,7 @@ export default function MeetingRoom() {
       screenStreamRef.current = null;
     } else {
       // 1. Security Check
-      if (isScreenShareDisabled && !isAdmin) {
+      if (isScreenShareDisabled) {
         toast.error("Screen sharing is currently disabled by admin");
         return;
       }
@@ -714,36 +765,51 @@ export default function MeetingRoom() {
         }
       }
     }
-  }, [isLocalScreenSharing, isScreenShareDisabled, isAdmin, beginScreenShare, endScreenShare, currentUserId]);
+  }, [isLocalScreenSharing, isScreenShareDisabled, beginScreenShare, endScreenShare, currentUserId]);
 
-  const publishTasksIfShared = useCallback((nextTasks: LocalTask[]) => {
+  const publishTasksIfShared = useCallback((nextTasks: LocalTask[], event?: { action: 'ADDED' | 'UPDATED' | 'REMOVED'; taskText?: string }) => {
     if (!roomData || roomData.taskVisibility !== 'PUBLIC') return;
     voiceWs.publishChat({
       isTaskSync: true,
       tasks: nextTasks,
+      taskEvent: event,
       displayName: getDisplayName(),
       message: ''
     });
   }, [roomData]);
 
   const handleAddTask = () => {
+    if (!canMutateTasks) {
+      toast.error('Only the host can update tasks in this room mode');
+      return;
+    }
     if (!newTaskText.trim()) return;
-    const nextTasks = [...tasks, { id: ++taskIdRef.current, text: newTaskText.trim(), done: false }];
+    const addedTaskText = newTaskText.trim();
+    const nextTasks = [...tasks, { id: ++taskIdRef.current, text: addedTaskText, done: false }];
     setTasks(nextTasks);
     setNewTaskText('');
-    publishTasksIfShared(nextTasks);
+    publishTasksIfShared(nextTasks, { action: 'ADDED', taskText: addedTaskText });
+    toast.success(`Task added: ${addedTaskText}`);
   };
 
   const toggleTask = (id: number) => {
+    if (!canMutateTasks) {
+      toast.error('Only the host can update tasks in this room mode');
+      return;
+    }
     const nextTasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
     setTasks(nextTasks);
-    publishTasksIfShared(nextTasks);
+    publishTasksIfShared(nextTasks, { action: 'UPDATED' });
   };
 
   const removeTask = (id: number) => {
+    if (!canMutateTasks) {
+      toast.error('Only the host can update tasks in this room mode');
+      return;
+    }
     const nextTasks = tasks.filter(t => t.id !== id);
     setTasks(nextTasks);
-    publishTasksIfShared(nextTasks);
+    publishTasksIfShared(nextTasks, { action: 'REMOVED' });
   };
 
   const togglePanel = (panel: SidePanel) => {
@@ -779,79 +845,97 @@ export default function MeetingRoom() {
 
   useEffect(() => {
     if (!isConnected || !roomData || phase !== 'meeting') return;
-    const timer = setTimeout(() => {
-      voiceWs.subscribeChat((payload: any) => {
-        // No longer manual syncing names here, VoiceContext handles it via CALL_JOIN/CALL_PRESENCE
-        if (payload.isHandRaise) {
-          const peerId = payload.senderId;
-          if (peerId !== currentUserId) {
-            if (payload.raised) {
-              setRaisedHands(prev => new Set([...prev, peerId]));
-              const nId = ++handNotifIdRef.current;
-              setHandNotifications(prev => [...prev, { id: nId, name: payload.displayName || 'Someone' }]);
-              setTimeout(() => setHandNotifications(prev => prev.filter(n => n.id !== nId)), 4000);
-            } else {
-              setRaisedHands(prev => { const n = new Set(prev); n.delete(peerId); return n; });
-            }
+    if (chatSubscriptionRef.current) {
+      chatSubscriptionRef.current.unsubscribe();
+      chatSubscriptionRef.current = null;
+    }
+
+    const subscription = voiceWs.subscribeChat((payload: any) => {
+      if (payload.isHandRaise) {
+        const peerId = payload.senderId;
+        if (peerId !== currentUserId) {
+          if (payload.raised) {
+            setRaisedHands(prev => new Set([...prev, peerId]));
+            const nId = ++handNotifIdRef.current;
+            setHandNotifications(prev => [...prev, { id: nId, name: payload.displayName || peerNames.get(peerId) || 'Someone' }]);
+            setTimeout(() => setHandNotifications(prev => prev.filter(n => n.id !== nId)), 4000);
+          } else {
+            setRaisedHands(prev => { const n = new Set(prev); n.delete(peerId); return n; });
           }
+        }
+        return;
+      }
+      if (payload.isNotesUpdate && payload.senderId !== currentUserId) {
+        setMeetingNotes(payload.notes);
+      }
+      if (payload.isCodeSync && payload.senderId !== currentUserId) {
+        skipNextCodeBroadcastRef.current = true;
+        setEditorCode(payload.code || '');
+        return;
+      }
+      if (payload.isTaskSync && payload.senderId !== currentUserId) {
+        if (Array.isArray(payload.tasks)) {
+          setTasks(payload.tasks);
+        }
+        if (payload.taskEvent?.action === 'ADDED' && payload.taskEvent?.taskText) {
+          const fromName = payload.displayName || peerNames.get(payload.senderId) || 'A participant';
+          toast.info(`${fromName} added task: ${payload.taskEvent.taskText}`);
+        }
+        return;
+      }
+      if (payload.isAdminAction) {
+        if (payload.action === 'SYNC_ROOM_SETTINGS' && payload.roomSettings) {
+          setRoomData(payload.roomSettings);
           return;
         }
-        if (payload.isNotesUpdate && payload.senderId !== currentUserId) {
-          setMeetingNotes(payload.notes);
-        }
-        if (payload.isCodeSync && payload.senderId !== currentUserId) {
-          skipNextCodeBroadcastRef.current = true;
-          setEditorCode(payload.code || '');
-          return;
-        }
-        if (payload.isTaskSync && payload.senderId !== currentUserId) {
-          if (Array.isArray(payload.tasks)) {
-            setTasks(payload.tasks);
+        if (payload.action === 'UPDATE_SETTINGS') {
+          if (payload.settingType === 'codeOpen') {
+            setRoomData(prev => prev ? { ...prev, codeOpen: !!payload.settingValue } : prev);
           }
-          return;
+          if (payload.settingType === 'whiteboardEnabled') {
+            setRoomData(prev => prev ? { ...prev, whiteboardEnabled: !!payload.settingValue } : prev);
+          }
         }
-        if (payload.isAdminAction) {
-          if (payload.action === 'UPDATE_SETTINGS') {
-            if (payload.settingType === 'codeOpen') {
-              setRoomData(prev => prev ? { ...prev, codeOpen: !!payload.settingValue } : prev);
-            }
-            if (payload.settingType === 'whiteboardEnabled') {
-              setRoomData(prev => prev ? { ...prev, whiteboardEnabled: !!payload.settingValue } : prev);
-            }
-          }
-          if (payload.action === 'KICK' && payload.targetId === currentUserId) {
-            leaveCall(true); navigate('/dashboard'); return;
-          }
-          if (payload.action === 'PROMOTE') {
-            setAdminIds(prev => new Set([...prev, payload.targetId]));
-          }
-          if (payload.action === 'MUTE_ALL' && payload.senderId !== currentUserId) {
-             // Logic for auto-mute if wanted
-          }
-          return;
+        if (payload.action === 'KICK' && payload.targetId === currentUserId) {
+          leaveCall(true); navigate('/dashboard'); return;
         }
-        if (payload.isPresence) return;
-        if (payload.isReaction) {
-          const id = ++reactionIdRef.current;
-          setFloatingReactions(prev => [...prev, { id, emoji: payload.message, x: 30 + Math.random() * 40 }]);
-          setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== id)), 3000);
-          return;
+        if (payload.action === 'PROMOTE') {
+          setAdminIds(prev => new Set([...prev, payload.targetId]));
         }
-        setChatMessages(prev => [...prev, {
-          id: ++chatIdRef.current,
-          senderId: payload.senderId || 'unknown',
-          displayName: payload.displayName || 'User',
-          message: payload.message || '',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          color: payload.isSystem ? '#94A3B8' : getColor(payload.senderId || 'x'),
-          avatar: payload.isSystem ? '⚡' : (payload.displayName || 'U').substring(0, 2).toUpperCase(),
-          isSystem: payload.isSystem,
-        }]);
-      });
-      voiceWs.publishChat({ displayName: getDisplayName(), message: '', isPresence: true });
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [isConnected, roomData, leaveCall, navigate, currentUserId]);
+        if (payload.action === 'MUTE_ALL' && payload.senderId !== currentUserId) {
+           // Logic for auto-mute if wanted
+        }
+        return;
+      }
+      if (payload.isPresence) return;
+      if (payload.isReaction) {
+        const id = ++reactionIdRef.current;
+        setFloatingReactions(prev => [...prev, { id, emoji: payload.message, x: 30 + Math.random() * 40 }]);
+        setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== id)), 3000);
+        return;
+      }
+      setChatMessages(prev => [...prev, {
+        id: ++chatIdRef.current,
+        senderId: payload.senderId || 'unknown',
+        displayName: payload.displayName || peerNames.get(payload.senderId) || 'User',
+        message: payload.message || '',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        color: payload.isSystem ? '#94A3B8' : getColor(payload.senderId || 'x'),
+        avatar: payload.isSystem ? '⚡' : (payload.displayName || peerNames.get(payload.senderId) || 'U').substring(0, 2).toUpperCase(),
+        isSystem: payload.isSystem,
+      }]);
+    });
+
+    chatSubscriptionRef.current = subscription || null;
+    voiceWs.publishChat({ displayName: getDisplayName(), message: '', isPresence: true });
+
+    return () => {
+      if (chatSubscriptionRef.current) {
+        chatSubscriptionRef.current.unsubscribe();
+        chatSubscriptionRef.current = null;
+      }
+    };
+  }, [isConnected, roomData, leaveCall, navigate, currentUserId, phase, peerNames]);
 
   useEffect(() => {
     if (
@@ -873,6 +957,7 @@ export default function MeetingRoom() {
   useEffect(() => {
     if (!isConnected || !roomData || phase !== 'meeting') return;
     if (roomData.codeVisibility !== 'PUBLIC') return;
+    if (!canEditCode) return;
 
     if (codeSyncDebounceRef.current) {
       clearTimeout(codeSyncDebounceRef.current);
@@ -896,7 +981,7 @@ export default function MeetingRoom() {
         clearTimeout(codeSyncDebounceRef.current);
       }
     };
-  }, [editorCode, isConnected, roomData, phase]);
+  }, [editorCode, isConnected, roomData, phase, canEditCode]);
 
   useEffect(() => {
     const getDevices = async () => {
@@ -926,11 +1011,11 @@ export default function MeetingRoom() {
 
   // Dynamic Screen Share Enforcement
   useEffect(() => {
-    if (isScreenShareDisabled && !isAdmin && isLocalScreenSharing) {
+    if (isScreenShareDisabled && isLocalScreenSharing) {
       toast.info("Screen sharing was disabled by admin");
       endScreenShare();
     }
-  }, [isScreenShareDisabled, isAdmin, isLocalScreenSharing, endScreenShare]);
+  }, [isScreenShareDisabled, isLocalScreenSharing, endScreenShare]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
 
@@ -1172,6 +1257,7 @@ export default function MeetingRoom() {
                     key={p.id}
                     stream={p.stream}
                     label={p.label}
+                    forceVideoOff={!p.isLocal ? peerVideoEnabled.get(p.id) === false : false}
                     isMuted={p.isMuted}
                     isSpeaking={activeSpeakers.includes(p.id === 'local' ? currentUserId : p.id)}
                     isLocal={p.isLocal}
@@ -1189,6 +1275,7 @@ export default function MeetingRoom() {
                   <VideoTile
                     stream={focusedParticipant.stream}
                     label={focusedParticipant.label}
+                    forceVideoOff={!focusedParticipant.isLocal ? peerVideoEnabled.get(focusedParticipant.id) === false : false}
                     isMuted={focusedParticipant.isMuted}
                     isSpeaking={activeSpeakers.includes(focusedParticipant.id === 'local' ? currentUserId : focusedParticipant.id)}
                     isLocal={focusedParticipant.isLocal}
@@ -1215,6 +1302,7 @@ export default function MeetingRoom() {
                   <VideoTile
                     stream={p.stream}
                     label={p.label}
+                    forceVideoOff={!p.isLocal ? peerVideoEnabled.get(p.id) === false : false}
                     isMuted={p.isMuted}
                     isSpeaking={activeSpeakers.includes(p.id === 'local' ? currentUserId : p.id)}
                     isLocal={p.isLocal}
@@ -1292,13 +1380,13 @@ export default function MeetingRoom() {
                       value={chatMessage} 
                       onChange={e => setChatMessage(e.target.value)} 
                       onKeyDown={e => { if (e.key === 'Enter') handleSendChat(); }} 
-                      placeholder={isChatDisabled && !isAdmin ? "Chat is disabled by admin" : "Send a message..."}
-                      disabled={isChatDisabled && !isAdmin}
+                      placeholder={isChatDisabled ? "Chat is disabled by admin" : "Send a message..."}
+                      disabled={isChatDisabled}
                       className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#38BDF8]/50 placeholder:text-white/30 min-w-0" 
                     />
                     <button 
                       onClick={handleSendChat} 
-                      disabled={!chatMessage.trim() || (isChatDisabled && !isAdmin)} 
+                      disabled={!chatMessage.trim() || isChatDisabled} 
                       className="p-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg disabled:opacity-40 flex-shrink-0"
                     >
                       <Send className="w-4 h-4" />
@@ -1339,6 +1427,9 @@ export default function MeetingRoom() {
                 canViewCode ? (
                 <div className="flex-1 flex flex-col">
                   <div className="flex items-center gap-2 px-3 py-2 border-b border-white/5 flex-shrink-0">
+                    {!canEditCode && (
+                      <span className="text-[11px] px-2 py-1 rounded bg-[#F59E0B]/20 text-[#FBBF24] border border-[#F59E0B]/30">View only (host grant required)</span>
+                    )}
                     <div className="relative">
                       <button onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)} className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/80 hover:bg-white/[0.07]">
                         <span>{selectedLang?.label || 'Language'}</span>
@@ -1351,7 +1442,7 @@ export default function MeetingRoom() {
                       )}
                     </div>
                   </div>
-                  <div className="flex-1"><Editor height="100%" language={editorLanguage} value={editorCode} onChange={v => setEditorCode(v || '')} theme="vs-dark" options={{ fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 8 }, lineNumbers: 'on', wordWrap: 'on', tabSize: 2, automaticLayout: true }} /></div>
+                  <div className="flex-1"><Editor height="100%" language={editorLanguage} value={editorCode} onChange={v => setEditorCode(v || '')} theme="vs-dark" options={{ fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 8 }, lineNumbers: 'on', wordWrap: 'on', tabSize: 2, automaticLayout: true, readOnly: !canEditCode }} /></div>
                 </div>
                 ) : (
                   <div className="flex-1 bg-[#060910] flex items-center justify-center text-sm text-white/60 border border-white/10 rounded-xl m-2">
@@ -1382,11 +1473,11 @@ export default function MeetingRoom() {
                 canViewTasks ? (
                 <div className="flex-1 overflow-y-auto p-3">
                   <div className="flex items-center gap-2 mb-3">
-                    <input type="text" value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAddTask(); }} placeholder="Add a task..." className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#38BDF8]/50 placeholder:text-white/30 min-w-0" />
-                    <button onClick={handleAddTask} disabled={!newTaskText.trim()} className="px-3 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-xs disabled:opacity-40">Add</button>
+                    <input type="text" value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAddTask(); }} placeholder={canMutateTasks ? "Add a task..." : "Host-only task editing in this mode"} disabled={!canMutateTasks} className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#38BDF8]/50 placeholder:text-white/30 min-w-0 disabled:opacity-50" />
+                    <button onClick={handleAddTask} disabled={!newTaskText.trim() || !canMutateTasks} className="px-3 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-xs disabled:opacity-40">Add</button>
                   </div>
                   {tasks.length === 0 && <div className="text-center text-white/20 text-sm py-6"><ListTodo className="w-8 h-8 mx-auto mb-2 opacity-30" />No tasks</div>}
-                  {tasks.map(t => (<div key={t.id} className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-lg mb-1.5 group"><input type="checkbox" checked={t.done} onChange={() => toggleTask(t.id)} className="w-3.5 h-3.5 accent-[#38BDF8]" /><span className={`text-sm flex-1 ${t.done ? 'line-through text-white/30' : ''}`}>{t.text}</span><button onClick={() => removeTask(t.id)} className="text-white/20 hover:text-[#EF6461] opacity-0 group-hover:opacity-100 text-xs">✕</button></div>))}
+                  {tasks.map(t => (<div key={t.id} className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-lg mb-1.5 group"><input type="checkbox" checked={t.done} onChange={() => toggleTask(t.id)} disabled={!canMutateTasks} className="w-3.5 h-3.5 accent-[#38BDF8] disabled:opacity-50" /><span className={`text-sm flex-1 ${t.done ? 'line-through text-white/30' : ''}`}>{t.text}</span><button onClick={() => removeTask(t.id)} disabled={!canMutateTasks} className="text-white/20 hover:text-[#EF6461] opacity-0 group-hover:opacity-100 text-xs disabled:opacity-30">✕</button></div>))}
                 </div>
                 ) : (
                   <div className="flex-1 bg-[#060910] flex items-center justify-center text-sm text-white/60 border border-white/10 rounded-xl m-2">
@@ -1519,15 +1610,6 @@ export default function MeetingRoom() {
                           </button>
                        </div>
 
-                       {/* Mode Indicator Badge */}
-                       <div className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-medium ${roomData?.collaborationMode === 'INTERVIEW' ? 'bg-[#7C3AED]/10 border-[#7C3AED]/30 text-[#A78BFA]' : 'bg-[#10B981]/10 border-[#10B981]/30 text-[#6EE7B7]'}`}>
-                         {roomData?.collaborationMode === 'INTERVIEW' ? (
-                           <span>🔒 Restrictive: Chat & Screen Share disabled</span>
-                         ) : (
-                           <span>🎯 Flexible: All tools customizable</span>
-                         )}
-                       </div>
-
                        <div className="grid grid-cols-2 gap-2">
                           <button 
                             onClick={() => handleToggleRoomConfig('codeOpen', !(roomData?.codeOpen ?? false))}
@@ -1597,11 +1679,10 @@ export default function MeetingRoom() {
                              <MousePointer2 className="w-3.5 h-3.5" />
                            </button>
                            <button
-                             onClick={() => handleUpdateRoomConfig({ whiteboardEditPolicy: roomData?.whiteboardEditPolicy === 'EVERYONE' ? 'HOST_ONLY' : 'EVERYONE' }, `Whiteboard edit set to ${roomData?.whiteboardEditPolicy === 'EVERYONE' ? 'host only' : 'everyone'}`)}
-                             disabled={isUpdatingRoomConfig}
-                             className="flex items-center justify-between px-3 py-2.5 rounded-xl border bg-white/5 border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-60"
+                             disabled={true}
+                             className="flex items-center justify-between px-3 py-2.5 rounded-xl border bg-white/5 border-white/10 text-white/50 opacity-70"
                            >
-                             <span className="text-xs">WB Edit {roomData?.whiteboardEditPolicy === 'EVERYONE' ? 'All' : 'Host'}</span>
+                             <span className="text-xs">WB Edit Host + user grants</span>
                              <Shield className="w-3.5 h-3.5" />
                            </button>
                            <button
@@ -1624,8 +1705,8 @@ export default function MeetingRoom() {
                        )}
 
                        {roomData?.collaborationMode === 'INTERVIEW' && (
-                         <p className="text-[11px] text-white/40 px-1">
-                           🔒 Restrictive: Invite-only join • Whiteboard shared (host-only edit) • Code & Tasks shared (view-only) • Chat & Screen Share disabled.
+                         <p className="text-[11px] text-white/40 px-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                           🔒 Restrictive: Invite-only join • Chat enabled • Screen share disabled • Whiteboard/Code view-only (host grants edit) • Tasks host-only edits.
                          </p>
                        )}
                     </div>
@@ -1656,6 +1737,22 @@ export default function MeetingRoom() {
                             )}
                           </div>
                           <div className="text-[10px] text-white/40">{p.isLocal ? 'You' : 'Connected'}</div>
+                          {isHost && !p.isLocal && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <button
+                                onClick={() => handleToggleEditorGrant('whiteboard', p.id)}
+                                className={`text-[10px] px-1.5 py-0.5 rounded border ${roomData?.whiteboardEditorUserIds?.includes(p.id) ? 'bg-[#22C55E]/20 border-[#22C55E]/40 text-[#86EFAC]' : 'bg-white/5 border-white/15 text-white/50 hover:bg-white/10'}`}
+                              >
+                                WB Edit
+                              </button>
+                              <button
+                                onClick={() => handleToggleEditorGrant('code', p.id)}
+                                className={`text-[10px] px-1.5 py-0.5 rounded border ${roomData?.codeEditorUserIds?.includes(p.id) ? 'bg-[#22C55E]/20 border-[#22C55E]/40 text-[#86EFAC]' : 'bg-white/5 border-white/15 text-white/50 hover:bg-white/10'}`}
+                              >
+                                Code Edit
+                              </button>
+                            </div>
+                          )}
                         </div>
                         {p.hasHandRaised && <span className="text-sm animate-bounce">✋</span>}
                         {p.isMuted && <MicOff className="w-3.5 h-3.5 text-[#EF6461]/70" />}
@@ -1754,8 +1851,8 @@ export default function MeetingRoom() {
 
             <button 
               onClick={handleScreenShare} 
-              className={`p-3 rounded-xl transition-all ${isLocalScreenSharing ? 'bg-[#38BDF8] text-white shadow-lg shadow-[#38BDF8]/20' : 'bg-white/5 text-white/70 hover:bg-white/10'} ${(isScreenShareDisabled && !isAdmin) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title={isScreenShareDisabled && !isAdmin ? "Disabled by admin" : (isLocalScreenSharing ? "Stop sharing" : "Share screen")}
+              className={`p-3 rounded-xl transition-all ${isLocalScreenSharing ? 'bg-[#38BDF8] text-white shadow-lg shadow-[#38BDF8]/20' : 'bg-white/5 text-white/70 hover:bg-white/10'} ${isScreenShareDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title={isScreenShareDisabled ? "Disabled by host setting" : (isLocalScreenSharing ? "Stop sharing" : "Share screen")}
             >
               {isLocalScreenSharing ? <MonitorUp className="w-5 h-5" /> : <ScreenShare className="w-5 h-5" />}
             </button>

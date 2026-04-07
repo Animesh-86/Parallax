@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.Comparator;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class MeetingRoomService {
     private static final Set<String> MODES = Set.of("INTERVIEW", "TEAM");
     private static final Set<String> VISIBILITY = Set.of("PRIVATE", "PUBLIC");
     private static final Set<String> WHITEBOARD_EDIT_POLICY = Set.of("HOST_ONLY", "EVERYONE");
+    private static final Set<String> TASK_EDIT_POLICY = Set.of("HOST_ONLY", "EVERYONE");
     private final SecureRandom random = new SecureRandom();
 
     public MeetingRoomService(MeetingRoomRepository meetingRoomRepository, RoomParticipantRepository roomParticipantRepository) {
@@ -65,6 +67,8 @@ public class MeetingRoomService {
         }
         if ("INTERVIEW".equals(room.getCollaborationMode())) {
             applyInterviewModeDefaults(room);
+        } else {
+            applyTeamModeDefaults(room);
         }
 
         meetingRoomRepository.save(room);
@@ -185,7 +189,53 @@ public class MeetingRoomService {
         if (room.getCreatedBy().equals(userId)) {
             return true;
         }
-        return "EVERYONE".equals(room.getWhiteboardEditPolicy());
+        return parseUuidCsv(room.getWhiteboardEditorUserIds()).contains(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean canViewCode(UUID roomId, UUID userId) {
+        MeetingRoom room = findRoom(roomId);
+        if (room.getCreatedBy().equals(userId)) {
+            return true;
+        }
+        return "PUBLIC".equals(room.getCodeVisibility());
+    }
+
+    @Transactional(readOnly = true)
+    public boolean canEditCode(UUID roomId, UUID userId) {
+        MeetingRoom room = findRoom(roomId);
+        if (!canViewCode(roomId, userId)) {
+            return false;
+        }
+        if (room.getCreatedBy().equals(userId)) {
+            return true;
+        }
+        return parseUuidCsv(room.getCodeEditorUserIds()).contains(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean canUseChat(UUID roomId) {
+        return !findRoom(roomId).isChatDisabled();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean canShareScreen(UUID roomId) {
+        return !findRoom(roomId).isScreenShareDisabled();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean canMutateTasks(UUID roomId, UUID userId) {
+        MeetingRoom room = findRoom(roomId);
+        if (room.getCreatedBy().equals(userId)) {
+            return true;
+        }
+        if ("INTERVIEW".equals(room.getCollaborationMode())) {
+            return false;
+        }
+        if ("PRIVATE".equals(room.getTaskVisibility())) {
+            return false;
+        }
+        return "EVERYONE".equals(room.getTaskEditPolicy());
     }
 
     @Transactional
@@ -214,9 +264,19 @@ public class MeetingRoomService {
         requireRoomOwner(roomId, userId);
         MeetingRoom room = findRoom(roomId);
 
+        boolean modeChanged = false;
         if (request.getCollaborationMode() != null) {
             room.setCollaborationMode(normalizeChoice(request.getCollaborationMode(), MODES, "collaborationMode"));
+            modeChanged = true;
         }
+
+        if (modeChanged && "INTERVIEW".equals(room.getCollaborationMode())) {
+            applyInterviewModeDefaults(room);
+        }
+        if (modeChanged && "TEAM".equals(room.getCollaborationMode())) {
+            applyTeamModeDefaults(room);
+        }
+
         if (request.getCodeOpen() != null) {
             room.setCodeOpen(request.getCodeOpen());
         }
@@ -235,10 +295,29 @@ public class MeetingRoomService {
         if (request.getTaskVisibility() != null) {
             room.setTaskVisibility(normalizeChoice(request.getTaskVisibility(), VISIBILITY, "taskVisibility"));
         }
+        if (request.getTaskEditPolicy() != null) {
+            room.setTaskEditPolicy(normalizeChoice(request.getTaskEditPolicy(), TASK_EDIT_POLICY, "taskEditPolicy"));
+        }
+        if (request.getChatDisabled() != null) {
+            room.setChatDisabled(request.getChatDisabled());
+        }
+        if (request.getScreenShareDisabled() != null) {
+            room.setScreenShareDisabled(request.getScreenShareDisabled());
+        }
+        if (request.getWhiteboardEditorUserIds() != null) {
+            room.setWhiteboardEditorUserIds(serializeUuidCsv(normalizeEditorIds(room.getId(), room.getCreatedBy(), request.getWhiteboardEditorUserIds())));
+        }
+        if (request.getCodeEditorUserIds() != null) {
+            room.setCodeEditorUserIds(serializeUuidCsv(normalizeEditorIds(room.getId(), room.getCreatedBy(), request.getCodeEditorUserIds())));
+        }
 
-        // Interview mode is intentionally restrictive.
+        // Interview mode is intentionally restrictive, with per-user edit grants allowed.
         if ("INTERVIEW".equals(room.getCollaborationMode())) {
+            String wbEditors = room.getWhiteboardEditorUserIds();
+            String codeEditors = room.getCodeEditorUserIds();
             applyInterviewModeDefaults(room);
+            room.setWhiteboardEditorUserIds(wbEditors == null ? "" : wbEditors);
+            room.setCodeEditorUserIds(codeEditors == null ? "" : codeEditors);
         }
 
         meetingRoomRepository.save(room);
@@ -273,6 +352,9 @@ public class MeetingRoomService {
                 room.getWhiteboardEditPolicy(),
                 room.getCodeVisibility(),
                 room.getTaskVisibility(),
+                room.getTaskEditPolicy(),
+                parseUuidCsv(room.getWhiteboardEditorUserIds()),
+                parseUuidCsv(room.getCodeEditorUserIds()),
                 room.isChatDisabled(),
                 room.isScreenShareDisabled()
         );
@@ -295,7 +377,61 @@ public class MeetingRoomService {
         room.setWhiteboardEditPolicy("HOST_ONLY");
         room.setCodeVisibility("PUBLIC");
         room.setTaskVisibility("PUBLIC");
-        room.setChatDisabled(true);
+        room.setTaskEditPolicy("HOST_ONLY");
+        room.setChatDisabled(false);
         room.setScreenShareDisabled(true);
+    }
+
+    private void applyTeamModeDefaults(MeetingRoom room) {
+        room.setCodeOpen(true);
+        room.setWhiteboardEnabled(true);
+        room.setWhiteboardVisibility("PUBLIC");
+        room.setWhiteboardEditPolicy("HOST_ONLY");
+        room.setCodeVisibility("PUBLIC");
+        room.setTaskVisibility("PUBLIC");
+        room.setTaskEditPolicy("EVERYONE");
+        room.setChatDisabled(false);
+        room.setScreenShareDisabled(false);
+    }
+
+    private List<UUID> parseUuidCsv(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(UUID::fromString)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private String serializeUuidCsv(List<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return "";
+        }
+        return ids.stream().distinct().map(UUID::toString).collect(Collectors.joining(","));
+    }
+
+    private List<UUID> normalizeEditorIds(UUID roomId, UUID ownerId, List<UUID> requested) {
+        if (requested == null) {
+            return List.of();
+        }
+
+        Set<UUID> members = roomParticipantRepository.findByRoomId(roomId)
+                .stream()
+                .map(RoomParticipant::getUserId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        members.add(ownerId);
+
+        return requested.stream()
+                .filter(id -> id != null && !id.equals(ownerId))
+                .distinct()
+                .peek(id -> {
+                    if (!members.contains(id)) {
+                        throw new IllegalArgumentException("Editor grant user is not in this room: " + id);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 }

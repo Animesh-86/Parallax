@@ -42,7 +42,6 @@ public class GlobalExceptionHandler {
                                                 "timestamp", Instant.now().toString()));
         }
 
-<<<<<<< HEAD
         @ExceptionHandler(SecurityException.class)
         public ResponseEntity<Map<String, Object>> handleSecurity(SecurityException ex) {
                 return ResponseEntity
@@ -52,9 +51,6 @@ public class GlobalExceptionHandler {
                                                 "message", ex.getMessage(),
                                                 "timestamp", Instant.now().toString()));
         }
-
-=======
->>>>>>> origin/main
         @ExceptionHandler(RuntimeException.class)
         public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
                 return ResponseEntity

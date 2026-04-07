@@ -1,14 +1,11 @@
 package com.parallax.backend.parallax.dto.project;
 
-<<<<<<< HEAD
-import com.parallax.backend.parallax.entity.ProjectFile;
-=======
+import java.util.UUID;
+
 import com.parallax.backend.parallax.entity.file.ProjectFile;
->>>>>>> origin/main
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor

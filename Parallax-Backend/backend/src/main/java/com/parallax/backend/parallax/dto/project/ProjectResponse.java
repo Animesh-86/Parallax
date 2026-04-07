@@ -1,18 +1,15 @@
 package com.parallax.backend.parallax.dto.project;
 
-import com.parallax.backend.parallax.entity.project.Project;
-<<<<<<< HEAD
-import com.parallax.backend.parallax.entity.ProjectFile;
-=======
+import java.util.List;
+import java.util.UUID;
+
 import com.parallax.backend.parallax.entity.file.ProjectFile;
->>>>>>> origin/main
+import com.parallax.backend.parallax.entity.project.Project;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-
-import java.util.List;
-import java.util.UUID;
 
 @Data
 @Builder

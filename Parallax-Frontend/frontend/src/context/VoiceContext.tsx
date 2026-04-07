@@ -18,6 +18,7 @@ interface VoiceContextType {
     remoteStreams: Map<string, MediaStream>;
     remoteScreenStreams: Map<string, MediaStream>;
     peerNames: Map<string, string>;
+    peerVideoEnabled: Map<string, boolean>;
     changeAudioSource: (deviceId: string) => Promise<void>;
     changeVideoSource: (deviceId: string) => Promise<void>;
     beginScreenShare: (stream: MediaStream) => Promise<void>;
@@ -63,6 +64,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [isVideoEnabled, setIsVideoEnabled] = useState(false);
     const [peersMapVersion, setPeersMapVersion] = useState(0);
     const [peerNames, setPeerNames] = useState<Map<string, string>>(new Map());
+    const [peerVideoEnabled, setPeerVideoEnabled] = useState<Map<string, boolean>>(new Map());
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
@@ -130,6 +132,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 if (sender) await sender.replaceTrack(null);
                 negotiate(peerId, pc);
             });
+            voiceWs.sendSignal({
+                type: "CALL_PRESENCE",
+                senderId: userIdRef.current,
+                payload: { videoEnabled: false }
+            });
         } else {
             try {
                 const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -145,6 +152,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         pc.addTrack(newVideoTrack, localStreamRef.current!);
                     }
                     negotiate(peerId, pc);
+                });
+                voiceWs.sendSignal({
+                    type: "CALL_PRESENCE",
+                    senderId: userIdRef.current,
+                    payload: { videoEnabled: true }
                 });
             } catch (e) {
                 console.error("Failed to enable camera", e);
@@ -308,6 +320,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 senderId: userIdRef.current,
                 payload: { displayName: getDisplayName() } 
             });
+            voiceWs.sendSignal({
+                type: "CALL_PRESENCE",
+                senderId: userIdRef.current,
+                payload: { displayName: getDisplayName(), videoEnabled: initialVideo }
+            });
             toast.success("Joined voice channel");
         } catch (error) {
             console.error("Failed to join voice call:", error);
@@ -326,6 +343,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setRemoteStreams(new Map());
         setRemoteScreenStreams(new Map());
         setPeerNames(new Map());
+        setPeerVideoEnabled(new Map());
         setPeersMapVersion(v => v + 1);
 
         if (localStreamRef.current) {
@@ -367,6 +385,15 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     setPeerNames(prev => new Map(prev).set(senderId, payload.displayName));
                 }
                 createPeerConnection(senderId, true);
+                break;
+            case "CALL_PRESENCE":
+                if (payload?.displayName) {
+                    setPeerNames(prev => new Map(prev).set(senderId, payload.displayName));
+                }
+                if (typeof payload?.videoEnabled === 'boolean') {
+                    setPeerVideoEnabled(prev => new Map(prev).set(senderId, payload.videoEnabled));
+                    setPeersMapVersion(v => v + 1);
+                }
                 break;
             case "CALL_OFFER":
                 await handleOffer(senderId, payload);
@@ -486,6 +513,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 newMap.delete(senderId);
                 return newMap;
             });
+            setPeerVideoEnabled(prev => {
+                const newMap = new Map(prev);
+                newMap.delete(senderId);
+                return newMap;
+            });
             setRemoteScreenStreams(prev => {
                 const next = new Map(prev);
                 next.delete(senderId);
@@ -547,7 +579,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         <VoiceContext.Provider value={{
             joinCall, leaveCall, toggleMute, toggleVideo, setIsMuted,
             isMuted, isVideoEnabled, isConnected, activeSpeakers,
-            peers: peersRef.current, localStream, remoteStreams, remoteScreenStreams, peerNames,
+            peers: peersRef.current, localStream, remoteStreams, remoteScreenStreams, peerNames, peerVideoEnabled,
             changeAudioSource, changeVideoSource, beginScreenShare, endScreenShare, isLocalScreenSharing
         }}>
             {children}

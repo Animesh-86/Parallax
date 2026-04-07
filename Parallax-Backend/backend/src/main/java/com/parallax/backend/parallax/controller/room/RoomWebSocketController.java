@@ -32,6 +32,10 @@ public class RoomWebSocketController {
         // Ensure sender matches the logged-in user
         msg.setSenderId(userId);
 
+        if ("CALL_SCREEN_SHARE".equals(msg.getType()) && !roomService.canShareScreen(roomId)) {
+            throw new SecurityException("Screen sharing is disabled in this room");
+        }
+
         if ("CALL_JOIN".equals(msg.getType()) || "CALL_LEAVE".equals(msg.getType())) {
             // Broadcast to everyone in the room
             messagingTemplate.convertAndSend(
@@ -83,6 +87,23 @@ public class RoomWebSocketController {
     ) {
         UUID userId = AuthUtil.requireUserId(principal);
         roomService.requireRoomMember(roomId, userId);
+
+        if (Boolean.TRUE.equals(payload.get("isTaskSync")) && !roomService.canMutateTasks(roomId, userId)) {
+            throw new SecurityException("Only host can update tasks in this room mode");
+        }
+        if (Boolean.TRUE.equals(payload.get("isCodeSync")) && !roomService.canEditCode(roomId, userId)) {
+            throw new SecurityException("You do not have code edit permission");
+        }
+        if (!Boolean.TRUE.equals(payload.get("isAdminAction"))
+                && !Boolean.TRUE.equals(payload.get("isTaskSync"))
+                && !Boolean.TRUE.equals(payload.get("isCodeSync"))
+                && !Boolean.TRUE.equals(payload.get("isNotesUpdate"))
+                && !Boolean.TRUE.equals(payload.get("isReaction"))
+                && !Boolean.TRUE.equals(payload.get("isPresence"))
+                && !Boolean.TRUE.equals(payload.get("isHandRaise"))
+                && !roomService.canUseChat(roomId)) {
+            throw new SecurityException("Chat is disabled in this room");
+        }
 
         boolean isAdminAction = Boolean.TRUE.equals(payload.get("isAdminAction"));
         if (isAdminAction) {

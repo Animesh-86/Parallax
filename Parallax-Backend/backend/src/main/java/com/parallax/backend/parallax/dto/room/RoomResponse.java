@@ -1,6 +1,7 @@
 package com.parallax.backend.parallax.dto.room;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public class RoomResponse {
@@ -17,13 +18,18 @@ public class RoomResponse {
         private String whiteboardEditPolicy;
         private String codeVisibility;
         private String taskVisibility;
+        private String taskEditPolicy;
+        private List<UUID> whiteboardEditorUserIds;
+        private List<UUID> codeEditorUserIds;
         private boolean chatDisabled;
         private boolean screenShareDisabled;
 
     public RoomResponse(UUID id, String name, UUID createdBy, Instant createdAt, String roomCode, boolean isActive,
             boolean codeOpen, boolean whiteboardEnabled,
             String collaborationMode, String whiteboardVisibility, String whiteboardEditPolicy,
-            String codeVisibility, String taskVisibility, boolean chatDisabled, boolean screenShareDisabled) {
+            String codeVisibility, String taskVisibility, String taskEditPolicy,
+            List<UUID> whiteboardEditorUserIds, List<UUID> codeEditorUserIds,
+            boolean chatDisabled, boolean screenShareDisabled) {
         this.id = id;
         this.name = name;
         this.createdBy = createdBy;
@@ -37,6 +43,9 @@ public class RoomResponse {
         this.whiteboardEditPolicy = whiteboardEditPolicy;
         this.codeVisibility = codeVisibility;
         this.taskVisibility = taskVisibility;
+        this.taskEditPolicy = taskEditPolicy;
+        this.whiteboardEditorUserIds = whiteboardEditorUserIds;
+        this.codeEditorUserIds = codeEditorUserIds;
         this.chatDisabled = chatDisabled;
         this.screenShareDisabled = screenShareDisabled;
     }
@@ -54,6 +63,9 @@ public class RoomResponse {
     public String getWhiteboardEditPolicy() { return whiteboardEditPolicy; }
     public String getCodeVisibility() { return codeVisibility; }
     public String getTaskVisibility() { return taskVisibility; }
+    public String getTaskEditPolicy() { return taskEditPolicy; }
+    public List<UUID> getWhiteboardEditorUserIds() { return whiteboardEditorUserIds; }
+    public List<UUID> getCodeEditorUserIds() { return codeEditorUserIds; }
     public boolean isChatDisabled() { return chatDisabled; }
     public boolean isScreenShareDisabled() { return screenShareDisabled; }
 
@@ -70,6 +82,9 @@ public class RoomResponse {
     public void setWhiteboardEditPolicy(String whiteboardEditPolicy) { this.whiteboardEditPolicy = whiteboardEditPolicy; }
     public void setCodeVisibility(String codeVisibility) { this.codeVisibility = codeVisibility; }
     public void setTaskVisibility(String taskVisibility) { this.taskVisibility = taskVisibility; }
+    public void setTaskEditPolicy(String taskEditPolicy) { this.taskEditPolicy = taskEditPolicy; }
+    public void setWhiteboardEditorUserIds(List<UUID> whiteboardEditorUserIds) { this.whiteboardEditorUserIds = whiteboardEditorUserIds; }
+    public void setCodeEditorUserIds(List<UUID> codeEditorUserIds) { this.codeEditorUserIds = codeEditorUserIds; }
     public void setChatDisabled(boolean chatDisabled) { this.chatDisabled = chatDisabled; }
     public void setScreenShareDisabled(boolean screenShareDisabled) { this.screenShareDisabled = screenShareDisabled; }
 }

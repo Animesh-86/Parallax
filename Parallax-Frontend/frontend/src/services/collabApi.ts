@@ -53,6 +53,9 @@ export interface MeetingRoom {
     whiteboardEditPolicy: "HOST_ONLY" | "EVERYONE";
     codeVisibility: "PRIVATE" | "PUBLIC";
     taskVisibility: "PRIVATE" | "PUBLIC";
+    taskEditPolicy: "HOST_ONLY" | "EVERYONE";
+    whiteboardEditorUserIds: string[];
+    codeEditorUserIds: string[];
     chatDisabled: boolean;
     screenShareDisabled: boolean;
 }
@@ -65,6 +68,9 @@ export interface RoomSettingsUpdatePayload {
     whiteboardEditPolicy?: "HOST_ONLY" | "EVERYONE";
     codeVisibility?: "PRIVATE" | "PUBLIC";
     taskVisibility?: "PRIVATE" | "PUBLIC";
+    taskEditPolicy?: "HOST_ONLY" | "EVERYONE";
+    whiteboardEditorUserIds?: string[];
+    codeEditorUserIds?: string[];
     chatDisabled?: boolean;
     screenShareDisabled?: boolean;
 }

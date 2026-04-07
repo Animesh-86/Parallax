@@ -54,6 +54,15 @@ public class MeetingRoom {
     @Column(name = "task_visibility", nullable = false, length = 20)
     private String taskVisibility;
 
+    @Column(name = "task_edit_policy", nullable = false, length = 20)
+    private String taskEditPolicy;
+
+    @Column(name = "whiteboard_editor_user_ids", length = 4000)
+    private String whiteboardEditorUserIds;
+
+    @Column(name = "code_editor_user_ids", length = 4000)
+    private String codeEditorUserIds;
+
     @Column(name = "chat_disabled", nullable = false)
     private boolean chatDisabled;
 
@@ -72,9 +81,12 @@ public class MeetingRoom {
         this.whiteboardEnabled = true;
         this.collaborationMode = "TEAM";
         this.whiteboardVisibility = "PUBLIC";
-        this.whiteboardEditPolicy = "EVERYONE";
-        this.codeVisibility = "PRIVATE";
-        this.taskVisibility = "PRIVATE";
+        this.whiteboardEditPolicy = "HOST_ONLY";
+        this.codeVisibility = "PUBLIC";
+        this.taskVisibility = "PUBLIC";
+        this.taskEditPolicy = "EVERYONE";
+        this.whiteboardEditorUserIds = "";
+        this.codeEditorUserIds = "";
         this.chatDisabled = false;
         this.screenShareDisabled = false;
     }
@@ -92,6 +104,9 @@ public class MeetingRoom {
     public String getWhiteboardEditPolicy() { return whiteboardEditPolicy; }
     public String getCodeVisibility() { return codeVisibility; }
     public String getTaskVisibility() { return taskVisibility; }
+    public String getTaskEditPolicy() { return taskEditPolicy; }
+    public String getWhiteboardEditorUserIds() { return whiteboardEditorUserIds; }
+    public String getCodeEditorUserIds() { return codeEditorUserIds; }
     public boolean isChatDisabled() { return chatDisabled; }
     public boolean isScreenShareDisabled() { return screenShareDisabled; }
 
@@ -104,6 +119,9 @@ public class MeetingRoom {
     public void setWhiteboardEditPolicy(String whiteboardEditPolicy) { this.whiteboardEditPolicy = whiteboardEditPolicy; }
     public void setCodeVisibility(String codeVisibility) { this.codeVisibility = codeVisibility; }
     public void setTaskVisibility(String taskVisibility) { this.taskVisibility = taskVisibility; }
+    public void setTaskEditPolicy(String taskEditPolicy) { this.taskEditPolicy = taskEditPolicy; }
+    public void setWhiteboardEditorUserIds(String whiteboardEditorUserIds) { this.whiteboardEditorUserIds = whiteboardEditorUserIds; }
+    public void setCodeEditorUserIds(String codeEditorUserIds) { this.codeEditorUserIds = codeEditorUserIds; }
     public void setChatDisabled(boolean chatDisabled) { this.chatDisabled = chatDisabled; }
     public void setScreenShareDisabled(boolean screenShareDisabled) { this.screenShareDisabled = screenShareDisabled; }
 }

@@ -6,21 +6,13 @@ import com.parallax.backend.parallax.dto.project.ProjectResponse;
 import com.parallax.backend.parallax.entity.auth.User;
 import com.parallax.backend.parallax.entity.collaborator.CollaboratorRole;
 import com.parallax.backend.parallax.entity.collaborator.ProjectCollaborator;
-<<<<<<< HEAD
-import com.parallax.backend.parallax.entity.ProjectFile;
-=======
 import com.parallax.backend.parallax.entity.file.ProjectFile;
->>>>>>> origin/main
 import com.parallax.backend.parallax.entity.project.Project;
 import com.parallax.backend.parallax.exception.DuplicateResourceException;
 import com.parallax.backend.parallax.exception.ResourceNotFoundException;
 import com.parallax.backend.parallax.repository.*;
 import com.parallax.backend.parallax.repository.collaborator.ProjectCollaboratorRepository;
-<<<<<<< HEAD
-import com.parallax.backend.parallax.repository.ProjectFileRepository;
-=======
 import com.parallax.backend.parallax.repository.file.ProjectFileRepository;
->>>>>>> origin/main
 import com.parallax.backend.parallax.repository.project.ProjectRepository;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;

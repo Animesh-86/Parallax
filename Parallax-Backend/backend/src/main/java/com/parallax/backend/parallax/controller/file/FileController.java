@@ -1,23 +1,27 @@
 package com.parallax.backend.parallax.controller.file;
 
-import com.parallax.backend.parallax.dto.file.CreateFileRequest;
-import com.parallax.backend.parallax.dto.project.ProjectFileContentDto;
-import com.parallax.backend.parallax.dto.project.ProjectFileInfoDto;
-<<<<<<< HEAD
-import com.parallax.backend.parallax.entity.ProjectFile;
-=======
-import com.parallax.backend.parallax.entity.file.ProjectFile;
->>>>>>> origin/main
-import com.parallax.backend.parallax.security.AuthUtil;
-import com.parallax.backend.parallax.service.file.FileService;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.parallax.backend.parallax.dto.file.CreateFileRequest;
+import com.parallax.backend.parallax.dto.project.ProjectFileContentDto;
+import com.parallax.backend.parallax.dto.project.ProjectFileInfoDto;
+import com.parallax.backend.parallax.entity.file.ProjectFile;
+import com.parallax.backend.parallax.security.AuthUtil;
+import com.parallax.backend.parallax.service.file.FileService;
 
 @RestController
 @RequestMapping("/api/projects")
