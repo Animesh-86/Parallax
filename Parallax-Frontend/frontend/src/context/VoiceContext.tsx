@@ -122,46 +122,67 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const toggleVideo = async () => {
         if (!localStreamRef.current) return;
-        const videoTracks = localStreamRef.current.getVideoTracks();
-        if (videoTracks.length > 0) {
-            videoTracks.forEach(track => { track.stop(); localStreamRef.current?.removeTrack(track); });
-            setIsVideoEnabled(false);
-            setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
-            peersRef.current.forEach(async (pc, peerId) => {
-                const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-                if (sender) await sender.replaceTrack(null);
-                negotiate(peerId, pc);
-            });
-            voiceWs.sendSignal({
-                type: "CALL_PRESENCE",
+        const publishVideoPresence = (enabled: boolean) => {
+            const message = {
+                type: "CALL_PRESENCE" as const,
                 senderId: userIdRef.current,
-                payload: { videoEnabled: false }
-            });
-        } else {
-            try {
-                const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const newVideoTrack = videoStream.getVideoTracks()[0];
-                localStreamRef.current.addTrack(newVideoTrack);
-                setIsVideoEnabled(true);
-                setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+                payload: { videoEnabled: enabled }
+            };
+            voiceWs.sendSignal(message);
+            setTimeout(() => voiceWs.sendSignal(message), 150);
+        };
+        const existingVideoTrack = localStreamRef.current.getVideoTracks()[0];
+
+        if (existingVideoTrack) {
+            if (isVideoEnabled || existingVideoTrack.enabled) {
+                // Notify peers BEFORE stopping track
+                publishVideoPresence(false);
+                
+                // Properly stop and remove video track to turn off camera light
+                existingVideoTrack.stop();
+                localStreamRef.current.removeTrack(existingVideoTrack);
+                
+                // Notify all peers to remove video sender and renegotiate
                 peersRef.current.forEach(async (pc, peerId) => {
                     const sender = pc.getSenders().find(s => s.track?.kind === 'video');
                     if (sender) {
-                        await sender.replaceTrack(newVideoTrack);
-                    } else {
-                        pc.addTrack(newVideoTrack, localStreamRef.current!);
+                        await sender.replaceTrack(null);
+                        // Renegotiate to update SDP with track removal
+                        await negotiate(peerId, pc);
                     }
-                    negotiate(peerId, pc);
                 });
-                voiceWs.sendSignal({
-                    type: "CALL_PRESENCE",
-                    senderId: userIdRef.current,
-                    payload: { videoEnabled: true }
-                });
-            } catch (e) {
-                console.error("Failed to enable camera", e);
-                toast.error("Could not access camera");
+                
+                setIsVideoEnabled(false);
+                setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+                return;
             }
+
+            existingVideoTrack.enabled = true;
+            setIsVideoEnabled(true);
+            setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+            publishVideoPresence(true);
+            return;
+        }
+
+        try {
+            const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const newVideoTrack = videoStream.getVideoTracks()[0];
+            localStreamRef.current.addTrack(newVideoTrack);
+            setIsVideoEnabled(true);
+            setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+            peersRef.current.forEach(async (pc, peerId) => {
+                const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+                if (sender) {
+                    await sender.replaceTrack(newVideoTrack);
+                } else {
+                    pc.addTrack(newVideoTrack, localStreamRef.current!);
+                }
+                negotiate(peerId, pc);
+            });
+            publishVideoPresence(true);
+        } catch (e) {
+            console.error("Failed to enable camera", e);
+            toast.error("Could not access camera");
         }
     };
 
@@ -449,13 +470,31 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 return newMap;
             });
 
-            const handleTrackEvent = () => {
-                setPeersMapVersion(v => v + 1);
-            };
+            if (event.track.kind === 'video') {
+                // Keep a browser-agnostic source of truth for remote camera state.
+                setPeerVideoEnabled(prev => new Map(prev).set(targetId, true));
+            }
 
-            event.track.onmute = handleTrackEvent;
-            event.track.onunmute = handleTrackEvent;
-            event.track.onended = handleTrackEvent;
+            if (event.track.kind === 'video') {
+                event.track.onmute = () => {
+                    setPeerVideoEnabled(prev => new Map(prev).set(targetId, false));
+                    setPeersMapVersion(v => v + 1);
+                };
+
+                event.track.onunmute = () => {
+                    setPeerVideoEnabled(prev => new Map(prev).set(targetId, true));
+                    setPeersMapVersion(v => v + 1);
+                };
+
+                event.track.onended = () => {
+                    setPeerVideoEnabled(prev => new Map(prev).set(targetId, false));
+                    setPeersMapVersion(v => v + 1);
+                };
+            } else {
+                event.track.onmute = () => setPeersMapVersion(v => v + 1);
+                event.track.onunmute = () => setPeersMapVersion(v => v + 1);
+                event.track.onended = () => setPeersMapVersion(v => v + 1);
+            }
 
             if (event.track.kind === 'audio') setupAudioAnalysis(targetId, stream);
         };

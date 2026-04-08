@@ -149,7 +149,7 @@ public class MeetingRoomController {
             Authentication authentication
     ) {
         UUID requesterId = AuthUtil.requireUserId(authentication);
-        meetingRoomService.requireRoomOwner(roomId, requesterId);
+        meetingRoomService.requireInvitePermission(roomId, requesterId);
 
         // Find the room
         MeetingRoom room = meetingRoomService.findRoom(roomId);

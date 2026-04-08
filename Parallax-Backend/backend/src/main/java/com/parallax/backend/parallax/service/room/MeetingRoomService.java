@@ -167,6 +167,21 @@ public class MeetingRoomService {
     }
 
     @Transactional(readOnly = true)
+    public void requireInvitePermission(UUID roomId, UUID userId) {
+        MeetingRoom room = findRoom(roomId);
+        boolean isHost = room.getCreatedBy().equals(userId);
+        boolean isParticipant = roomParticipantRepository.existsByRoomIdAndUserId(roomId, userId);
+
+        if (!isHost && !isParticipant) {
+            throw new SecurityException("You are not a member of this room");
+        }
+
+        if ("INTERVIEW".equals(room.getCollaborationMode()) && !isHost) {
+            throw new SecurityException("Only room host can invite participants in interview mode");
+        }
+    }
+
+    @Transactional(readOnly = true)
     public boolean isWhiteboardEnabled(UUID roomId) {
         return findRoom(roomId).isWhiteboardEnabled();
     }
@@ -315,9 +330,13 @@ public class MeetingRoomService {
         if ("INTERVIEW".equals(room.getCollaborationMode())) {
             String wbEditors = room.getWhiteboardEditorUserIds();
             String codeEditors = room.getCodeEditorUserIds();
+            boolean codeOpen = room.isCodeOpen();
+            boolean screenShareDisabled = room.isScreenShareDisabled();
             applyInterviewModeDefaults(room);
             room.setWhiteboardEditorUserIds(wbEditors == null ? "" : wbEditors);
             room.setCodeEditorUserIds(codeEditors == null ? "" : codeEditors);
+            room.setCodeOpen(codeOpen);
+            room.setScreenShareDisabled(screenShareDisabled);
         }
 
         meetingRoomRepository.save(room);
