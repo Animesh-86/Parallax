@@ -1,17 +1,72 @@
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+
+type TokenPayload = {
+  exp?: number;
+  displayName?: string;
+  fullName?: string;
+  username?: string;
+  name?: string;
+  sub?: string;
+};
+
+type AuthUser = {
+  name: string;
+  initials: string;
+};
 
 export function Header() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("access_token");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setAuthUser(null);
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode<TokenPayload>(token);
+      const nowInSeconds = Date.now() / 1000;
+
+      if (!decoded.exp || decoded.exp <= nowInSeconds) {
+        localStorage.removeItem("access_token");
+        setAuthUser(null);
+        return;
+      }
+
+      const resolvedName =
+        decoded.displayName ||
+        decoded.fullName ||
+        decoded.username ||
+        decoded.name ||
+        decoded.sub ||
+        "User";
+
+      const words = resolvedName.trim().split(/\s+/).filter(Boolean);
+      const initials = words.length >= 2
+        ? `${words[0][0]}${words[1][0]}`.toUpperCase()
+        : resolvedName.slice(0, 2).toUpperCase();
+
+      setAuthUser({
+        name: resolvedName,
+        initials: initials || "US",
+      });
+    } catch {
+      localStorage.removeItem("access_token");
+      setAuthUser(null);
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
+    setAuthUser(null);
     navigate('/');
-    window.location.reload();
   };
 
   const primaryNavItems = [
@@ -44,7 +99,7 @@ export function Header() {
             whileTap={{ scale: 0.95 }}
           >
             <div className="w-7 h-7 bg-gradient-to-br from-[#2DD4BF] to-[#38BDF8] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
+              <span className="text-white font-bold text-sm">P</span>
             </div>
             <span className="hidden sm:inline bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] bg-clip-text text-transparent text-sm">
               Parallax
@@ -91,14 +146,51 @@ export function Header() {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
-            <motion.button
-              onClick={token ? handleLogout : () => navigate('/login')}
-              className="px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-white border border-[#2DD4BF] bg-[#94A3B8]/10 hover:bg-[#94A3B8]/20 rounded-lg transition-all duration-300"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {token ? "Log Out" : "Login"}
-            </motion.button>
+            {authUser ? (
+              <>
+                <motion.button
+                  onClick={() => navigate('/profile')}
+                  className="flex items-center gap-2 text-sm text-[#CBD5E1] hover:text-white transition-colors duration-300 relative group whitespace-nowrap"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span className="w-7 h-7 rounded-full bg-gradient-to-br from-[#2DD4BF] to-[#38BDF8] text-[#060910] text-xs font-semibold flex items-center justify-center">
+                    {authUser.initials}
+                  </span>
+                  <span>{authUser.name}</span>
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] group-hover:w-full transition-all duration-300" />
+                </motion.button>
+
+                <motion.button
+                  onClick={handleLogout}
+                  className="text-sm text-[#CBD5E1] hover:text-white transition-colors duration-300 relative group whitespace-nowrap"
+                  whileHover={{ y: -2 }}
+                >
+                  Log Out
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] group-hover:w-full transition-all duration-300" />
+                </motion.button>
+              </>
+            ) : (
+              <>
+                <motion.button
+                  onClick={() => navigate('/login')}
+                  className="text-sm text-[#CBD5E1] hover:text-white transition-colors duration-300 relative group whitespace-nowrap"
+                  whileHover={{ y: -2 }}
+                >
+                  Login
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] group-hover:w-full transition-all duration-300" />
+                </motion.button>
+
+                <motion.button
+                  onClick={() => navigate('/signup')}
+                  className="text-sm text-[#CBD5E1] hover:text-white transition-colors duration-300 relative group whitespace-nowrap"
+                  whileHover={{ y: -2 }}
+                >
+                  Signup
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] group-hover:w-full transition-all duration-300" />
+                </motion.button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -148,14 +240,37 @@ export function Header() {
               </motion.button>
               <motion.button
                 onClick={() => {
-                  token ? handleLogout() : navigate('/login');
+                  authUser ? navigate('/profile') : navigate('/login');
                   setMobileMenuOpen(false);
                 }}
                 className="px-4 py-2 text-sm font-medium text-white border border-[#2DD4BF] bg-[#94A3B8]/10 hover:bg-[#94A3B8]/20 rounded-lg transition-all"
                 whileHover={{ scale: 1.02 }}
               >
-                {token ? "Log Out" : "Login"}
+                {authUser ? `Profile (${authUser.name})` : "Login"}
               </motion.button>
+              {!authUser ? (
+                <motion.button
+                  onClick={() => {
+                    navigate('/signup');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-white border border-[#2DD4BF] bg-[#94A3B8]/10 hover:bg-[#94A3B8]/20 rounded-lg transition-all"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  Signup
+                </motion.button>
+              ) : (
+                <motion.button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-white border border-[#2DD4BF] bg-[#94A3B8]/10 hover:bg-[#94A3B8]/20 rounded-lg transition-all"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  Log Out
+                </motion.button>
+              )}
               <motion.button
                 onClick={() => {
                   navigate('/pricing');
