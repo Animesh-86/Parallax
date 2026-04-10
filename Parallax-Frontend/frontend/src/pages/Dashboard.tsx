@@ -648,34 +648,39 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-semibold flex items-center gap-3">
                             <Video className="w-6 h-6 text-[#94A3B8]" />
-                            Rooms & Teams
+                            Your Rooms
                         </h2>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => navigate('/rooms')}
-                                className="px-3 py-2 text-sm text-white/70 hover:text-white/90 hover:bg-white/5 rounded-lg transition">
+                                className="px-3 py-2 text-sm text-white/70 hover:text-white/90 hover:bg-white/5 rounded-lg transition"
+                            >
                                 See all
                             </button>
                             <button
                                 onClick={() => setIsCreateRoomModalOpen(true)}
-                                className={createRoomButtonClass}>
+                                className={createRoomButtonClass}
+                            >
                                 <Plus className="w-4 h-4" />
                                 Create Room
                             </button>
                         </div>
                     </div>
 
-                    {loadingRooms || loadingTeams ? (
+                    {loadingRooms ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <RoomSkeleton />
                             <RoomSkeleton />
                             <RoomSkeleton />
                             <RoomSkeleton />
                         </div>
+                    ) : rooms.length === 0 ? (
+                        <div className="text-center text-white/40 text-sm py-8 bg-[#060910] border border-white/5 rounded-2xl">
+                            No active rooms
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Top Row: Rooms */}
-                            {rooms.slice(0, 2).map((room) => (
+                            {rooms.slice(0, 4).map((room) => (
                                 <div
                                     key={room.id}
                                     className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-[#94A3B8]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#94A3B8]/10 h-full"
@@ -688,7 +693,7 @@ export default function Dashboard() {
                                                 Code: {room.roomCode}
                                             </div>
                                             <div className="mt-2 text-xs text-white/60">
-                                                {room.codeOpen ? 'Open to join' : 'Invite-only'}
+                                                {room.codeOpen ? 'Join by code: Open' : 'Join by code: Invite-only'}
                                             </div>
                                         </div>
                                         {room.active && (
@@ -702,7 +707,8 @@ export default function Dashboard() {
                                     <div className="flex gap-2 mt-4">
                                         <button
                                             onClick={() => navigate(`/room/${room.roomCode}`)}
-                                            className="flex-1 px-4 py-2 bg-gradient-to-r from-[#94A3B8]/20 to-[#94A3B8]/20 border border-[#94A3B8]/30 rounded-xl text-sm font-medium hover:from-[#94A3B8]/30 hover:to-[#94A3B8]/30 transition-all">
+                                            className="flex-1 px-4 py-2 bg-gradient-to-r from-[#94A3B8]/20 to-[#94A3B8]/20 border border-[#94A3B8]/30 rounded-xl text-sm font-medium hover:from-[#94A3B8]/30 hover:to-[#94A3B8]/30 transition-all"
+                                        >
                                             Join Room
                                         </button>
                                         <button
@@ -711,15 +717,47 @@ export default function Dashboard() {
                                                 handleDeleteRoom(room.id);
                                             }}
                                             className="p-2 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
-                                            title="Delete room">
+                                            title="Delete room"
+                                        >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                </section>
 
-                            {/* Bottom Row: Teams */}
-                            {teams.slice(0, 2).map((team) => (
+                {/* Teams Section */}
+                <section className="mb-12">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-semibold flex items-center gap-3">
+                            <Users className="w-6 h-6 text-[#94A3B8]" />
+                            Teams
+                        </h2>
+                        <button
+                            onClick={() => navigate('/teams')}
+                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all flex items-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Create Team
+                        </button>
+                    </div>
+
+                    {loadingTeams ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <RoomSkeleton />
+                            <RoomSkeleton />
+                            <RoomSkeleton />
+                            <RoomSkeleton />
+                        </div>
+                    ) : teams.length === 0 ? (
+                        <div className="text-center text-white/40 text-sm py-8 bg-[#060910] border border-white/5 rounded-2xl">
+                            No teams created yet
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {teams.slice(0, 4).map((team) => (
                                 <div
                                     key={team.id}
                                     className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-[#38BDF8]/30 transition-all duration-300 group cursor-pointer h-full"
@@ -750,18 +788,12 @@ export default function Dashboard() {
                                             e.stopPropagation();
                                             navigate(`/team/${team.id}`);
                                         }}
-                                        className="w-full px-4 py-2 bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 border border-[#38BDF8]/30 rounded-xl text-sm font-medium hover:from-[#38BDF8]/30 hover:to-[#94A3B8]/30 transition-all">
+                                        className="w-full px-4 py-2 bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 border border-[#38BDF8]/30 rounded-xl text-sm font-medium hover:from-[#38BDF8]/30 hover:to-[#94A3B8]/30 transition-all"
+                                    >
                                         Open Workspace
                                     </button>
                                 </div>
                             ))}
-
-                            {/* Empty State */}
-                            {rooms.length === 0 && teams.length === 0 && (
-                                <div className="col-span-full text-center text-white/40 text-sm py-12 bg-[#060910] border border-white/5 rounded-2xl">
-                                    No rooms or teams yet. Create one to get started!
-                                </div>
-                            )}
                         </div>
                     )}
                 </section>

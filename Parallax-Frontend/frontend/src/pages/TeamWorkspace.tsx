@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Loader, AlertCircle, UserPlus, Settings, TrendingUp, FileText, ListTodo, Activity, MessageSquare, MoreVertical, Crown, Shield, Plus, Folder, Video } from 'lucide-react';
+import { Users, Loader, AlertCircle, UserPlus, Settings, TrendingUp, FileText, ListTodo, Activity, MessageSquare, MoreVertical, Crown, Shield, Plus, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { NotificationBell } from '../components/NotificationBell';
@@ -204,6 +204,23 @@ export default function TeamWorkspace() {
 
       {/* Main Content */}
       <main className="pt-20 pb-16 px-6 max-w-[1400px] mx-auto relative z-10">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsCreateProjectModalOpen(true)}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Create Project
+          </button>
+          <button
+            onClick={() => setIsCreateRoomModalOpen(true)}
+            className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2"
+          >
+            <Video className="w-4 h-4" />
+            Create Room
+          </button>
+        </div>
+
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-12 gap-6">
