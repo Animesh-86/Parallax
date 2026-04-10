@@ -1,22 +1,27 @@
 import { motion } from "motion/react";
 import { Link } from 'react-router-dom';
-import { CosmicStars } from '../components/workspace/CosmicStars';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { FluidFlowBackground } from '../components/effects/FluidFlowBackground';
 import { ArrowRight, Code2, Zap, Target, Sparkles, Rocket, Terminal, Globe, Shield } from 'lucide-react';
 
 export default function About() {
     return (
         <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
-            {/* Cosmic Background */}
-            <CosmicStars />
-
-            {/* Background Orbs */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-20 left-10 w-96 h-96 bg-[#38BDF8]/20 rounded-full blur-[100px]" />
-                <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#2DD4BF]/15 rounded-full blur-[100px]" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#64748B]/10 rounded-full blur-[120px]" />
+            <div className="fixed inset-0 z-0">
+                <FluidFlowBackground
+                    colors={["#1D4ED8", "#38BDF8", "#2DD4BF", "#A78BFA"]}
+                    mouseForce={24}
+                    cursorSize={130}
+                    resolution={0.3}
+                    autoDemo={true}
+                    autoSpeed={0.55}
+                    autoIntensity={2.4}
+                    autoResumeDelay={1200}
+                    style={{ width: "100%", height: "100%" }}
+                />
             </div>
+            <div className="pointer-events-none fixed inset-0 z-0 bg-[#060910]/45" />
 
             {/* Navigation Header */}
             <Header />

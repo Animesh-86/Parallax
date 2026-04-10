@@ -2,7 +2,7 @@ import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { CosmicStars } from "../components/workspace/CosmicStars";
+import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
 import { Check, Sparkles, Zap, Rocket, Building, Star } from "lucide-react";
 
 const plans = [
@@ -116,8 +116,19 @@ const plans = [
 export default function Pricing() {
     return (
         <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
-            {/* Cosmic Background */}
-            <CosmicStars />
+            <div className="fixed inset-0 z-0">
+                <FluidFlowBackground
+                    colors={["#1D4ED8", "#38BDF8", "#2DD4BF", "#A78BFA"]}
+                    mouseForce={24}
+                    cursorSize={130}
+                    resolution={0.3}
+                    autoDemo={true}
+                    autoSpeed={0.55}
+                    autoIntensity={2.4}
+                    autoResumeDelay={1200}
+                    style={{ width: "100%", height: "100%" }}
+                />
+            </div>
 
             {/* Dark Overlay (Same as About.tsx) */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden bg-[#060910]/80 backdrop-blur-3xl">

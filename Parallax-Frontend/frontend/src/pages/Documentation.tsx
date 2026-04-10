@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { CosmicStars } from "../components/workspace/CosmicStars";
+import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
 import { BookOpen, Terminal, Users, Zap, Code2, Play } from "lucide-react";
 
 const guides = [
@@ -62,7 +62,20 @@ const faqs = [
 export default function Documentation() {
     return (
         <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
-            <CosmicStars />
+            <div className="fixed inset-0 z-0">
+                <FluidFlowBackground
+                    colors={["#1D4ED8", "#38BDF8", "#2DD4BF", "#A78BFA"]}
+                    mouseForce={24}
+                    cursorSize={130}
+                    resolution={0.3}
+                    autoDemo={true}
+                    autoSpeed={0.55}
+                    autoIntensity={2.4}
+                    autoResumeDelay={1200}
+                    style={{ width: "100%", height: "100%" }}
+                />
+            </div>
+            <div className="pointer-events-none fixed inset-0 z-0 bg-[#060910]/45" />
             <Header />
 
             <main className="relative z-10 pt-28 pb-20">
