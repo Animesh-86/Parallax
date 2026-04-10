@@ -74,7 +74,7 @@ export default function App() {
           <Route path="/workspace/:projectId" element={<Workspace />} />
           <Route path="/room" element={<Navigate to="/rooms" replace />} />
           <Route path="/room/:roomCode" element={<MeetingRoom />} />
-          <Route path="/team" element={<TeamWorkspace />} />
+          <Route path="/team/:teamId" element={<TeamWorkspace />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/editor/:projectId" element={<Workspace />} />
           <Route path="/my-projects" element={<MyProjects />} />
