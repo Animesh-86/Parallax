@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Users, Loader, AlertCircle, UserPlus, Settings, TrendingUp, FileText, ListTodo, Activity, MessageSquare, MoreVertical, Crown, Shield } from 'lucide-react';
+import { Users, Loader, AlertCircle, UserPlus, Settings, TrendingUp, FileText, ListTodo, Activity, MessageSquare, MoreVertical, Crown, Shield, Plus, Folder, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { NotificationBell } from '../components/NotificationBell';
 import { CosmicStars } from '../components/workspace/CosmicStars';
 import { teamApi, Team, TeamMember } from '../services/teamApi';
+import { collabApi } from '../services/collabApi';
+import { QuickCreateModal } from '../components/modals/QuickCreateModal';
+import { CreateRoomModal } from '../components/modals/CreateRoomModal';
 
 type TabView = 'overview' | 'members' | 'tasks' | 'docs' | 'settings';
 
@@ -18,6 +21,8 @@ export default function TeamWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
 
   useEffect(() => {
     if (!teamId) {
@@ -58,6 +63,41 @@ export default function TeamWorkspace() {
       setError('Failed to invite member');
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleCreateProject = async (projectName: string, language: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) throw new Error('No access token');
+
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: projectName, language }),
+      });
+
+      if (!res.ok) throw new Error('Failed to create project');
+      const created = await res.json();
+      setIsCreateProjectModalOpen(false);
+      navigate(`/editor/${created.id}`);
+    } catch (err) {
+      console.error('Failed to create project:', err);
+      setError('Failed to create project');
+    }
+  };
+
+  const handleCreateRoom = async (name: string, collaborationMode: 'INTERVIEW' | 'TEAM') => {
+    try {
+      const newRoom = await collabApi.createRoom(name, collaborationMode);
+      setIsCreateRoomModalOpen(false);
+      navigate(`/room/${newRoom.roomCode}`);
+    } catch (err) {
+      console.error('Failed to create room:', err);
+      setError('Failed to create room');
     }
   };
 
@@ -143,7 +183,23 @@ export default function TeamWorkspace() {
           })}
         </nav>
 
-        <NotificationBell />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsCreateProjectModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg transition-all text-xs flex items-center gap-2 text-white/60 hover:text-white/90"
+            title="Create Project">
+            <Plus className="w-3 h-3" />
+            Project
+          </button>
+          <button
+            onClick={() => setIsCreateRoomModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg transition-all text-xs flex items-center gap-2 text-white/60 hover:text-white/90"
+            title="Start Room">
+            <Video className="w-3 h-3" />
+            Room
+          </button>
+          <NotificationBell />
+        </div>
       </header>
 
       {/* Main Content */}
@@ -353,6 +409,19 @@ export default function TeamWorkspace() {
           </motion.div>
         )}
       </main>
+      
+      <QuickCreateModal 
+        isOpen={isCreateProjectModalOpen} 
+        onClose={() => setIsCreateProjectModalOpen(false)} 
+        onCreateProject={handleCreateProject}
+      />
+
+      <CreateRoomModal
+        isOpen={isCreateRoomModalOpen}
+        onClose={() => setIsCreateRoomModalOpen(false)}
+        onCreateRoom={handleCreateRoom}
+        onJoinRoom={(code) => navigate(`/room/${code}`)}
+      />
     </div>
   );
 }

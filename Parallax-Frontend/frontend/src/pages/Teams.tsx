@@ -157,26 +157,11 @@ export default function Teams() {
 
                     <div className="flex items-center gap-2">
                         <button
-                            disabled
-                            title="Select a team from the list to open workspace"
-                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all flex items-center gap-2 opacity-50 cursor-not-allowed"
-                        >
-                            <Users className="w-4 h-4" />
-                            Team Workspace
-                        </button>
-                        <button
                             onClick={() => setIsCreateTeamModalOpen(true)}
                             className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all flex items-center gap-2"
                         >
                             <Plus className="w-4 h-4" />
                             Create Team
-                        </button>
-                        <button
-                            onClick={() => setIsCreateRoomModalOpen(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Start Team Room
                         </button>
                     </div>
                 </div>

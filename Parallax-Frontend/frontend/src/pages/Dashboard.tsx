@@ -21,6 +21,7 @@ import { CosmicStars } from "../components/workspace/CosmicStars";
 import { QuickCreateModal } from "../components/modals/QuickCreateModal";
 import { NotificationBell } from "../components/NotificationBell";
 import { collabApi, Collaborator, MeetingRoom } from '../services/collabApi';
+import { teamApi, Team } from '../services/teamApi';
 import { useCollab } from '../context/CollaborationContext';
 import { DashboardHeader } from '../components/DashboardHeader';
 import { CreateRoomModal } from '../components/modals/CreateRoomModal';
@@ -63,6 +64,9 @@ export default function Dashboard() {
     const [loadingRooms, setLoadingRooms] = useState(false);
     const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
 
+    // Dynamic Teams State
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [loadingTeams, setLoadingTeams] = useState(false);
 
     // Dynamic Friends State
     const [recentCollaborators, setRecentCollaborators] = useState<Friend[]>([]);
@@ -325,6 +329,18 @@ export default function Dashboard() {
             setLoadingRooms(false);
         }
     };
+
+    const fetchTeams = async () => {
+        try {
+            setLoadingTeams(true);
+            const myTeams = await teamApi.listMyTeams();
+            setTeams(myTeams);
+        } catch (err) {
+            console.error("Fetch teams error:", err);
+        } finally {
+            setLoadingTeams(false);
+        }
+    };
     
     const handleCreateRoom = async (name: string, collaborationMode: 'INTERVIEW' | 'TEAM') => {
         const newRoom = await collabApi.createRoom(name, collaborationMode);
@@ -348,10 +364,9 @@ export default function Dashboard() {
     useEffect(() => {
         fetchProjects();
         fetchRooms();
+        fetchTeams();
     }, [lastUpdate]);
 
-
-    const teams: any[] = [];
     const createRoomButtonClass = "px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2";
 
     const projectsToShow = showAllProjects ? projects : projects.slice(0, 4);
@@ -632,136 +647,121 @@ export default function Dashboard() {
                 <section className="mb-12">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-semibold flex items-center gap-3">
-                            <Users className="w-6 h-6 text-[#94A3B8]" />
-                            Your Rooms
+                            <Video className="w-6 h-6 text-[#94A3B8]" />
+                            Rooms & Teams
                         </h2>
-                        <button
-                            onClick={() => setIsCreateRoomModalOpen(true)}
-                            className={createRoomButtonClass}>
-                            <Plus className="w-4 h-4" />
-                            Create Room
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => navigate('/rooms')}
+                                className="px-3 py-2 text-sm text-white/70 hover:text-white/90 hover:bg-white/5 rounded-lg transition">
+                                See all
+                            </button>
+                            <button
+                                onClick={() => setIsCreateRoomModalOpen(true)}
+                                className={createRoomButtonClass}>
+                                <Plus className="w-4 h-4" />
+                                Create Room
+                            </button>
+                        </div>
                     </div>
 
-                    {loadingRooms ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {loadingRooms || loadingTeams ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <RoomSkeleton />
                             <RoomSkeleton />
                             <RoomSkeleton />
-                        </div>
-                    ) : rooms.length === 0 ? (
-                        <div className="text-center text-white/40 text-sm py-8 bg-[#060910] border border-white/5 rounded-2xl">
-                            No active rooms
+                            <RoomSkeleton />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {rooms.map((room) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Top Row: Rooms */}
+                            {rooms.slice(0, 2).map((room) => (
                                 <div
                                     key={room.id}
-                                    className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-[#94A3B8]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#94A3B8]/10"
+                                    className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-[#94A3B8]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#94A3B8]/10 h-full"
                                 >
                                     <div className="flex items-start justify-between mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold mb-2">{room.name}</h3>
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold mb-2 group-hover:text-[#94A3B8] transition-colors">{room.name}</h3>
                                             <div className="flex items-center gap-2 text-sm text-white/50">
                                                 <Users className="w-4 h-4" />
                                                 Code: {room.roomCode}
                                             </div>
                                             <div className="mt-2 text-xs text-white/60">
-                                                {room.codeOpen ? 'Join by code: Open' : 'Join by code: Invite-only'}
-                                            </div>
-                                            <div className="mt-1 text-[11px] text-white/40">
-                                                Mode: {room.collaborationMode}
+                                                {room.codeOpen ? 'Open to join' : 'Invite-only'}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            {room.active && (
-                                                <div
-                                                    className="flex items-center gap-1.5 px-2 py-1 bg-[#4ADE80]/20 border border-[#4ADE80]/30 rounded-full">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
-                                                    <span className="text-xs text-[#4ADE80]">Live</span>
-                                                </div>
+                                        {room.active && (
+                                            <div className="flex items-center gap-1.5 px-2 py-1 bg-[#4ADE80]/20 border border-[#4ADE80]/30 rounded-full ml-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
+                                                <span className="text-xs text-[#4ADE80]">Live</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-2 mt-4">
+                                        <button
+                                            onClick={() => navigate(`/room/${room.roomCode}`)}
+                                            className="flex-1 px-4 py-2 bg-gradient-to-r from-[#94A3B8]/20 to-[#94A3B8]/20 border border-[#94A3B8]/30 rounded-xl text-sm font-medium hover:from-[#94A3B8]/30 hover:to-[#94A3B8]/30 transition-all">
+                                            Join Room
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteRoom(room.id);
+                                            }}
+                                            className="p-2 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
+                                            title="Delete room">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Bottom Row: Teams */}
+                            {teams.slice(0, 2).map((team) => (
+                                <div
+                                    key={team.id}
+                                    className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-[#38BDF8]/30 transition-all duration-300 group cursor-pointer h-full"
+                                    onClick={() => navigate(`/team/${team.id}`)}
+                                >
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold mb-1 group-hover:text-[#38BDF8] transition-colors">{team.name}</h3>
+                                            {team.description && (
+                                                <p className="text-sm text-white/50 line-clamp-1">{team.description}</p>
                                             )}
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteRoom(room.id);
-                                                }}
-                                                className="p-1.5 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
-                                                title="Delete room"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2 mb-4 text-sm">
+                                        <div className="flex items-center justify-between text-white/70">
+                                            <span>Members</span>
+                                            <span className="font-medium">{team.activeMembers}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-white/70">
+                                            <span>Pending</span>
+                                            <span className="font-medium text-[#FBBF24]">{team.pendingInvites}</span>
                                         </div>
                                     </div>
 
                                     <button
-                                        onClick={() => navigate(`/room/${room.roomCode}`)}
-                                        className="w-full px-4 py-2 bg-gradient-to-r from-[#94A3B8]/20 to-[#94A3B8]/20 border border-[#94A3B8]/30 rounded-xl text-sm font-medium hover:from-[#94A3B8]/30 hover:to-[#94A3B8]/30 transition-all"
-                                    >
-                                        Join Room
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/team/${team.id}`);
+                                        }}
+                                        className="w-full px-4 py-2 bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 border border-[#38BDF8]/30 rounded-xl text-sm font-medium hover:from-[#38BDF8]/30 hover:to-[#94A3B8]/30 transition-all">
+                                        Open Workspace
                                     </button>
                                 </div>
                             ))}
-                        </div>
-                    )}
-                </section>
 
-                {/* Teams Section */}
-                <section className="mb-12">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-semibold flex items-center gap-3">
-                            <Users className="w-6 h-6 text-[#94A3B8]" />
-                            Teams
-                        </h2>
-                        <button
-                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all flex items-center gap-2">
-                            <Plus className="w-4 h-4" />
-                            Create Team
-                        </button>
-                    </div>
-
-                    {teams.length === 0 ? (
-                        <div className="text-center text-white/40 text-sm py-8 bg-[#060910] border border-white/5 rounded-2xl">
-                            No teams created yet
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {teams.map((team) => (
-                                <div
-                                    key={team.id}
-                                    className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-[#94A3B8]/30 transition-all duration-300"
-                                >
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold mb-2">{team.name}</h3>
-                                            <div className="text-sm text-white/50">{team.members.length} members</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex -space-x-2 mb-4">
-                                        {team.members.map((member, idx) => (
-                                            <div
-                                                key={idx}
-                                                className="w-9 h-9 rounded-full bg-gradient-to-br from-[#38BDF8] to-[#94A3B8] flex items-center justify-center text-sm font-semibold border-2 border-[#060910]"
-                                            >
-                                                {member}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex gap-2">
-                                        <button
-                                            className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all">
-                                            View Workspace
-                                        </button>
-                                        <button
-                                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all">
-                                            <UserPlus className="w-4 h-4" />
-                                        </button>
-                                    </div>
+                            {/* Empty State */}
+                            {rooms.length === 0 && teams.length === 0 && (
+                                <div className="col-span-full text-center text-white/40 text-sm py-12 bg-[#060910] border border-white/5 rounded-2xl">
+                                    No rooms or teams yet. Create one to get started!
                                 </div>
-                            ))}
+                            )}
                         </div>
                     )}
                 </section>
