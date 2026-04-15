@@ -16,7 +16,6 @@ export function Footer() {
       title: "Product",
       links: [
         { label: "Features", href: "/features" },
-        { label: "Pricing", href: "/pricing" },
         { label: "Security", href: "/security" },
         { label: "Roadmap", href: "/roadmap" },
       ],
@@ -40,39 +39,39 @@ export function Footer() {
   ];
 
   return (
-    <footer className="relative py-8 md:py-12 px-4 md:px-8 overflow-hidden">
-      {/* Gradient divider */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#2DD4BF]/50 to-transparent" />
-
-      {/* Background glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 bg-gradient-to-t from-[#2DD4BF]/10 via-[#38BDF8]/5 to-transparent blur-3xl" />
+    <footer className="relative py-16 md:py-24 px-6 md:px-12 bg-[#09090B] overflow-hidden">
+      {/* Structural divider */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-white/5" />
+      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8 mb-8 md:mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 md:gap-16 mb-20">
           {/* Brand column */}
           <ScrollReveal direction="up" className="lg:col-span-2">
-            <div className="space-y-4">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#2DD4BF]/20 via-[#38BDF8]/20 to-[#2DD4BF]/20 blur-xl" />
-                <h3 className="relative text-2xl md:text-3xl tracking-wider bg-gradient-to-r from-[#2DD4BF] via-[#7DD3FC] to-[#2DD4BF] bg-clip-text text-transparent">
-                  Parallax
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 border border-[#D4AF37]/30 rounded-lg flex items-center justify-center">
+                  <span className="text-[#D4AF37] font-mono text-[10px] font-bold">PX</span>
+                </div>
+                <h3 className="text-xl tracking-[0.4em] text-white font-bold uppercase transition-colors">
+                  PARALLAX
                 </h3>
               </div>
-              <p className="text-sm md:text-base text-[#94A3B8] max-w-sm">
-                Your collaborative coding universe. Build together, ship faster, create boundlessly.
+              <p className="text-sm text-zinc-500 max-w-sm leading-relaxed">
+                A high-fidelity collaborative engine for the next generation of software architectures. 
+                Built for precision, synced for speed.
               </p>
 
               {/* Social links */}
-              <div className="flex gap-3">
+              <div className="flex gap-4 pt-2">
                 {socialLinks.map((social, index) => (
                   <motion.a
                     key={index}
                     href={social.href}
-                    className="w-10 h-10 rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 hover:border-[#2DD4BF]/50 flex items-center justify-center transition-all duration-300 group"
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
+                    className="w-10 h-10 rounded-xl bg-zinc-950 border border-white/5 hover:border-[#D4AF37]/40 flex items-center justify-center transition-all duration-500 group"
+                    whileHover={{ y: -4 }}
                   >
-                    <social.Icon className="w-5 h-5 text-[#94A3B8] group-hover:text-[#2DD4BF] transition-colors" strokeWidth={1.5} />
+                    <social.Icon className="w-4 h-4 text-zinc-600 group-hover:text-[#D4AF37] transition-colors" strokeWidth={1.5} />
                   </motion.a>
                 ))}
               </div>
@@ -82,16 +81,16 @@ export function Footer() {
           {/* Link columns */}
           {footerLinks.map((column, idx) => (
             <ScrollReveal key={idx} direction="up" delay={idx * 0.1}>
-              <div>
-                <h4 className="text-sm md:text-base mb-3 text-white/90">
+              <div className="space-y-6">
+                <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37]">
                   {column.title}
                 </h4>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {column.links.map((link, linkIdx) => (
                     <li key={linkIdx}>
                       <Link
                         to={link.href}
-                        className="text-sm text-[#94A3B8] hover:text-[#2DD4BF] transition-colors inline-block"
+                        className="text-xs text-zinc-600 hover:text-white uppercase tracking-widest transition-colors inline-block"
                       >
                         {link.label}
                       </Link>
@@ -104,33 +103,22 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <ScrollReveal direction="up" delay={0.3}>
-          <div className="pt-6 border-t border-white/10">
-            <div className="text-center">
-              <p className="text-xs md:text-sm text-[#94A3B8]">
-                © 2026 Parallax — crafted in the void between keystrokes.
-              </p>
-            </div>
+        <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-700 uppercase tracking-[0.2em]">
+            <span>© 2026</span>
+            <span className="h-1 w-1 rounded-full bg-[#D4AF37]/30" />
+            <span>PX_ENGINE_V2.0</span>
           </div>
-        </ScrollReveal>
+          <div className="flex items-center gap-8">
+            <Link to="/privacy" className="text-[9px] font-mono text-zinc-700 hover:text-zinc-500 transition-colors uppercase tracking-[0.2em]">Privacy[Registry]</Link>
+            <Link to="/terms" className="text-[9px] font-mono text-zinc-700 hover:text-zinc-500 transition-colors uppercase tracking-[0.2em]">Terms[Protocol]</Link>
+          </div>
+        </div>
       </div>
 
-      {/* Decorative elements */}
-      <motion.div
-        className="absolute bottom-10 left-10 w-32 h-32 rounded-full border border-white/5"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-      >
-        <div className="absolute top-0 left-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-[#2DD4BF] to-[#64748B] -translate-x-1/2" />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-20 right-20 w-24 h-24 rounded-full border border-white/5"
-        animate={{ rotate: -360 }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      >
-        <div className="absolute bottom-0 left-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-[#7DD3FC] to-[#F472B6] -translate-x-1/2" />
-      </motion.div>
+      {/* Background Ambience */}
+      <div className="absolute bottom-0 right-0 w-1/3 h-1/2 bg-gradient-to-tl from-[#D4AF37]/5 to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 w-1/4 h-1/4 bg-white/[0.01] blur-3xl pointer-events-none" />
     </footer>
   );
 }

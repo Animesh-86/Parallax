@@ -253,14 +253,14 @@ export default function CodeEditor({
   return (
     <div className="w-full h-full flex flex-col">
       {error && (
-        <div className="px-4 py-2 bg-[#EF6461]/20 text-[#F472B6] text-xs">
+        <div className="px-4 py-2 bg-[#EF6461]/20 text-[#D4AF37] text-xs">
           {error}
         </div>
       )}
 
       <div className="flex-1 p-4">
         <div className="flex flex-col h-full rounded-xl overflow-hidden border border-[#162032] bg-[#162032]">
-          <div className="px-4 py-2 text-xs text-[#94A3B8] border-b border-[#162032]">
+          <div className="px-4 py-2 text-xs text-[#A1A1AA] border-b border-[#162032]">
             Editing: {filePath} <span className="ml-2 opacity-50">({getLanguageFromPath(filePath)})</span>
           </div>
 

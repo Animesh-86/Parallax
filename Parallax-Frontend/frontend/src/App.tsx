@@ -9,7 +9,6 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import About from "./pages/About";
-import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import Security from "./pages/Security";
 import Roadmap from "./pages/Roadmap";
@@ -45,7 +44,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<About />} />
-        <Route path="/pricing" element={<Pricing />} />
         <Route path="/features" element={<Features />} />
         <Route path="/security" element={<Security />} />
         <Route path="/roadmap" element={<Roadmap />} />

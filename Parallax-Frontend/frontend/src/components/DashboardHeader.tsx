@@ -32,21 +32,21 @@ export function DashboardHeader() {
     const getLinkClass = (path: string) => {
         const isActive = location.pathname === path;
         return isActive
-            ? "px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 text-white border border-[#38BDF8]/30 transition-all font-medium"
-            : "px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all text-white/60";
+            ? "px-4 py-2 rounded-lg text-sm font-medium bg-[#D4AF37]/10 text-white border border-[#D4AF37]/30 transition-all font-medium shadow-[0_0_15px_-5px_rgba(212,175,55,0.4)]"
+            : "px-4 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all";
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-[100] bg-[#060910]/95 backdrop-blur-md border-b border-white/5 pointer-events-auto isolate">
+        <header className="fixed top-0 left-0 right-0 z-[100] bg-[#09090B]/95 backdrop-blur-md border-b border-white/5 pointer-events-auto isolate">
             <div className="max-w-[1800px] mx-auto px-6 h-16 flex items-center justify-between">
-                <button onClick={() => navigate('/', { state: { fromDashboard: true } })} className="flex items-center gap-3 group">
+                <button onClick={() => navigate('/', { state: { fromDashboard: true } })} className="flex items-center gap-2 group">
                     <div className="relative">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#38BDF8] to-[#94A3B8] flex items-center justify-center">
-                            <Code2 className="w-5 h-5" />
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#F59E0B] flex items-center justify-center">
+                            <span className="text-black font-bold text-sm">P</span>
                         </div>
                     </div>
-                    <span className="text-xl font-semibold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
-                        Parallax
+                    <span className="text-xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#F59E0B] bg-clip-text text-transparent uppercase tracking-[0.2em]">
+                        PARALLAX
                     </span>
                 </button>
 
@@ -60,7 +60,7 @@ export function DashboardHeader() {
 
                 <div className="flex items-center gap-3">
                     <NotificationBell />
-                    <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#38BDF8] to-[#94A3B8] flex items-center justify-center font-semibold text-white">
+                    <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#F59E0B] flex items-center justify-center font-bold text-black border border-[#D4AF37]/50">
                         {initials}
                     </button>
                 </div>

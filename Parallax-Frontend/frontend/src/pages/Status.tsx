@@ -16,14 +16,14 @@ const services = [
 
 const statusConfig = {
     operational: { icon: CheckCircle, color: "text-[#4ADE80]", bg: "bg-[#4ADE80]/10", label: "Operational" },
-    degraded: { icon: AlertCircle, color: "text-[#FBBF24]", bg: "bg-[#FBBF24]/10", label: "Degraded" },
+    degraded: { icon: AlertCircle, color: "text-[#F59E0B]", bg: "bg-[#F59E0B]/10", label: "Degraded" },
     outage: { icon: AlertCircle, color: "text-[#EF6461]", bg: "bg-[#EF6461]/10", label: "Outage" },
-    maintenance: { icon: Clock, color: "text-[#38BDF8]", bg: "bg-[#38BDF8]/10", label: "Maintenance" },
+    maintenance: { icon: Clock, color: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", label: "Maintenance" },
 };
 
 export default function Status() {
     return (
-        <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
+        <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden">
             <CosmicStars />
             <Header />
 
@@ -37,7 +37,7 @@ export default function Status() {
                     >
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
                             System{" "}
-                            <span className="bg-gradient-to-r from-[#4ADE80] to-[#2DD4BF] bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-[#4ADE80] to-[#D4AF37] bg-clip-text text-transparent">
                                 Status
                             </span>
                         </h1>
@@ -67,7 +67,7 @@ export default function Status() {
                                         <span className="text-sm text-white">{service.name}</span>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <span className="text-xs text-[#94A3B8]">{service.uptime} uptime</span>
+                                        <span className="text-xs text-[#A1A1AA]">{service.uptime} uptime</span>
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${config.bg} ${config.color} font-medium`}>
                                             {config.label}
                                         </span>
@@ -86,9 +86,9 @@ export default function Status() {
                     >
                         <p className="text-sm text-[#CBD5E1]">
                             Experiencing issues? Report them on the{" "}
-                            <Link to="/support" className="text-[#38BDF8] hover:underline">support page</Link>.
+                            <Link to="/support" className="text-[#D4AF37] hover:underline">support page</Link>.
                         </p>
-                        <p className="text-xs text-[#94A3B8]">
+                        <p className="text-xs text-[#A1A1AA]">
                             Status is manually updated during active development. Automated monitoring coming soon.
                         </p>
                     </motion.div>

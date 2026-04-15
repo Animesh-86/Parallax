@@ -227,7 +227,7 @@ export default function Workspace() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060910] text-white overflow-hidden relative">
+    <div className="min-h-screen bg-[#09090B] text-white overflow-hidden relative">
       <CosmicStars />
 
       <div className="flex h-screen overflow-hidden">
@@ -240,7 +240,7 @@ export default function Workspace() {
           </div>
 
           {activeLeftTool && (
-            <div style={{ width: leftPanelWidth }} className="flex-shrink-0 flex bg-[#060910] border-r border-white/5">
+            <div style={{ width: leftPanelWidth }} className="flex-shrink-0 flex bg-[#09090B] border-r border-white/5">
               <div className="flex-1 overflow-hidden flex flex-col">
                 {activeLeftTool === "explorer" && (
                   loadingTree ? (
@@ -296,7 +296,7 @@ export default function Workspace() {
                       <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                     </div>
                     <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                      <Sparkles className="w-12 h-12 mb-4 text-[#38BDF8] animate-pulse" />
+                      <Sparkles className="w-12 h-12 mb-4 text-[#D4AF37] animate-pulse" />
                       <h3 className="text-lg font-bold text-white mb-2">Agent Coming Soon</h3>
                       <p className="text-sm">
                         The AI Agent is stuck in traffic.
@@ -314,7 +314,7 @@ export default function Workspace() {
                       <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                     </div>
                     <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                      <Settings className="w-12 h-12 mb-4 text-[#1E293B] animate-[spin_5s_linear_infinite]" />
+                      <Settings className="w-12 h-12 mb-4 text-zinc-600 animate-[spin_5s_linear_infinite]" />
                       <h3 className="text-lg font-bold text-white mb-2">No Settings Here!</h3>
                       <p className="text-sm">
                         The code is already perfect.
@@ -326,7 +326,7 @@ export default function Workspace() {
                 )}
               </div>
               <div
-                className="w-1 cursor-col-resize hover:bg-white/20 active:bg-[#64748B]/50 transition-colors"
+                className="w-1 cursor-col-resize hover:bg-white/20 active:bg-[#D4AF37]/30 transition-colors"
                 onMouseDown={handleLeftDragMouseDown}
               />
             </div>
@@ -353,7 +353,7 @@ export default function Workspace() {
 
             <div className="flex-1 overflow-hidden relative">
               {loadingContent && (
-                <div className="absolute inset-0 z-50 bg-[#060910]">
+                <div className="absolute inset-0 z-50 bg-[#09090B]">
                   <div className="space-y-3 p-4">
                     <Skeleton className="h-6 w-1/3 bg-white/10" />
                     <Skeleton className="h-4 w-full bg-white/10" />
@@ -385,7 +385,7 @@ export default function Workspace() {
 
         {activeTool && (
           <div
-            className="w-1 cursor-col-resize bg-white/5 hover:bg-white/20 active:bg-[#64748B]/50 transition-colors"
+            className="w-1 cursor-col-resize bg-white/5 hover:bg-white/20 active:bg-[#D4AF37]/30 transition-colors"
             onMouseDown={handleRightDragMouseDown}
           />
         )}
@@ -393,7 +393,7 @@ export default function Workspace() {
         {/* Right Panel Content */}
         {activeTool && (
           <div
-            className="flex h-full flex-shrink-0 bg-[#060910] border-l border-white/5"
+            className="flex h-full flex-shrink-0 bg-[#09090B] border-l border-white/5"
             style={{ width: rightPanelWidth }}
           >
             <div className="flex-1 overflow-hidden">
@@ -406,7 +406,7 @@ export default function Workspace() {
                     <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
                   </div>
                   <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                    <Sparkles className="w-12 h-12 mb-4 text-[#38BDF8] animate-pulse" />
+                    <Sparkles className="w-12 h-12 mb-4 text-[#D4AF37] animate-pulse" />
                     <h3 className="text-lg font-bold text-white mb-2">Agent Coming Soon</h3>
                     <p className="text-sm">
                       The AI Agent is stuck in traffic.
@@ -422,7 +422,7 @@ export default function Workspace() {
                     <span className="text-xs font-semibold tracking-wide text-white/60">SETTINGS</span>
                   </div>
                   <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                    <Settings className="w-12 h-12 mb-4 text-[#1E293B] animate-[spin_5s_linear_infinite]" />
+                    <Settings className="w-12 h-12 mb-4 text-[#27272A] animate-[spin_5s_linear_infinite]" />
                     <h3 className="text-lg font-bold text-white mb-2">No Settings Here!</h3>
                     <p className="text-sm">
                       The code is already perfect.
@@ -437,39 +437,39 @@ export default function Workspace() {
         )}
 
         {/* Right Panel Icons (Always Visible) */}
-        <div className="flex flex-col items-center gap-4 w-14 py-4 border-l border-white/10 bg-[#060910]">
+        <div className="flex flex-col items-center gap-4 w-14 py-4 border-l border-white/10 bg-[#09090B]">
           <button
             onClick={() => toggleRightTool("collaborators")}
             title="Collaborators"
-            className={`p-2 rounded-xl transition-all ${activeTool === "collaborators" ? "bg-[#64748B]/20 text-[#94A3B8]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeTool === "collaborators" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <Users size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("chat")}
             title="Chat"
-            className={`p-2 rounded-xl transition-all ${activeTool === "chat" ? "bg-[#64748B]/20 text-[#94A3B8]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeTool === "chat" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <MessageCircle size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("video")}
             title="Video Call"
-            className={`p-2 rounded-xl transition-all ${activeTool === "video" ? "bg-[#64748B]/20 text-[#94A3B8]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeTool === "video" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <Video size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("ai")}
             title="AI Assistant"
-            className={`p-2 rounded-xl transition-all ${activeTool === "ai" ? "bg-[#64748B]/20 text-[#94A3B8]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeTool === "ai" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <Sparkles size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("settings")}
             title="Settings"
-            className={`p-2 rounded-xl transition-all ${activeTool === "settings" ? "bg-[#64748B]/20 text-[#94A3B8]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeTool === "settings" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <Settings size={20} />
           </button>

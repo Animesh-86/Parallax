@@ -7,7 +7,7 @@ import { MessageCircle, Mail, Github, ArrowRight } from "lucide-react";
 
 export default function Support() {
     return (
-        <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
+        <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden">
             <CosmicStars />
             <Header />
 
@@ -20,11 +20,11 @@ export default function Support() {
                         transition={{ duration: 0.6 }}
                     >
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
-                            <span className="bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] bg-clip-text text-transparent">
                                 Support
                             </span>
                         </h1>
-                        <p className="text-lg text-[#94A3B8] max-w-2xl mx-auto">
+                        <p className="text-lg text-[#A1A1AA] max-w-2xl mx-auto">
                             Need help? Here's how to get it. As a solo-built project, response times are human — but I read everything.
                         </p>
                     </motion.div>
@@ -61,12 +61,12 @@ export default function Support() {
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1, duration: 0.5 }}
                             >
-                                <div className="w-10 h-10 rounded-xl bg-[#38BDF8]/10 border border-[#38BDF8]/20 flex items-center justify-center mb-4">
-                                    <item.icon className="w-5 h-5 text-[#2DD4BF]" />
+                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center mb-4">
+                                    <item.icon className="w-5 h-5 text-[#D4AF37]" />
                                 </div>
                                 <h3 className="text-lg font-medium text-white mb-2">{item.title}</h3>
-                                <p className="text-sm text-[#94A3B8] leading-relaxed mb-4 flex-1">{item.desc}</p>
-                                <Link to={item.href} className="inline-flex items-center gap-1.5 text-sm text-[#38BDF8] hover:underline">
+                                <p className="text-sm text-[#A1A1AA] leading-relaxed mb-4 flex-1">{item.desc}</p>
+                                <Link to={item.href} className="inline-flex items-center gap-1.5 text-sm text-[#D4AF37] hover:underline">
                                     {item.cta} <ArrowRight className="w-3.5 h-3.5" />
                                 </Link>
                             </motion.div>
@@ -82,7 +82,7 @@ export default function Support() {
                         <p className="text-[#CBD5E1] mb-2">
                             Parallax is in active development. If something breaks, I want to know about it.
                         </p>
-                        <p className="text-sm text-[#94A3B8]">
+                        <p className="text-sm text-[#A1A1AA]">
                             Every bug report makes the platform better for everyone.
                         </p>
                     </motion.div>

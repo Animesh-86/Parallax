@@ -170,7 +170,7 @@ export default function Teams() {
                     <div className="glass-panel rounded-2xl p-4">
                         <div className="text-xs uppercase text-white/40 mb-2">Project Teams</div>
                         <div className="text-2xl font-semibold flex items-center gap-2">
-                            <Users className="w-5 h-5 text-[#38BDF8]" />
+                            <Users className="w-5 h-5 text-[#D4AF37]" />
                             {teams.length}
                         </div>
                     </div>
@@ -184,14 +184,14 @@ export default function Teams() {
                     <div className="glass-panel rounded-2xl p-4">
                         <div className="text-xs uppercase text-white/40 mb-2">Pending Invites</div>
                         <div className="text-2xl font-semibold flex items-center gap-2">
-                            <Clock3 className="w-5 h-5 text-[#FBBF24]" />
+                            <Clock3 className="w-5 h-5 text-[#F59E0B]" />
                             {totalPending}
                         </div>
                     </div>
                     <div className="glass-panel rounded-2xl p-4">
                         <div className="text-xs uppercase text-white/40 mb-2">Live Rooms</div>
                         <div className="text-2xl font-semibold flex items-center gap-2">
-                            <Video className="w-5 h-5 text-[#94A3B8]" />
+                            <Video className="w-5 h-5 text-[#A1A1AA]" />
                             {liveRooms}
                         </div>
                     </div>
@@ -204,7 +204,7 @@ export default function Teams() {
                         placeholder="Search teams by name or description"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#38BDF8]/50 transition-all"
+                        className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#D4AF37]/50 transition-all"
                     />
                 </div>
 
@@ -226,7 +226,7 @@ export default function Teams() {
                         {/* Pending Invites Section */}
                         {pendingTeams.length > 0 && (
                             <div className="mb-12">
-                                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3 text-[#FBBF24]">
+                                <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3 text-[#F59E0B]">
                                     <Clock3 className="w-6 h-6" />
                                     Pending Invitations
                                 </h2>
@@ -234,10 +234,10 @@ export default function Teams() {
                                     {pendingTeams.map((team) => (
                                         <article
                                             key={team.id}
-                                            className="bg-[#060910] border border-[#FBBF24]/30 rounded-2xl p-5 hover:border-[#FBBF24]/50 transition-all duration-300"
+                                            className="bg-[#09090B] border border-[#F59E0B]/30 rounded-2xl p-5 hover:border-[#F59E0B]/50 transition-all duration-300"
                                         >
                                             <div className="mb-4">
-                                                <h3 className="text-lg font-semibold mb-1 text-[#FBBF24]">
+                                                <h3 className="text-lg font-semibold mb-1 text-[#F59E0B]">
                                                     {team.name}
                                                 </h3>
                                                 {team.description ? (
@@ -300,11 +300,11 @@ export default function Teams() {
                                     {activeTeams.map((team) => (
                                         <article
                                             key={team.id}
-                                            className="group glass-panel rounded-2xl p-5 hover:border-[#38BDF8]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#38BDF8]/10"
+                                            className="group glass-panel rounded-2xl p-5 hover:border-[#D4AF37]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#D4AF37]/10"
                                         >
                                             <div className="flex items-start justify-between gap-4 mb-4">
                                                 <div>
-                                                    <h3 className="text-lg font-semibold mb-1 group-hover:text-[#38BDF8] transition-colors">
+                                                    <h3 className="text-lg font-semibold mb-1 group-hover:text-[#D4AF37] transition-colors">
                                                         {team.name}
                                                     </h3>
                                                     {team.description ? (
@@ -322,11 +322,11 @@ export default function Teams() {
                                                     <span>{team.activeMembers}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between text-white/70">
-                                                    <span className="flex items-center gap-2"><Clock3 className="w-4 h-4 text-[#FBBF24]" />Pending</span>
+                                                    <span className="flex items-center gap-2"><Clock3 className="w-4 h-4 text-[#F59E0B]" />Pending</span>
                                                     <span>{team.pendingInvites}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between text-white/70">
-                                                    <span className="flex items-center gap-2"><CalendarClock className="w-4 h-4 text-[#94A3B8]" />Updated</span>
+                                                    <span className="flex items-center gap-2"><CalendarClock className="w-4 h-4 text-[#A1A1AA]" />Updated</span>
                                                     <span>{formatDate(team.updatedAt)}</span>
                                                 </div>
                                             </div>
@@ -334,7 +334,7 @@ export default function Teams() {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => navigate(`/team/${team.id}`)}
-                                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 border border-[#38BDF8]/30 rounded-lg text-sm hover:from-[#38BDF8]/30 hover:to-[#94A3B8]/30 transition-all"
+                                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-[#D4AF37]/20 to-[#A1A1AA]/20 border border-[#D4AF37]/30 rounded-lg text-sm hover:from-[#D4AF37]/30 hover:to-[#A1A1AA]/30 transition-all"
                                                 >
                                                     Open Workspace
                                                 </button>
@@ -372,7 +372,7 @@ export default function Teams() {
                             }
                         }}
                     />
-                    <div className="relative z-10 w-full max-w-lg mx-4 bg-[#060910]/95 border border-white/10 rounded-2xl overflow-hidden">
+                    <div className="relative z-10 w-full max-w-lg mx-4 bg-[#09090B]/95 border border-white/10 rounded-2xl overflow-hidden">
                         <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
                             <h2 className="text-xl font-semibold">Create Team</h2>
                             <button
@@ -390,7 +390,7 @@ export default function Teams() {
                                     value={createTeamName}
                                     onChange={(e) => setCreateTeamName(e.target.value)}
                                     placeholder="e.g. Platform Engineers"
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#38BDF8]/50"
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4AF37]/50"
                                 />
                             </div>
                             <div>
@@ -400,7 +400,7 @@ export default function Teams() {
                                     value={createTeamDescription}
                                     onChange={(e) => setCreateTeamDescription(e.target.value)}
                                     placeholder="What this team is responsible for"
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#38BDF8]/50 resize-none"
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4AF37]/50 resize-none"
                                 />
                             </div>
                         </div>
@@ -414,7 +414,7 @@ export default function Teams() {
                             <button
                                 onClick={handleCreateTeam}
                                 disabled={!createTeamName.trim() || creatingTeam}
-                                className="flex-1 px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all"
+                                className="flex-1 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all"
                             >
                                 {creatingTeam ? 'Creating...' : 'Create Team'}
                             </button>

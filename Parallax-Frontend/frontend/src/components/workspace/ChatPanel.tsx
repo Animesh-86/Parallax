@@ -53,9 +53,9 @@ export function ChatPanel() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#060910] h-full">
+    <div className="flex-1 flex flex-col bg-[#09090B] h-full">
       {/* Header */}
-      <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 bg-[#060910]">
+      <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 bg-[#09090B]">
         <span className="text-xs font-semibold tracking-wide text-white/60">PROJECT CHAT</span>
       </div>
 
@@ -75,7 +75,7 @@ export function ChatPanel() {
               <Icon className="w-4 h-4" />
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8]" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA]" />
               )}
             </button>
           );
@@ -101,7 +101,7 @@ export function ChatPanel() {
               }
 
               const colorHash = msg.senderName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              const colors = ['#2DD4BF', '#38BDF8', '#2DD4BF', '#EF6461', '#4ADE80'];
+              const colors = ['#D4AF37', '#D4AF37', '#D4AF37', '#EF6461', '#4ADE80'];
               const userColor = colors[colorHash % colors.length];
               const avatar = msg.senderName.substring(0, 2).toUpperCase();
 
@@ -153,12 +153,12 @@ export function ChatPanel() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
-              className="flex-1 px-3 py-2 bg-[#0C1220] border border-white/10 rounded-xl text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
+              className="flex-1 px-3 py-2 bg-[#0D0D0F] border border-white/10 rounded-xl text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[#D4AF37]/50 transition-colors"
             />
             <button
               onClick={handleSend}
               disabled={!input.trim()}
-              className="p-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl transition-all hover:shadow-lg hover:shadow-[#38BDF8]/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl transition-all hover:shadow-lg hover:shadow-[#D4AF37]/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
             </button>

@@ -21,7 +21,7 @@ export function QuickCreateModal({
   const [error, setError] = useState<string | null>(null);
 
   const languages = [
-    { value: 'python', label: 'Python', color: '#64748B' },
+    { value: 'python', label: 'Python', color: '#71717A' },
   ];
 
   if (!isOpen) return null;
@@ -70,15 +70,15 @@ export function QuickCreateModal({
 
       {/* Modal container */}
       <div className="relative z-10 w-full max-w-lg mx-4">
-        <div className="relative bg-[#060910]/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="relative bg-[#09090B]/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="relative px-8 pt-8 pb-6 border-b border-white/5">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#38BDF8]/20 to-[#94A3B8]/20 border border-[#38BDF8]/30 flex items-center justify-center">
-                      <Folder className="w-6 h-6 text-[#38BDF8]" />
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 border border-[#D4AF37]/30 flex items-center justify-center">
+                      <Folder className="w-6 h-6 text-[#D4AF37]" />
                     </div>
                   </div>
                   <div>
@@ -115,7 +115,7 @@ export function QuickCreateModal({
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder="my-awesome-project"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#38BDF8]/50 focus:bg-white/[0.07] transition-all font-mono"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/[0.07] transition-all font-mono"
                 autoFocus
               />
             </div>
@@ -155,7 +155,7 @@ export function QuickCreateModal({
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-[#060910]/95 border border-white/10 rounded-xl shadow-2xl z-50">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-[#09090B]/95 border border-white/10 rounded-xl shadow-2xl z-50">
                     {languages.map((lang) => (
                       <button
                         key={lang.value}
@@ -199,7 +199,7 @@ export function QuickCreateModal({
                 type="button"
                 onClick={handleCreate}
                 disabled={!projectName.trim() || !selectedLanguage || isSubmitting}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#38BDF8]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                 <Sparkles className="w-4 h-4 relative z-10" />

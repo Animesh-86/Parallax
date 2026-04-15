@@ -79,18 +79,18 @@ export default function Login() {
 
 
     return (
-        <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden flex items-center justify-center">
+        <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden flex items-center justify-center">
             {/* Cosmic Background */}
             <CosmicStars />
 
             {/* Background Gradients */}
             <div className="fixed inset-0 pointer-events-none">
                 <div
-                    className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#38BDF8] rounded-full blur-[150px] opacity-20 animate-pulse" />
+                    className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#D4AF37] rounded-full blur-[150px] opacity-10 animate-pulse" />
                 <div
-                    className="absolute bottom-1/3 right-1/4 w-[600px] h-[600px] bg-[#2DD4BF] rounded-full blur-[150px] opacity-15" />
+                    className="absolute bottom-1/3 right-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px] opacity-15" />
                 <div
-                    className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-[#7DD3FC] rounded-full blur-[150px] opacity-10" />
+                    className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-[#F59E0B] rounded-full blur-[150px] opacity-10" />
             </div>
 
             {/* Floating Particles */}
@@ -115,8 +115,8 @@ export default function Login() {
           50% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
         }
         @keyframes glow-pulse {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.1); }
         }
         @keyframes rotate-slow {
           from { transform: rotate(0deg); }
@@ -132,11 +132,12 @@ export default function Login() {
                     <div className="relative inline-block">
                         <div className="relative">
                             <div
-                                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#38BDF8] to-[#2DD4BF] flex items-center justify-center relative z-10">
+                                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] flex items-center justify-center relative z-10">
                                 <Code2 className="w-12 h-12" />
                             </div>
                             <div
-                                className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#38BDF8] to-[#2DD4BF] blur-2xl opacity-60 animate-pulse" />
+                                className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] blur-3xl opacity-30"
+                                style={{ animation: 'glow-pulse 6s ease-in-out infinite' }} />
                         </div>
 
                         {/* Rotating Glyphs */}
@@ -146,12 +147,12 @@ export default function Login() {
                                 {[0, 60, 120, 180, 240, 300].map((angle) => (
                                     <div
                                         key={angle}
-                                        className="absolute w-2 h-2 bg-[#2DD4BF] rounded-full"
+                                        className="absolute w-2 h-2 bg-[#D4AF37] rounded-full"
                                         style={{
                                             top: '50%',
                                             left: '50%',
                                             transform: `rotate(${angle}deg) translateY(-50px)`,
-                                            boxShadow: '0 0 10px #2DD4BF',
+                                            boxShadow: '0 0 10px #D4AF37',
                                         }}
                                     />
                                 ))}
@@ -165,7 +166,7 @@ export default function Login() {
                             Code Together.
                             <br />
                             <span
-                                className="bg-gradient-to-r from-[#38BDF8] via-[#2DD4BF] to-[#7DD3FC] bg-clip-text text-transparent">
+                                className="bg-gradient-to-r from-[#D4AF37] via-[#D4AF37] to-[#F59E0B] bg-clip-text text-transparent">
                                 From Anywhere.
                             </span>
                         </h1>
@@ -178,49 +179,49 @@ export default function Login() {
                     <div className="relative h-48 opacity-40">
                         <svg className="w-full h-full" viewBox="0 0 400 200">
                             {/* Connection lines */}
-                            <line x1="50" y1="50" x2="150" y2="100" stroke="#38BDF8" strokeWidth="1" opacity="0.5" />
-                            <line x1="150" y1="100" x2="250" y2="80" stroke="#2DD4BF" strokeWidth="1" opacity="0.5" />
-                            <line x1="250" y1="80" x2="350" y2="120" stroke="#7DD3FC" strokeWidth="1" opacity="0.5" />
-                            <line x1="150" y1="100" x2="200" y2="150" stroke="#38BDF8" strokeWidth="1" opacity="0.5" />
+                            <line x1="50" y1="50" x2="150" y2="100" stroke="#D4AF37" strokeWidth="1" opacity="0.5" />
+                            <line x1="150" y1="100" x2="250" y2="80" stroke="#D4AF37" strokeWidth="1" opacity="0.5" />
+                            <line x1="250" y1="80" x2="350" y2="120" stroke="#F59E0B" strokeWidth="1" opacity="0.5" />
+                            <line x1="150" y1="100" x2="200" y2="150" stroke="#D4AF37" strokeWidth="1" opacity="0.5" />
 
                             {/* Nodes */}
-                            <circle cx="50" cy="50" r="4" fill="#38BDF8"
-                                style={{ filter: 'drop-shadow(0 0 6px #38BDF8)' }} />
-                            <circle cx="150" cy="100" r="4" fill="#2DD4BF"
-                                style={{ filter: 'drop-shadow(0 0 6px #2DD4BF)' }} />
-                            <circle cx="250" cy="80" r="4" fill="#7DD3FC"
-                                style={{ filter: 'drop-shadow(0 0 6px #7DD3FC)' }} />
-                            <circle cx="350" cy="120" r="4" fill="#38BDF8"
-                                style={{ filter: 'drop-shadow(0 0 6px #38BDF8)' }} />
-                            <circle cx="200" cy="150" r="4" fill="#2DD4BF"
-                                style={{ filter: 'drop-shadow(0 0 6px #2DD4BF)' }} />
+                            <circle cx="50" cy="50" r="4" fill="#D4AF37"
+                                style={{ filter: 'drop-shadow(0 0 6px #D4AF37)' }} />
+                            <circle cx="150" cy="100" r="4" fill="#D4AF37"
+                                style={{ filter: 'drop-shadow(0 0 6px #D4AF37)' }} />
+                            <circle cx="250" cy="80" r="4" fill="#F59E0B"
+                                style={{ filter: 'drop-shadow(0 0 6px #F59E0B)' }} />
+                            <circle cx="350" cy="120" r="4" fill="#D4AF37"
+                                style={{ filter: 'drop-shadow(0 0 6px #D4AF37)' }} />
+                            <circle cx="200" cy="150" r="4" fill="#D4AF37"
+                                style={{ filter: 'drop-shadow(0 0 6px #D4AF37)' }} />
                         </svg>
                     </div>
 
                     {/* Terminal-style Message */}
                     <div
-                        className="bg-[#0C1220]/60 backdrop-blur-md border border-[#38BDF8]/20 rounded-xl p-4 font-mono text-sm">
-                        <div className="flex items-center gap-2 text-[#2DD4BF] mb-2">
+                        className="bg-[#0D0D0F]/60 backdrop-blur-md border border-[#D4AF37]/20 rounded-xl p-4 font-mono text-sm">
+                        <div className="flex items-center gap-2 text-[#D4AF37] mb-2">
                             <Terminal className="w-4 h-4" />
                             <span>$ Parallax --welcome</span>
                         </div>
-                        <div className="text-[#94A3B8]">
+                        <div className="text-[#A1A1AA]">
                             {'>'} Initializing collaborative workspace...
                             <br />
                             {'>'} Loading real-time sync engine...
                             <br />
-                            <span className="text-[#2DD4BF]">{'>'} Ready to build together! 🚀</span>
+                            <span className="text-[#D4AF37]">{'>'} Ready to build together! 🚀</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Side - Login Form */}
                 <div className="w-full max-w-md">
-                    <div className="bg-[#0C1220]/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                    <div className="bg-[#0D0D0F]/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
                         {/* Header */}
                         <div className="mb-8">
                             <h2 className="text-3xl font-bold mb-2">Login to Parallax</h2>
-                            <p className="text-[#94A3B8]">Welcome back, developer! 👋</p>
+                            <p className="text-[#A1A1AA]">Welcome back, developer! 👋</p>
                         </div>
 
                         {/* Form */}
@@ -229,7 +230,7 @@ export default function Login() {
                             <div>
                                 <label className="block text-sm font-medium text-[#CBD5E1] mb-2">Email</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />
                                     <input
                                         type="email"
                                         value={email}
@@ -237,14 +238,14 @@ export default function Login() {
                                         onFocus={() => setFocusedField('email')}
                                         onBlur={() => setFocusedField(null)}
                                         placeholder="your.email@example.com"
-                                        className={`w-full bg-white/5 border rounded-xl pl-12 pr-4 py-3 text-white placeholder-[#94A3B8] focus:outline-none transition-all ${focusedField === 'email'
-                                                ? 'border-[#38BDF8] shadow-[0_0_20px_rgba(107,84,255,0.3)]'
+                                        className={`w-full bg-white/5 border rounded-xl pl-12 pr-4 py-3 text-white placeholder-[#A1A1AA] focus:outline-none transition-all ${focusedField === 'email'
+                                                ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(107,84,255,0.3)]'
                                                 : 'border-white/10'
                                             }`}
                                     />
                                     {focusedField === 'email' && (
                                         <div
-                                            className="absolute inset-0 rounded-xl border-2 border-[#38BDF8]/50 pointer-events-none animate-pulse" />
+                                            className="absolute inset-0 rounded-xl border-2 border-[#D4AF37]/50 pointer-events-none animate-pulse" />
                                     )}
                                 </div>
                             </div>
@@ -253,7 +254,7 @@ export default function Login() {
                             <div>
                                 <label className="block text-sm font-medium text-[#CBD5E1] mb-2">Password</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />
                                     <input
                                         type="password"
                                         value={password}
@@ -261,14 +262,14 @@ export default function Login() {
                                         onFocus={() => setFocusedField('password')}
                                         onBlur={() => setFocusedField(null)}
                                         placeholder="••••••••"
-                                        className={`w-full bg-white/5 border rounded-xl pl-12 pr-4 py-3 text-white placeholder-[#94A3B8] focus:outline-none transition-all ${focusedField === 'password'
-                                                ? 'border-[#38BDF8] shadow-[0_0_20px_rgba(107,84,255,0.3)]'
+                                        className={`w-full bg-white/5 border rounded-xl pl-12 pr-4 py-3 text-white placeholder-[#A1A1AA] focus:outline-none transition-all ${focusedField === 'password'
+                                                ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(107,84,255,0.3)]'
                                                 : 'border-white/10'
                                             }`}
                                     />
                                     {focusedField === 'password' && (
                                         <div
-                                            className="absolute inset-0 rounded-xl border-2 border-[#38BDF8]/50 pointer-events-none animate-pulse" />
+                                            className="absolute inset-0 rounded-xl border-2 border-[#D4AF37]/50 pointer-events-none animate-pulse" />
                                     )}
                                 </div>
                             </div>
@@ -277,7 +278,7 @@ export default function Login() {
                             <div className="flex justify-end">
                                 <button
                                     type="button"
-                                    className="text-sm text-[#2DD4BF] hover:text-[#38BDF8] transition-colors"
+                                    className="text-sm text-[#D4AF37] hover:text-[#D4AF37] transition-colors"
                                 >
                                     Forgot Password?
                                 </button>
@@ -286,7 +287,7 @@ export default function Login() {
                             {/* Login Button */}
                             <button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] text-white font-semibold py-3 px-6 rounded-xl hover:shadow-[0_0_30px_rgba(107,84,255,0.5)] transition-all duration-300 flex items-center justify-center gap-2 group"
+                                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] text-white font-semibold py-3 px-6 rounded-xl hover:shadow-[0_0_30px_rgba(107,84,255,0.5)] transition-all duration-300 flex items-center justify-center gap-2 group"
                             >
                                 <span>Login</span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -299,7 +300,7 @@ export default function Login() {
                                 <div className="w-full border-t border-white/10" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-[#0C1220] text-[#94A3B8]">or continue with</span>
+                                <span className="px-4 bg-[#0D0D0F] text-[#A1A1AA]">or continue with</span>
                             </div>
                         </div>
 
@@ -307,7 +308,7 @@ export default function Login() {
                         <div className="space-y-3">
                             <button
                                 onClick={handleGoogleLogin}
-                                className="w-full bg:white/5 border border-white/10 hover:border-[#2DD4BF]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
+                                className="w-full bg:white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
                             >
                                 <Chrome className="w-5 h-5" />
                                 <span>Continue with Google</span>
@@ -315,7 +316,7 @@ export default function Login() {
 
                             <button
                                 onClick={handleGitHubLogin}
-                                className="w-full bg:white/5 border border-white/10 hover:border-[#38BDF8]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
+                                className="w-full bg:white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
                             >
                                 <Github className="w-5 h-5" />
                                 <span>Continue with GitHub</span>
@@ -325,12 +326,12 @@ export default function Login() {
 
                         {/* Sign Up Link */}
                         <div className="mt-8 text-center">
-                            <p className="text-[#94A3B8]">
+                            <p className="text-[#A1A1AA]">
                                 Don&apos;t have an account?{' '}
                                 <button
                                     type="button"
                                     onClick={() => navigate('/signup')}
-                                    className="text-[#2DD4BF] hover:text-[#38BDF8] font-semibold transition-colors"
+                                    className="text-[#D4AF37] hover:text-[#D4AF37] font-semibold transition-colors"
                                 >
                                     Sign Up
                                 </button>
@@ -340,7 +341,7 @@ export default function Login() {
 
                     {/* Decorative Elements */}
                     <div
-                        className="absolute -right-20 top-1/2 w-40 h-40 bg-[#38BDF8] rounded-full blur-[100px] opacity-20 pointer-events-none" />
+                        className="absolute -right-20 top-1/2 w-40 h-40 bg-[#D4AF37] rounded-full blur-[100px] opacity-20 pointer-events-none" />
                 </div>
             </div>
         </div>

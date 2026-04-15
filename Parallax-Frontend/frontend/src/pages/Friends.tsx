@@ -24,7 +24,7 @@ export default function Friends() {
 
     // Helpers (Reused)
     const getColor = (str: string) => {
-        const colors = ['#38BDF8', '#94A3B8', '#94A3B8', '#7DD3FC', '#F472B6', '#1E293B'];
+        const colors = ['#D4AF37', '#A1A1AA', '#A1A1AA', '#F59E0B', '#D4AF37', '#27272A'];
         let hash = 0;
         for (let i = 0; i < str.length; i++) hash += str.charCodeAt(i);
         return colors[hash % colors.length];
@@ -144,8 +144,8 @@ export default function Friends() {
                     <FriendSkeleton />
                 </div>
             ) : friends.length === 0 ? (
-                <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#060910]/70">
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+                <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#09090B]/70">
+                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] bg-clip-text text-transparent">
                         No Friends Yet
                     </div>
                     <div className="text-white/45 text-lg max-w-md">
@@ -158,7 +158,7 @@ export default function Friends() {
                         return (
                             <div
                                 key={friend.userId || friend.email}
-                                className="glass-panel rounded-2xl p-5 hover:border-[#F472B6]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#F472B6]/5"
+                                className="glass-panel rounded-2xl p-5 hover:border-[#D4AF37]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#D4AF37]/5"
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-4">
@@ -177,7 +177,7 @@ export default function Friends() {
                                                     {friend.avatar}
                                                 </div>
                                             )}
-                                            <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#060910] ${friend.status === 'online' ? 'bg-[#4ADE80]' : 'bg-[#64748B]'}`} />
+                                            <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#09090B] ${friend.status === 'online' ? 'bg-[#4ADE80]' : 'bg-[#71717A]'}`} />
                                         </div>
                                         <div>
                                             <div className="font-semibold text-white/90">

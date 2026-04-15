@@ -47,19 +47,19 @@ export function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
-                <span className="block text-5xl md:text-7xl xl:text-8xl font-semibold tracking-tight leading-none">
+                <span className="block text-5xl md:text-7xl xl:text-8xl font-bold tracking-tight leading-none font-serif italic">
                   <span className="relative inline-block">
-                    <span className="absolute inset-0 blur-xl bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] opacity-15" />
-                    <span className="relative bg-gradient-to-r from-[#2DD4BF] via-[#7DD3FC] to-[#2DD4BF] bg-clip-text text-transparent">
+                    <span className="absolute inset-0 blur-xl bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] opacity-15" />
+                    <span className="relative bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent">
                       Parallax
                     </span>
                   </span>
                 </span>
               </motion.h1>
-
+ 
               {/* Tagline with smooth animation */}
               <motion.p
-                className="text-xl md:text-2xl xl:text-3xl text-[#2DD4BF]/90 tracking-wide font-medium"
+                className="text-xl md:text-2xl xl:text-3xl text-zinc-400 tracking-wide font-medium font-serif italic"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -75,7 +75,7 @@ export function HeroSection() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
-              <p className="text-base md:text-lg text-[#CBD5E1] leading-relaxed max-w-lg font-normal">
+              <p className="text-base md:text-lg text-zinc-300 leading-relaxed max-w-lg font-normal">
                 Experience the future of development. Parallax brings real-time teamwork,
                 cloud-native coding, and next-gen collaboration into one cosmic workspace.
                 Build together, ship faster, create boundlessly.
@@ -90,9 +90,9 @@ export function HeroSection() {
               transition={{ delay: 0.8 }}
             >
               {[
-                { icon: Code2, text: "Real-time Teamwork", color: "from-[#2DD4BF] to-[#64748B]" },
-                { icon: Zap, text: "Cloud-Native Coding", color: "from-[#7DD3FC] to-[#F472B6]" },
-                { icon: Sparkles, text: "Next-Gen Collaboration", color: "from-[#2DD4BF] to-[#38BDF8]" },
+                { icon: Code2, text: "Real-time Teamwork", color: "from-[#D4AF37] to-[#71717A]" },
+                { icon: Zap, text: "Cloud-Native Coding", color: "from-[#F59E0B] to-[#09090B]" },
+                { icon: Sparkles, text: "Next-Gen Collaboration", color: "from-[#D4AF37] to-[#A1A1AA]" },
               ].map((feature, index) => (
                 <motion.div
                   key={index}
@@ -110,7 +110,7 @@ export function HeroSection() {
                   />
                   <div className="relative px-4 md:px-5 py-2.5 md:py-3 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 group-hover:border-white/30 transition-all duration-300">
                     <div className="flex items-center gap-2">
-                      <feature.icon className="w-4 h-4 md:w-5 md:h-5 text-[#2DD4BF]" />
+                      <feature.icon className="w-4 h-4 md:w-5 md:h-5 text-[#D4AF37]" />
                       <span className="text-xs md:text-sm font-medium">{feature.text}</span>
                     </div>
                   </div>
@@ -132,10 +132,10 @@ export function HeroSection() {
                 onClick={handleLaunch}
               >
                 {/* Animated gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#94A3B8] via-[#38BDF8] to-[#94A3B8] bg-[length:200%_100%] animate-[shimmer_3s_ease-in-out_infinite]" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#A1A1AA] via-[#D4AF37] to-[#A1A1AA] bg-[length:200%_100%] animate-[shimmer_3s_ease-in-out_infinite]" />
 
                 {/* Glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
 
                 {/* Button content */}
                 <span className="relative z-10 flex items-center gap-3 text-base md:text-lg text-white font-semibold tracking-wide">
@@ -151,7 +151,7 @@ export function HeroSection() {
 
               {/* Scroll down hint with enhanced animation */}
               <motion.div
-                className="flex items-center gap-2 text-xs text-[#64748B] ml-2 cursor-pointer font-medium"
+                className="flex items-center gap-2 text-xs text-zinc-600 ml-2 cursor-pointer font-medium italic"
                 animate={{ y: [0, 6, 0] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 onClick={() => {

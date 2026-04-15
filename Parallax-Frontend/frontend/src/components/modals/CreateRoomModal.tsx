@@ -91,7 +91,7 @@ export function CreateRoomModal({
 
       {/* Modal container */}
       <div className="relative z-10 w-full max-w-lg mx-4">
-        <div className="relative bg-[#060910]/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="relative bg-[#09090B]/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="relative px-8 pt-8 pb-6 border-b border-white/5">
             <div className="flex items-start justify-between">
@@ -100,13 +100,13 @@ export function CreateRoomModal({
                   <div className="relative">
                     <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${
                       createdRoom 
-                        ? 'bg-gradient-to-br from-[#4ADE80]/20 to-[#38BDF8]/20 border-[#4ADE80]/30'
-                        : 'bg-gradient-to-br from-[#38BDF8]/20 to-[#94A3B8]/20 border-[#38BDF8]/30'
+                        ? 'bg-gradient-to-br from-[#4ADE80]/20 to-[#D4AF37]/20 border-[#4ADE80]/30'
+                        : 'bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 border-[#D4AF37]/30'
                     }`}>
                       {createdRoom ? (
                         <Check className="w-6 h-6 text-[#4ADE80]" />
                       ) : (
-                        <Users className="w-6 h-6 text-[#38BDF8]" />
+                        <Users className="w-6 h-6 text-[#D4AF37]" />
                       )}
                     </div>
                   </div>
@@ -148,7 +148,7 @@ export function CreateRoomModal({
                     value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
                     placeholder="e.g. Weekly Standup, Design Review..."
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#38BDF8]/50 focus:bg-white/[0.07] transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/[0.07] transition-all"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -165,7 +165,7 @@ export function CreateRoomModal({
                     <button
                       type="button"
                       onClick={() => setCollaborationMode('INTERVIEW')}
-                      className={`p-3 rounded-xl border text-left transition-all ${collaborationMode === 'INTERVIEW' ? 'border-[#38BDF8]/50 bg-[#38BDF8]/10' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
+                      className={`p-3 rounded-xl border text-left transition-all ${collaborationMode === 'INTERVIEW' ? 'border-[#D4AF37]/50 bg-[#D4AF37]/10' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                     >
                       <div className="text-sm font-semibold text-white">Interview Mode</div>
                       <div className="text-xs text-white/50 mt-1">Restrictive: invite-only, whiteboard public with host-only editing, code/tasks public.</div>
@@ -173,7 +173,7 @@ export function CreateRoomModal({
                     <button
                       type="button"
                       onClick={() => setCollaborationMode('TEAM')}
-                      className={`p-3 rounded-xl border text-left transition-all ${collaborationMode === 'TEAM' ? 'border-[#38BDF8]/50 bg-[#38BDF8]/10' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
+                      className={`p-3 rounded-xl border text-left transition-all ${collaborationMode === 'TEAM' ? 'border-[#D4AF37]/50 bg-[#D4AF37]/10' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                     >
                       <div className="text-sm font-semibold text-white">Team Mode</div>
                       <div className="text-xs text-white/50 mt-1">Flexible: host can customize private/public behavior for whiteboard, code, and tasks.</div>
@@ -199,7 +199,7 @@ export function CreateRoomModal({
                     type="button"
                     onClick={handleCreate}
                     disabled={!roomName.trim() || isSubmitting}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#38BDF8]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                     <Sparkles className="w-4 h-4 relative z-10" />
@@ -218,8 +218,8 @@ export function CreateRoomModal({
               <div className="px-8 py-6 space-y-5">
                 {/* Room Name Display */}
                 <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#38BDF8]/20 to-[#94A3B8]/20 flex items-center justify-center flex-shrink-0">
-                    <Users className="w-5 h-5 text-[#38BDF8]" />
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-5 h-5 text-[#D4AF37]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-white truncate">{createdRoom.name}</div>
@@ -261,7 +261,7 @@ export function CreateRoomModal({
                 </div>
 
                 {/* Room Code Copy */}
-                <div className="flex items-center gap-3 p-3 bg-[#38BDF8]/5 border border-[#38BDF8]/10 rounded-xl">
+                <div className="flex items-center gap-3 p-3 bg-[#D4AF37]/5 border border-[#D4AF37]/10 rounded-xl">
                   <div className="text-sm text-white/50 flex-1">
                     Share the <strong className="text-white/80">room code</strong> or <strong className="text-white/80">invite link</strong> with others to let them join.
                   </div>
@@ -281,7 +281,7 @@ export function CreateRoomModal({
                   <button
                     type="button"
                     onClick={handleJoin}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#4ADE80] to-[#38BDF8] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#4ADE80]/40 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#4ADE80] to-[#D4AF37] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#4ADE80]/40 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                     <ExternalLink className="w-4 h-4 relative z-10" />

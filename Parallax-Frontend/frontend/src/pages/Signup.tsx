@@ -84,18 +84,18 @@ export default function Signup() {
 
     return (
         <div
-            className="min-h-screen bg-[#060910] text-white relative overflow-hidden flex items-center justify-center py-12">
+            className="min-h-screen bg-[#09090B] text-white relative overflow-hidden flex items-center justify-center py-12">
             {/* Cosmic Background */}
             <CosmicStars />
 
             {/* Background Gradients */}
             <div className="fixed inset-0 pointer-events-none">
                 <div
-                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-[#38BDF8] rounded-full blur-[150px] opacity-20" />
+                    className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-[#D4AF37] rounded-full blur-[150px] opacity-20" />
                 <div
-                    className="absolute bottom-1/3 left-1/4 w-[600px] h-[600px] bg-[#2DD4BF] rounded-full blur-[150px] opacity-15 animate-pulse" />
+                    className="absolute bottom-1/3 left-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px] opacity-10 animate-pulse" />
                 <div
-                    className="absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-[#7DD3FC] rounded-full blur-[150px] opacity-10" />
+                    className="absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-[#F59E0B] rounded-full blur-[150px] opacity-10" />
             </div>
 
             {/* Floating Particles */}
@@ -127,6 +127,10 @@ export default function Signup() {
           50% { transform: rotate(180deg) scale(1.1); }
           100% { transform: rotate(360deg) scale(1); }
         }
+        @keyframes glow-pulse {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.1); }
+        }
       `}</style>
 
             {/* Main Content */}
@@ -137,24 +141,25 @@ export default function Signup() {
                         <div className="absolute inset-0 opacity-30"
                             style={{ animation: 'galaxy-swirl 30s linear infinite' }}>
                             <div
-                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-gradient-to-br from-[#38BDF8]/30 via-[#2DD4BF]/20 to-transparent blur-2xl" />
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-gradient-to-br from-[#D4AF37]/30 via-[#D4AF37]/20 to-transparent blur-2xl" />
                         </div>
 
                         <div className="relative z-10">
                             <div
-                                className="w-48 h-48 rounded-full bg-gradient-to-br from-[#38BDF8] to-[#2DD4BF] flex items-center justify-center relative">
+                                className="w-48 h-48 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] flex items-center justify-center relative">
                                 <Code2 className="w-24 h-24" />
                                 <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-[#38BDF8] to-[#2DD4BF] blur-2xl opacity-50 animate-pulse" />
+                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] blur-3xl opacity-25" 
+                                    style={{ animation: 'glow-pulse 6s ease-in-out infinite' }} />
                             </div>
 
                             <div className="absolute inset-0 pointer-events-none">
                                 <div className="relative w-full h-full"
                                     style={{ animation: 'galaxy-swirl 20s linear infinite' }}>
                                     {[
-                                        { icon: Sparkles, color: '#38BDF8', angle: 0 },
-                                        { icon: Zap, color: '#2DD4BF', angle: 120 },
-                                        { icon: Code2, color: '#7DD3FC', angle: 240 },
+                                        { icon: Sparkles, color: '#D4AF37', angle: 0 },
+                                        { icon: Zap, color: '#D4AF37', angle: 120 },
+                                        { icon: Code2, color: '#F59E0B', angle: 240 },
                                     ].map((item, idx) => {
                                         const Icon = item.icon;
                                         return (
@@ -182,7 +187,7 @@ export default function Signup() {
                             Welcome to Your
                             <br />
                             <span
-                                className="bg-gradient-to-r from-[#38BDF8] via-[#2DD4BF] to-[#7DD3FC] bg-clip-text text-transparent">
+                                className="bg-gradient-to-r from-[#D4AF37] via-[#D4AF37] to-[#F59E0B] bg-clip-text text-transparent">
                                 Coding Universe
                             </span>
                         </h1>
@@ -202,7 +207,7 @@ export default function Signup() {
                                     key={idx}
                                     className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 backdrop-blur-sm"
                                 >
-                                    <Icon className="w-4 h-4 text-[#2DD4BF]" />
+                                    <Icon className="w-4 h-4 text-[#D4AF37]" />
                                     <span className="text-sm text-[#CBD5E1]">{feature.text}</span>
                                 </div>
                             );
@@ -212,10 +217,10 @@ export default function Signup() {
 
                 {/* Right Side - Signup Form */}
                 <div className="w-full max-w-md">
-                    <div className="bg-[#0C1220]/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                    <div className="bg-[#0D0D0F]/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
                         <div className="mb-6">
                             <h2 className="text-3xl font-bold mb-2">Create Your Account</h2>
-                            <p className="text-[#94A3B8]">Join Parallax today!</p>
+                            <p className="text-[#A1A1AA]">Join Parallax today!</p>
                         </div>
                         {/* Full Name */}
                         <div>
@@ -287,7 +292,7 @@ export default function Signup() {
                                     type="button"
                                     onClick={() => handleChange('acceptTerms', !formData.acceptTerms)}
                                     className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all mt-0.5 ${formData.acceptTerms
-                                            ? 'bg-[#38BDF8] border-[#38BDF8] shadow-[0_0_10px_rgba(107,84,255,0.5)]'
+                                            ? 'bg-[#D4AF37] border-[#D4AF37] shadow-[0_0_10px_rgba(107,84,255,0.5)]'
                                             : 'border-white/30'
                                         }`}
                                 >
@@ -297,7 +302,7 @@ export default function Signup() {
                                     I accept the{' '}
                                     <button
                                         type="button"
-                                        className="text-[#2DD4BF] hover:text-[#38BDF8] transition-colors underline"
+                                        className="text-[#D4AF37] hover:text-[#D4AF37] transition-colors underline"
                                     >
                                         Terms of Service
                                     </button>
@@ -305,7 +310,7 @@ export default function Signup() {
                                     and{' '}
                                     <button
                                         type="button"
-                                        className="text-[#2DD4BF] hover:text-[#38BDF8] transition-colors underline"
+                                        className="text-[#D4AF37] hover:text-[#D4AF37] transition-colors underline"
                                     >
                                         Privacy Policy
                                     </button>
@@ -314,7 +319,7 @@ export default function Signup() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] text-white font-semibold py-3 px-6 rounded-xl hover:shadow-[0_0_30px_rgba(107,84,255,0.5)] transition-all duration-300 flex items-center justify-center gap-2 group"
+                                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] text-white font-semibold py-3 px-6 rounded-xl hover:shadow-[0_0_30px_rgba(107,84,255,0.5)] transition-all duration-300 flex items-center justify-center gap-2 group"
                             >
                                 <span>Create Account</span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -326,14 +331,14 @@ export default function Signup() {
                                 <div className="w-full border-t border-white/10" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-[#0C1220] text-[#94A3B8]">or sign up with</span>
+                                <span className="px-4 bg-[#0D0D0F] text-[#A1A1AA]">or sign up with</span>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={handleGitHubSignup}
-                                className="bg-white/5 border border-white/10 hover:border-[#38BDF8]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                                className="bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                             >
                                 <Github className="w-5 h-5" />
                                 <span>GitHub</span>
@@ -341,7 +346,7 @@ export default function Signup() {
 
                             <button
                                 onClick={handleGoogleSignup}
-                                className="bg-white/5 border border-white/10 hover:border-[#2DD4BF]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                                className="bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                             >
                                 <Chrome className="w-5 h-5" />
                                 <span>Google</span>
@@ -351,12 +356,12 @@ export default function Signup() {
 
                         {/* ✅ Fixed Login Link */}
                         <div className="mt-6 text-center">
-                            <p className="text-[#94A3B8]">
+                            <p className="text-[#A1A1AA]">
                                 Already have an account?{' '}
                                 <button
                                     type="button"
                                     onClick={() => navigate('/login')}
-                                    className="text-[#2DD4BF] hover:text-[#38BDF8] font-semibold transition-colors"
+                                    className="text-[#D4AF37] hover:text-[#D4AF37] font-semibold transition-colors"
                                 >
                                     Login
                                 </button>
