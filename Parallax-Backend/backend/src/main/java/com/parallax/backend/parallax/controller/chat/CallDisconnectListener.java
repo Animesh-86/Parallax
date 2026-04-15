@@ -1,7 +1,5 @@
 package com.parallax.backend.parallax.controller.chat;
 
-import com.parallax.backend.parallax.entity.chat.MessageType;
-import com.parallax.backend.parallax.dto.chat.CallSignalMessage;
 import com.parallax.backend.parallax.security.AuthUtil;
 import com.parallax.backend.parallax.service.chat.CallService;
 import com.parallax.backend.parallax.store.CallSessionRegistry;
@@ -13,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -37,15 +36,16 @@ public class CallDisconnectListener {
 
         callService.leaveCall(projectId, userId);
 
-        // notify others
-        CallSignalMessage leaveMsg = new CallSignalMessage();
-        leaveMsg.setType(MessageType.CALL_LEAVE);
-        leaveMsg.setProjectId(projectId);
-        leaveMsg.setFromUserId(userId);
+        // Notify others using the same schema as frontend voice signaling.
+        Map<String, Object> leaveMsg = Map.of(
+            "type", "CALL_LEAVE",
+            "projectId", projectId.toString(),
+            "senderId", userId.toString()
+        );
 
         messagingTemplate.convertAndSend(
                 "/topic/project/" + projectId + "/call",
-                leaveMsg
+            (Object) leaveMsg
         );
     }
 }

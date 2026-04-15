@@ -515,6 +515,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!pc) return;
 
         try {
+            // Handle offer glare: if both peers create offers at the same time,
+            // roll back our local offer before accepting the remote one.
+            if (pc.signalingState !== "stable") {
+                await pc.setLocalDescription({ type: "rollback" } as RTCSessionDescriptionInit);
+            }
             await pc.setRemoteDescription(new RTCSessionDescription(offer));
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);

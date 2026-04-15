@@ -20,6 +20,7 @@ interface ParticlesWavesProps {
     freq?: number;
     speed?: number;
     sideMotion?: number;
+    mouseParallaxStrength?: number; // New prop for mouse parallax
     particleColor?: string;
     pointSize?: number;
     dprLimit?: number;
@@ -61,6 +62,7 @@ export const ParticlesWaves: React.FC<ParticlesWavesProps> = ({
     freq = 1,
     speed = 0.01,
     sideMotion = 0,
+    mouseParallaxStrength = 0.5,
     particleColor = "#FFFFFF",
     pointSize = 4,
     cameraFov = 55,
@@ -89,6 +91,8 @@ export const ParticlesWaves: React.FC<ParticlesWavesProps> = ({
     const rootRef = useRef<HTMLDivElement>(null);
     const state = useRef<{ raf: number; cleanup: () => void }>({ raf: 0, cleanup: () => { } });
     const trailsRef = useRef<any[]>([]);
+    const mouse = useRef({ x: 0, y: 0 });
+    const targetMouse = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
         const el = rootRef.current;
@@ -134,7 +138,12 @@ export const ParticlesWaves: React.FC<ParticlesWavesProps> = ({
 
         const applyCameraYaw = () => {
             const yaw = (cameraXdeg * Math.PI) / 180;
-            camera.position.x = Math.sin(yaw) * baseDist;
+            // Apply mouse parallax to camera position
+            const moveX = mouse.current.x * (separationBase * 20) * mouseParallaxStrength;
+            const moveY = mouse.current.y * (separationBase * 10) * mouseParallaxStrength;
+            
+            camera.position.x = Math.sin(yaw) * baseDist + moveX;
+            camera.position.y = cameraHeight + moveY;
             camera.position.z = Math.cos(yaw) * baseDist;
             camera.lookAt(0, 0, 0);
         };
@@ -337,12 +346,14 @@ export const ParticlesWaves: React.FC<ParticlesWavesProps> = ({
             const sz = baseSz * freqFactor;
 
             for (let ix = 0; ix < amountX; ix++) {
-                sinX[ix] = Math.sin(ix * wx + phase * wx);
-                sX[ix] = sideMotion !== 0 ? Math.sin(ix * sx + phase * sx) : 0;
+                // Wave travels across X
+                sinX[ix] = Math.sin(ix * wx + phase);
+                sX[ix] = sideMotion !== 0 ? Math.sin(ix * sx + phase) : 0;
             }
             for (let iy = 0; iy < amountY; iy++) {
-                sinY[iy] = Math.sin(iy * wy + phase * wy);
-                sZ[iy] = sideMotion !== 0 ? Math.cos(iy * sz + phase * sz) : 0;
+                // Wave also varies across Y
+                sinY[iy] = Math.sin(iy * wy + phase);
+                sZ[iy] = sideMotion !== 0 ? Math.cos(iy * sz + phase) : 0;
             }
 
             let k = 0;
@@ -382,9 +393,23 @@ export const ParticlesWaves: React.FC<ParticlesWavesProps> = ({
         let lastMs = performance.now();
         const targetMs = 1000 / 60;
 
+        const onMouseMove = (event: MouseEvent) => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            targetMouse.current.x = (event.clientX / w) * 2 - 1;
+            targetMouse.current.y = -(event.clientY / h) * 2 + 1;
+        };
+
+        window.addEventListener("mousemove", onMouseMove);
+
         const tick = () => {
             if (disposed) return;
             state.current.raf = requestAnimationFrame(tick);
+            
+            // Smooth mouse movement
+            mouse.current.x += (targetMouse.current.x - mouse.current.x) * 0.05;
+            mouse.current.y += (targetMouse.current.y - mouse.current.y) * 0.05;
+
             const now = performance.now();
             if (now - lastMs < targetMs) return;
             lastMs = now;
@@ -408,6 +433,7 @@ export const ParticlesWaves: React.FC<ParticlesWavesProps> = ({
             cancelAnimationFrame(state.current.raf);
             ro.disconnect();
             window.removeEventListener("resize", onResize);
+            window.removeEventListener("mousemove", onMouseMove);
 
             scene.clear();
             coreGeom.dispose();

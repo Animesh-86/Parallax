@@ -1,7 +1,5 @@
 package com.parallax.backend.parallax.service.chat;
 
-import com.parallax.backend.parallax.dto.chat.CallSignalMessage;
-import com.parallax.backend.parallax.entity.chat.MessageType;
 import com.parallax.backend.parallax.exception.ForbiddenException;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;
@@ -10,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -61,14 +60,15 @@ public class CallServiceImpl implements CallService {
 
         registry.leave(projectId, userId);
 
-        CallSignalMessage leaveMsg = new CallSignalMessage();
-        leaveMsg.setType(MessageType.CALL_LEAVE);
-        leaveMsg.setProjectId(projectId);
-        leaveMsg.setFromUserId(userId);
+        Map<String, Object> leaveMsg = Map.of(
+            "type", "CALL_LEAVE",
+            "projectId", projectId.toString(),
+            "senderId", userId.toString()
+        );
 
         messagingTemplate.convertAndSend(
                 "/topic/project/" + projectId + "/call",
-                leaveMsg
+            (Object) leaveMsg
         );
     }
 }

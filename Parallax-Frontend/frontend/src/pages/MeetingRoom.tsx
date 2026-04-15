@@ -447,6 +447,7 @@ export default function MeetingRoom() {
   // --- REFS ---
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatIdRef = useRef(0);
+  const lastIncomingChatRef = useRef<{ key: string; at: number } | null>(null);
   const taskIdRef = useRef(0);
   const reactionIdRef = useRef(0);
   const handNotifIdRef = useRef(0);
@@ -1027,13 +1028,31 @@ export default function MeetingRoom() {
         setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== id)), 3000);
         return;
       }
+      const incomingSenderId = payload.senderId || 'unknown';
+      const incomingText = (payload.message || '').trim();
+
+      // Hard guard for self-echoes if sender id format differs between flows.
+      if (!payload.isSystem && incomingSenderId === currentUserId) {
+        return;
+      }
+
+      // Short-window dedupe to avoid double render from rapid resubscribe/broker replay.
+      if (!payload.isSystem && incomingText) {
+        const dedupeKey = `${incomingSenderId}::${incomingText}`;
+        const now = Date.now();
+        if (lastIncomingChatRef.current && lastIncomingChatRef.current.key === dedupeKey && now - lastIncomingChatRef.current.at < 1500) {
+          return;
+        }
+        lastIncomingChatRef.current = { key: dedupeKey, at: now };
+      }
+
       setChatMessages(prev => [...prev, {
         id: ++chatIdRef.current,
-        senderId: payload.senderId || 'unknown',
+        senderId: incomingSenderId,
         displayName: payload.displayName || peerNames.get(payload.senderId) || 'User',
         message: payload.message || '',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        color: payload.isSystem ? '#94A3B8' : getColor(payload.senderId || 'x'),
+        color: payload.isSystem ? '#94A3B8' : getColor(incomingSenderId || 'x'),
         avatar: payload.isSystem ? '⚡' : (payload.displayName || peerNames.get(payload.senderId) || 'U').substring(0, 2).toUpperCase(),
         isSystem: payload.isSystem,
       }]);

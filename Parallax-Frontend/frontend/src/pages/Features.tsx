@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
+import { FluidCardStack } from "../components/FluidCardStack";
 import { Code2, Terminal, Globe, Zap, Shield, Users, Cpu, GitBranch, MessageSquare, Play, Layers, Lock, CheckCircle2, Clock3, Rocket } from "lucide-react";
 
 const features = [
@@ -186,8 +187,10 @@ export default function Features() {
                         </p>
                     </motion.div>
 
+                    <FluidCardStack />
+
                     {/* Features Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div className="mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                         {features.map((feature, index) => (
                             <motion.div
                                 key={index}

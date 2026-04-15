@@ -174,7 +174,7 @@ export default function MyProjects() {
                         placeholder="Search projects..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 h-12 bg-[#060910] border border-white/10 rounded-xl focus:outline-none focus:border-[#38BDF8]/50 text-base transition-all"
+                        className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#38BDF8]/50 text-base transition-all"
                     />
                 </div>
 
@@ -191,12 +191,16 @@ export default function MyProjects() {
                         <ProjectSkeleton />
                     </div>
                 ) : filteredProjects.length === 0 ? (
-                    <div className="text-center py-12 border border-dashed border-white/10 rounded-3xl">
-                        <div className="text-xl font-semibold mb-2">No projects found</div>
-                        <p className="text-white/50 mb-6">Start your journey by creating your first project</p>
+                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#060910]/70">
+                        <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+                            No Projects Yet
+                        </div>
+                        <p className="text-white/45 text-lg max-w-md">
+                            Start your journey by creating your first project.
+                        </p>
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="px-6 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+                            className="px-6 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all text-white"
                         >
                             Create Project
                         </button>
@@ -207,7 +211,7 @@ export default function MyProjects() {
                             <div
                                 key={project.id}
                                 onClick={() => navigate(`/editor/${project.id}`)}
-                                className="group bg-[#060910] border border-white/5 rounded-2xl p-5 hover:border-[#38BDF8]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#38BDF8]/5 cursor-pointer relative overflow-hidden"
+                                className="group glass-panel rounded-2xl p-5 hover:border-[#38BDF8]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#38BDF8]/5 cursor-pointer relative overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <ArrowUpRight className="w-5 h-5 text-white/40" />

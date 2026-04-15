@@ -63,32 +63,30 @@ export const HoverFocusText: React.FC<HoverFocusTextProps> = ({
             onMouseLeave={handleMouseLeave}
             className={`relative select-none cursor-default inline-block ${className}`}
         >
-            {/* Base Text (Outline) */}
+            {/* Base Text (Solid but semi-transparent) */}
             <span
-                className={`block text-transparent bg-clip-text text-stroke-white ${fontClassName}`}
+                className={`block text-white/10 ${fontClassName}`}
                 style={{
-                    WebkitTextStroke: "1px rgba(255, 255, 255, 0.2)",
-                    color: "transparent",
+                    filter: "drop-shadow(0 0 20px rgba(0,0,0,0.5))",
                 }}
             >
                 {text}
             </span>
 
-            {/* Overlay Text (Filled with gradient mask) */}
+            {/* Overlay Text (Glowing spotlight) */}
             <div
-                className={`absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-[#38BDF8] via-white to-[#38BDF8] ${fontClassName}`}
+                className={`absolute inset-0 text-transparent bg-clip-text ${fontClassName}`}
                 style={{
                     pointerEvents: "none",
-                    WebkitMaskImage: `radial-gradient(250px circle at ${position.x}px ${position.y}px, black, transparent)`,
-                    maskImage: `radial-gradient(250px circle at ${position.x}px ${position.y}px, black, transparent)`,
+                    WebkitMaskImage: `radial-gradient(350px circle at ${position.x}px ${position.y}px, black, transparent)`,
+                    maskImage: `radial-gradient(350px circle at ${position.x}px ${position.y}px, black, transparent)`,
                     opacity: opacity,
                     transition: "opacity 0.2s ease",
                     color: "transparent",
-                    // Cosmos Gradient with glow
-                    backgroundImage: "linear-gradient(to right, #38BDF8, #7DD3FC, #F472B6, #38BDF8)",
+                    backgroundImage: "linear-gradient(to right, #38BDF8, #FFFFFF, #7DD3FC, #38BDF8)",
                     backgroundSize: "200% auto",
-                    filter: "drop-shadow(0 0 15px rgba(56, 189, 248, 0.6))",
-                    WebkitTextStroke: "1px rgba(244, 114, 182, 0.8)", // Pink-ish stroke
+                    filter: "drop-shadow(0 0 30px rgba(56, 189, 248, 0.8))",
+                    WebkitTextStroke: "1px rgba(255, 255, 255, 0.5)",
                 }}
             >
                 {text}

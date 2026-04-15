@@ -78,16 +78,16 @@ export default function Rooms() {
                         {error}
                     </div>
                 ) : rooms.length === 0 ? (
-                    <div className="bg-[#060910] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#060910]/70">
+                        <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
                             No Rooms Yet
                         </h2>
-                        <div className="text-white/40 font-medium text-lg max-w-md">
-                            You haven't created or joined any rooms yet.
+                        <div className="text-white/45 text-lg max-w-md">
+                            You haven’t created or joined any rooms yet.
                         </div>
                         <button
                             onClick={() => setIsCreateRoomModalOpen(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2"
+                            className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2 text-white"
                         >
                             <Plus className="w-4 h-4" />
                             Create Room
@@ -98,7 +98,7 @@ export default function Rooms() {
                         {rooms.map((room) => (
                             <div
                                 key={room.id}
-                                className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-[#94A3B8]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#94A3B8]/10"
+                                className="glass-panel rounded-2xl p-6 hover:border-[#94A3B8]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#94A3B8]/10"
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div>

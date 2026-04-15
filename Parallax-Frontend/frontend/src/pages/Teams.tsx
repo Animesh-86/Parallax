@@ -167,28 +167,28 @@ export default function Teams() {
                 </div>
 
                 <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-[#060910] border border-white/5 rounded-2xl p-4">
+                    <div className="glass-panel rounded-2xl p-4">
                         <div className="text-xs uppercase text-white/40 mb-2">Project Teams</div>
                         <div className="text-2xl font-semibold flex items-center gap-2">
                             <Users className="w-5 h-5 text-[#38BDF8]" />
                             {teams.length}
                         </div>
                     </div>
-                    <div className="bg-[#060910] border border-white/5 rounded-2xl p-4">
+                    <div className="glass-panel rounded-2xl p-4">
                         <div className="text-xs uppercase text-white/40 mb-2">Total Members</div>
                         <div className="text-2xl font-semibold flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-[#4ADE80]" />
                             {totalMembers}
                         </div>
                     </div>
-                    <div className="bg-[#060910] border border-white/5 rounded-2xl p-4">
+                    <div className="glass-panel rounded-2xl p-4">
                         <div className="text-xs uppercase text-white/40 mb-2">Pending Invites</div>
                         <div className="text-2xl font-semibold flex items-center gap-2">
                             <Clock3 className="w-5 h-5 text-[#FBBF24]" />
                             {totalPending}
                         </div>
                     </div>
-                    <div className="bg-[#060910] border border-white/5 rounded-2xl p-4">
+                    <div className="glass-panel rounded-2xl p-4">
                         <div className="text-xs uppercase text-white/40 mb-2">Live Rooms</div>
                         <div className="text-2xl font-semibold flex items-center gap-2">
                             <Video className="w-5 h-5 text-[#94A3B8]" />
@@ -204,7 +204,7 @@ export default function Teams() {
                         placeholder="Search teams by name or description"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 h-12 bg-[#060910] border border-white/10 rounded-xl focus:outline-none focus:border-[#38BDF8]/50 transition-all"
+                        className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#38BDF8]/50 transition-all"
                     />
                 </div>
 
@@ -280,7 +280,7 @@ export default function Teams() {
 
                         {/* Active Teams Section */}
                         {activeTeams.length === 0 && pendingTeams.length === 0 ? (
-                            <div className="bg-[#060910] border border-white/5 rounded-2xl h-[360px] flex flex-col items-center justify-center gap-4 text-center">
+                            <div className="glass-panel rounded-2xl h-[360px] flex flex-col items-center justify-center gap-4 text-center">
                                 <CircleDashed className="w-10 h-10 text-white/30" />
                                 <h2 className="text-2xl font-semibold">No Team Workspaces Yet</h2>
                                 <p className="text-white/40 max-w-md">
@@ -300,7 +300,7 @@ export default function Teams() {
                                     {activeTeams.map((team) => (
                                         <article
                                             key={team.id}
-                                            className="group bg-[#060910] border border-white/5 rounded-2xl p-5 hover:border-[#38BDF8]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#38BDF8]/10"
+                                            className="group glass-panel rounded-2xl p-5 hover:border-[#38BDF8]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#38BDF8]/10"
                                         >
                                             <div className="flex items-start justify-between gap-4 mb-4">
                                                 <div>

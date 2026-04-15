@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import java.security.Principal;
 import java.util.UUID;
 import java.util.Map;
+import java.util.HashMap;
 
 @Controller
 @RequiredArgsConstructor
@@ -88,33 +89,36 @@ public class RoomWebSocketController {
         UUID userId = AuthUtil.requireUserId(principal);
         roomService.requireRoomMember(roomId, userId);
 
-        if (Boolean.TRUE.equals(payload.get("isTaskSync")) && !roomService.canMutateTasks(roomId, userId)) {
+        Map<String, Object> normalizedPayload = new HashMap<>(payload);
+        normalizedPayload.put("senderId", userId.toString());
+
+        if (Boolean.TRUE.equals(normalizedPayload.get("isTaskSync")) && !roomService.canMutateTasks(roomId, userId)) {
             throw new SecurityException("Only host can update tasks in this room mode");
         }
-        if (Boolean.TRUE.equals(payload.get("isCodeSync")) && !roomService.canEditCode(roomId, userId)) {
+        if (Boolean.TRUE.equals(normalizedPayload.get("isCodeSync")) && !roomService.canEditCode(roomId, userId)) {
             throw new SecurityException("You do not have code edit permission");
         }
-        if (!Boolean.TRUE.equals(payload.get("isAdminAction"))
-                && !Boolean.TRUE.equals(payload.get("isTaskSync"))
-                && !Boolean.TRUE.equals(payload.get("isCodeSync"))
-                && !Boolean.TRUE.equals(payload.get("isNotesUpdate"))
-                && !Boolean.TRUE.equals(payload.get("isReaction"))
-                && !Boolean.TRUE.equals(payload.get("isPresence"))
-                && !Boolean.TRUE.equals(payload.get("isHandRaise"))
+        if (!Boolean.TRUE.equals(normalizedPayload.get("isAdminAction"))
+                && !Boolean.TRUE.equals(normalizedPayload.get("isTaskSync"))
+                && !Boolean.TRUE.equals(normalizedPayload.get("isCodeSync"))
+                && !Boolean.TRUE.equals(normalizedPayload.get("isNotesUpdate"))
+                && !Boolean.TRUE.equals(normalizedPayload.get("isReaction"))
+                && !Boolean.TRUE.equals(normalizedPayload.get("isPresence"))
+                && !Boolean.TRUE.equals(normalizedPayload.get("isHandRaise"))
                 && !roomService.canUseChat(roomId)) {
             throw new SecurityException("Chat is disabled in this room");
         }
 
-        boolean isAdminAction = Boolean.TRUE.equals(payload.get("isAdminAction"));
+        boolean isAdminAction = Boolean.TRUE.equals(normalizedPayload.get("isAdminAction"));
         if (isAdminAction) {
             roomService.requireRoomOwner(roomId, userId);
-            Object action = payload.get("action");
-            if ("KICK".equals(action) && payload.get("targetId") instanceof String targetIdStr) {
+            Object action = normalizedPayload.get("action");
+            if ("KICK".equals(action) && normalizedPayload.get("targetId") instanceof String targetIdStr) {
                 roomService.removeParticipant(roomId, UUID.fromString(targetIdStr));
             }
         }
 
         // Ephemeral chat relay — no DB persistence, just broadcast
-        messagingTemplate.convertAndSend("/topic/rooms/" + roomId + "/chat", (Object) payload);
+        messagingTemplate.convertAndSend("/topic/rooms/" + roomId + "/chat", (Object) normalizedPayload);
     }
 }

@@ -144,9 +144,13 @@ export default function Friends() {
                     <FriendSkeleton />
                 </div>
             ) : friends.length === 0 ? (
-                <div className="bg-[#060910] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
-                    <div className="text-white/40 font-medium text-lg">No friends found yet</div>
-                    <div className="text-sm text-white/20">Collaborate in projects to add friends automatically</div>
+                <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#060910]/70">
+                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+                        No Friends Yet
+                    </div>
+                    <div className="text-white/45 text-lg max-w-md">
+                        Collaborate in projects to add friends automatically.
+                    </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -154,7 +158,7 @@ export default function Friends() {
                         return (
                             <div
                                 key={friend.userId || friend.email}
-                                className="bg-[#060910] border border-white/5 rounded-2xl p-5 hover:border-[#F472B6]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#F472B6]/5"
+                                className="glass-panel rounded-2xl p-5 hover:border-[#F472B6]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#F472B6]/5"
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-4">
