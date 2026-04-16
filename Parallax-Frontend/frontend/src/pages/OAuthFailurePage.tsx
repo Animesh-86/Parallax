@@ -17,8 +17,8 @@ export default function OAuthFailurePage() {
   }, [location.search]);
 
   return (
-    <div className="min-h-screen bg-[#060910] text-white flex items-center justify-center px-4">
-      <div className="max-w-lg w-full rounded-3xl border border-white/10 bg-[#0C1220]/80 backdrop-blur-xl p-8 shadow-2xl text-center">
+    <div className="min-h-screen bg-[#09090B] text-white flex items-center justify-center px-4">
+      <div className="max-w-lg w-full rounded-3xl border border-white/10 bg-[#0D0D0F]/80 backdrop-blur-xl p-8 shadow-2xl text-center">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-[#EF6461]/15 border border-[#EF6461]/30 flex items-center justify-center mb-5">
           <AlertTriangle className="w-8 h-8 text-[#EF6461]" />
         </div>
@@ -37,7 +37,7 @@ export default function OAuthFailurePage() {
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#38BDF8] text-white hover:bg-[#38BDF8]/90 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#D4AF37] text-white hover:bg-[#D4AF37]/90 transition-colors"
           >
             <LogIn className="w-4 h-4" />
             Try again

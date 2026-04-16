@@ -57,7 +57,7 @@ export default function Rooms() {
                     </div>
                     <button
                         onClick={() => setIsCreateRoomModalOpen(true)}
-                        className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2"
+                        className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg text-sm hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
                         Create Room
@@ -78,8 +78,8 @@ export default function Rooms() {
                         {error}
                     </div>
                 ) : rooms.length === 0 ? (
-                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#060910]/70">
-                        <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#09090B]/70">
+                        <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] bg-clip-text text-transparent">
                             No Rooms Yet
                         </h2>
                         <div className="text-white/45 text-lg max-w-md">
@@ -87,7 +87,7 @@ export default function Rooms() {
                         </div>
                         <button
                             onClick={() => setIsCreateRoomModalOpen(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2 text-white"
+                            className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl text-sm hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2 text-white"
                         >
                             <Plus className="w-4 h-4" />
                             Create Room
@@ -98,7 +98,7 @@ export default function Rooms() {
                         {rooms.map((room) => (
                             <div
                                 key={room.id}
-                                className="glass-panel rounded-2xl p-6 hover:border-[#94A3B8]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#94A3B8]/10"
+                                className="glass-panel rounded-2xl p-6 hover:border-[#A1A1AA]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#A1A1AA]/10"
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
@@ -136,7 +136,7 @@ export default function Rooms() {
 
                                 <button
                                     onClick={() => navigate(`/room/${room.roomCode}`)}
-                                    className="w-full px-4 py-2 bg-gradient-to-r from-[#94A3B8]/20 to-[#94A3B8]/20 border border-[#94A3B8]/30 rounded-xl text-sm font-medium hover:from-[#94A3B8]/30 hover:to-[#94A3B8]/30 transition-all"
+                                    className="w-full px-4 py-2 bg-gradient-to-r from-[#A1A1AA]/20 to-[#A1A1AA]/20 border border-[#A1A1AA]/30 rounded-xl text-sm font-medium hover:from-[#A1A1AA]/30 hover:to-[#A1A1AA]/30 transition-all"
                                 >
                                     Join Room
                                 </button>

@@ -31,7 +31,7 @@ export const BlackHoleParticles: React.FC<BlackHoleParticlesProps> = ({ classNam
     const MAX_VELOCITY = 8;
     const BASE_FRICTION = 0.95;
 
-    const colors = ["#2DD4BF", "#7DD3FC", "#F472B6", "#ffffff"]; // Cyan, Purple, Pink, White
+    const colors = ["#D4AF37", "#F59E0B", "#D4AF37", "#ffffff"]; // Cyan, Purple, Pink, White
 
     const initParticles = useCallback((width: number, height: number) => {
         const particles: Particle[] = [];

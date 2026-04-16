@@ -28,9 +28,9 @@ export function AstraCore() {
 
   // 3D orbital ring configurations with dramatic angles - SCALED UP
   const orbitalRings = [
-    { radius: 180, speed: 8, angle: 15, color: "#64748B", nodes: 1, planetSize: 6, trail: true },
-    { radius: 260, speed: 12, angle: 30, color: "#7DD3FC", nodes: 1, planetSize: 7, trail: true },
-    { radius: 340, speed: 16, angle: 45, color: "#2DD4BF", nodes: 1, planetSize: 10, trail: false },
+    { radius: 180, speed: 8, angle: 15, color: "#71717A", nodes: 1, planetSize: 6, trail: true }, // Muted Zinc
+    { radius: 260, speed: 12, angle: 30, color: "#D4AF37", nodes: 1, planetSize: 7, trail: true }, // Gold
+    { radius: 340, speed: 16, angle: 45, color: "#F59E0B", nodes: 1, planetSize: 10, trail: false }, // Amber
   ];
 
   return (
@@ -63,9 +63,9 @@ export function AstraCore() {
             scale: [1, 1.15, 1],
             opacity: [0.4, 0.6, 0.4],
             background: [
-              "radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, rgba(100, 116, 139, 0.15) 30%, transparent 60%)",
-              "radial-gradient(circle, rgba(125, 211, 252, 0.3) 0%, rgba(45, 212, 191, 0.2) 30%, transparent 60%)",
-              "radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, rgba(100, 116, 139, 0.15) 30%, transparent 60%)",
+              "radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, rgba(113, 113, 122, 0.15) 30%, transparent 60%)",
+              "radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, rgba(212, 175, 55, 0.2) 30%, transparent 60%)",
+              "radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, rgba(113, 113, 122, 0.15) 30%, transparent 60%)",
             ],
           }}
           transition={{
@@ -82,7 +82,7 @@ export function AstraCore() {
             return (
               <motion.div
                 key={`star-${i}`}
-                className="absolute rounded-full bg-[#2DD4BF]"
+                className="absolute rounded-full bg-[#D4AF37]"
                 style={{
                   width: `${1 + depth * 2}px`,
                   height: `${1 + depth * 2}px`,
@@ -118,8 +118,8 @@ export function AstraCore() {
               height: `${200 + i * 25}px`,
               transformStyle: "preserve-3d",
               transform: "translateZ(60px)",
-              border: `1px solid rgba(45, 212, 191, ${0.15 / i})`,
-              boxShadow: `0 0 30px rgba(45, 212, 191, ${0.2 / i})`,
+              border: `1px solid rgba(212, 175, 55, ${0.15 / i})`,
+              boxShadow: `0 0 30px rgba(212, 175, 55, ${0.2 / i})`,
             }}
             animate={{
               scale: [1, 1.08, 1],
@@ -140,12 +140,12 @@ export function AstraCore() {
           style={{
             transformStyle: "preserve-3d",
             transform: "translateZ(80px)",
-            background: "radial-gradient(circle at 35% 35%, rgba(45, 212, 191, 0.9), rgba(100, 116, 139, 0.7), rgba(125, 211, 252, 0.5))",
-            border: "1px solid rgba(45, 212, 191, 0.4)",
+            background: "radial-gradient(circle at 35% 35%, rgba(212, 175, 55, 0.9), rgba(113, 113, 122, 0.7), rgba(245, 158, 11, 0.5))",
+            border: "1px solid rgba(212, 175, 55, 0.4)",
             boxShadow: `
-              0 0 80px rgba(45, 212, 191, 0.6), 
-              0 0 120px rgba(100, 116, 139, 0.4),
-              inset 0 0 50px rgba(45, 212, 191, 0.3)
+              0 0 80px rgba(212, 175, 55, 0.6), 
+              0 0 120px rgba(113, 113, 122, 0.4),
+              inset 0 0 50px rgba(212, 175, 55, 0.3)
             `,
           }}
           animate={{
@@ -161,7 +161,7 @@ export function AstraCore() {
           <motion.div
             className="absolute inset-0"
             style={{
-              background: "conic-gradient(from 0deg, transparent 0%, rgba(45, 212, 191, 0.4) 10%, transparent 20%, rgba(100, 116, 139, 0.3) 40%, transparent 50%, rgba(125, 211, 252, 0.4) 70%, transparent 80%)",
+              background: "conic-gradient(from 0deg, transparent 0%, rgba(212, 175, 55, 0.4) 10%, transparent 20%, rgba(113, 113, 122, 0.3) 40%, transparent 50%, rgba(245, 158, 11, 0.4) 70%, transparent 80%)",
             }}
             animate={{
               rotate: 360,
@@ -204,7 +204,7 @@ export function AstraCore() {
               className="text-5xl font-mono relative z-10"
               style={{
                 color: "rgba(255, 255, 255, 0.9)",
-                textShadow: "0 0 20px rgba(45, 212, 191, 0.8), 0 0 40px rgba(100, 116, 139, 0.5)",
+                textShadow: "0 0 20px rgba(212, 175, 55, 0.8), 0 0 40px rgba(113, 113, 122, 0.5)",
                 fontWeight: 600,
               }}
               animate={{
@@ -380,7 +380,7 @@ export function AstraCore() {
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%) translateZ(70px)",
-              border: `1.5px solid ${i === 0 ? 'rgba(45, 212, 191, 0.3)' : 'rgba(125, 211, 252, 0.3)'}`,
+              border: `1.5px solid ${i === 0 ? 'rgba(212, 175, 55, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
             }}
             animate={{
               width: [100, 600],

@@ -30,7 +30,7 @@ export function AstraCore3D() {
     >
       {/* Tooltip */}
       {isHovered && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-[#0C1220]/90 backdrop-blur-md border border-[#2DD4BF]/50 rounded-lg text-xs whitespace-nowrap z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-[#0D0D0F]/90 backdrop-blur-md border border-[#D4AF37]/50 rounded-lg text-xs whitespace-nowrap z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           Workspace status — 3 users
         </div>
       )}
@@ -39,7 +39,7 @@ export function AstraCore3D() {
       <div
         className="absolute inset-0 rounded-full opacity-30 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, transparent 70%)`,
           transform: `scale(${isHovered ? 1.3 : 1})`,
         }}
       />
@@ -47,7 +47,7 @@ export function AstraCore3D() {
       <div
         className="absolute inset-0 rounded-full opacity-20 animate-ping"
         style={{
-          background: `radial-gradient(circle, rgba(45, 212, 191, 0.4) 0%, transparent 70%)`,
+          background: `radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, transparent 70%)`,
           animationDuration: '3s',
         }}
       />
@@ -56,10 +56,10 @@ export function AstraCore3D() {
       <div
         className="absolute inset-2 rounded-full transition-all duration-300"
         style={{
-          background: `radial-gradient(circle at 30% 30%, #2DD4BF, #2DD4BF, #38BDF8)`,
+          background: `radial-gradient(circle at 30% 30%, #D4AF37, #D4AF37, #D4AF37)`,
           boxShadow: isHovered
-            ? '0 0 40px rgba(45, 212, 191, 0.8), 0 0 80px rgba(56, 189, 248, 0.4)'
-            : '0 0 20px rgba(45, 212, 191, 0.6), 0 0 40px rgba(56, 189, 248, 0.3)',
+            ? '0 0 40px rgba(212, 175, 55, 0.8), 0 0 80px rgba(212, 175, 55, 0.4)'
+            : '0 0 20px rgba(212, 175, 55, 0.6), 0 0 40px rgba(212, 175, 55, 0.3)',
           transform: `scale(${isHovered ? 1.1 : pulseScale})`,
         }}
       >
@@ -82,14 +82,14 @@ export function AstraCore3D() {
 
       {/* Orbital rings */}
       <div
-        className="absolute inset-0 border border-[#2DD4BF]/30 rounded-full"
+        className="absolute inset-0 border border-[#D4AF37]/30 rounded-full"
         style={{
           transform: `rotate(${rotation * 0.5}deg) scale(1.2)`,
         }}
       />
       
       <div
-        className="absolute inset-0 border border-[#38BDF8]/20 rounded-full"
+        className="absolute inset-0 border border-[#D4AF37]/20 rounded-full"
         style={{
           transform: `rotate(${-rotation * 0.7}deg) scale(1.4)`,
         }}
@@ -103,12 +103,12 @@ export function AstraCore3D() {
         return (
           <div
             key={idx}
-            className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-[#2DD4BF] to-[#2DD4BF]"
+            className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#D4AF37]"
             style={{
               left: '50%',
               top: '50%',
               transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-              boxShadow: '0 0 10px rgba(45, 212, 191, 0.8)',
+              boxShadow: '0 0 10px rgba(212, 175, 55, 0.8)',
             }}
           />
         );

@@ -87,7 +87,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
       id: myId,
       name: meCollaborator.email.split('@')[0],
       avatar: meCollaborator.email.substring(0, 2).toUpperCase(),
-      color: '#94A3B8',
+      color: '#A1A1AA',
       isMe: true,
       stream: localStream
     };
@@ -101,7 +101,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
         id: peerId,
         name: collaborator ? collaborator.email.split('@')[0] : `User ${peerId.substring(0, 4)}`,
         avatar: collaborator ? collaborator.email.substring(0, 2).toUpperCase() : '??',
-        color: '#7DD3FC',
+        color: '#F59E0B',
         isMe: false,
         stream: remoteStreams.get(peerId)
       };
@@ -126,9 +126,9 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
   const others = participants.filter(p => p.id !== mainSpeaker.id);
 
   return (
-    <div className="flex flex-col h-full bg-[#060910] relative font-sans">
+    <div className="flex flex-col h-full bg-[#09090B] relative font-sans">
       {/* Header */}
-      <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 bg-[#060910]">
+      <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 bg-[#09090B]">
         <span className="text-xs font-semibold tracking-wide text-white/60">VIDEO & VOICE</span>
       </div>
 
@@ -161,7 +161,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
               className={cn(
                 "relative w-full bg-[#162032] rounded-2xl overflow-hidden shadow-2xl transition-all duration-300",
                 activeSpeakers.includes(mainSpeaker.id)
-                  ? "border-[2px] border-[#94A3B8] shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                  ? "border-[2px] border-[#A1A1AA] shadow-[0_0_15px_rgba(6,182,212,0.15)]"
                   : "border border-white/5"
               )}
               style={{ aspectRatio: "4/3", minHeight: "200px" }}
@@ -173,8 +173,8 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-[#162032]">
                   <div className={cn(
-                    "w-28 h-28 rounded-full border-[2px] flex items-center justify-center text-4xl font-light tracking-wider bg-[#0C1220] shadow-xl",
-                    activeSpeakers.includes(mainSpeaker.id) ? "border-[#94A3B8] text-[#2DD4BF]" : "border-white/10 text-white/40"
+                    "w-28 h-28 rounded-full border-[2px] flex items-center justify-center text-4xl font-light tracking-wider bg-[#0D0D0F] shadow-xl",
+                    activeSpeakers.includes(mainSpeaker.id) ? "border-[#A1A1AA] text-[#D4AF37]" : "border-white/10 text-white/40"
                   )}>
                     {mainSpeaker.avatar}
                   </div>
@@ -207,7 +207,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
                   className={cn(
                     "relative w-full bg-[#162032] rounded-xl overflow-hidden transition-all duration-300",
                     activeSpeakers.includes(p.id)
-                      ? "border-[2px] border-[#94A3B8] shadow-[0_0_10px_rgba(6,182,212,0.1)]"
+                      ? "border-[2px] border-[#A1A1AA] shadow-[0_0_10px_rgba(6,182,212,0.1)]"
                       : "border border-white/5 hover:border-white/10"
                   )}
                   style={{ aspectRatio: "16/9", minHeight: "80px" }}
@@ -218,8 +218,8 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
                     <div className="absolute inset-0 flex items-center justify-center bg-[#162032]">
                       <div
                         className={cn(
-                          "w-12 h-12 rounded-full border-2 flex items-center justify-center text-sm font-medium bg-[#0C1220]",
-                          activeSpeakers.includes(p.id) ? "border-[#94A3B8] text-[#2DD4BF]" : "border-white/10 text-white/40"
+                          "w-12 h-12 rounded-full border-2 flex items-center justify-center text-sm font-medium bg-[#0D0D0F]",
+                          activeSpeakers.includes(p.id) ? "border-[#A1A1AA] text-[#D4AF37]" : "border-white/10 text-white/40"
                         )}
                         style={!activeSpeakers.includes(p.id) ? { borderColor: p.color, color: p.color } : {}}
                       >
@@ -241,7 +241,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
         )}
       </div>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-[#0C1220]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl z-20">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-[#0D0D0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl z-20">
         <button
           onClick={toggleMute}
           disabled={!isConnected}

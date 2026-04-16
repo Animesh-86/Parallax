@@ -10,7 +10,7 @@ export const GradientShineText = ({ text, className = "" }: GradientShineTextPro
         <motion.span
             className={`inline-block relative ${className}`}
             style={{
-                backgroundImage: "linear-gradient(to right, #2DD4BF, #7DD3FC, #F472B6, #2DD4BF)",
+                backgroundImage: "linear-gradient(to right, #D4AF37, #F59E0B, #D4AF37, #D4AF37)",
                 backgroundSize: "200% auto",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",

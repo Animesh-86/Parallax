@@ -83,9 +83,9 @@ export const HoverFocusText: React.FC<HoverFocusTextProps> = ({
                     opacity: opacity,
                     transition: "opacity 0.2s ease",
                     color: "transparent",
-                    backgroundImage: "linear-gradient(to right, #38BDF8, #FFFFFF, #7DD3FC, #38BDF8)",
+                    backgroundImage: "linear-gradient(to right, #D4AF37, #FFFFFF, #F59E0B, #D4AF37)",
                     backgroundSize: "200% auto",
-                    filter: "drop-shadow(0 0 30px rgba(56, 189, 248, 0.8))",
+                    filter: "drop-shadow(0 0 30px rgba(212, 175, 55, 0.8))",
                     WebkitTextStroke: "1px rgba(255, 255, 255, 0.5)",
                 }}
             >

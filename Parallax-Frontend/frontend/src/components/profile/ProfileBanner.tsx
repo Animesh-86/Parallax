@@ -168,7 +168,7 @@ export function ProfileBanner({ username = "default", stats, className }: Profil
             ctx.clearRect(0, 0, width, height);
 
             // Draw Lines
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)'; // Purple-ish
+            ctx.strokeStyle = 'rgba(212, 175, 55, 0.3)'; // Purple-ish
             ctx.lineWidth = 1;
 
             ctx.beginPath();
@@ -221,11 +221,11 @@ export function ProfileBanner({ username = "default", stats, className }: Profil
     return (
         <div
             ref={containerRef}
-            className={cn("h-40 bg-[#060910] relative overflow-hidden", className)}
+            className={cn("h-40 bg-[#09090B] relative overflow-hidden", className)}
         >
             {/* Background Gradient Layer - Static & performant */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0C1220] via-[#060910] to-[#0C1220]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0C1220]/20 via-transparent to-transparent opacity-50" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0D0D0F] via-[#09090B] to-[#0D0D0F]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0D0D0F]/20 via-transparent to-transparent opacity-50" />
 
             {/* Canvas Layer */}
             <canvas

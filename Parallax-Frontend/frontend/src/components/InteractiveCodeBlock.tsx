@@ -23,9 +23,9 @@ export function InteractiveCodeBlock() {
               left: `${Math.random() * 100}%`,
               background:
                 i % 3 === 0
-                  ? "rgba(45, 212, 191, 0.4)"
+                  ? "rgba(212, 175, 55, 0.4)"
                   : i % 3 === 1
-                    ? "rgba(56, 189, 248, 0.4)"
+                    ? "rgba(212, 175, 55, 0.4)"
                     : "rgba(244, 114, 182, 0.4)",
               boxShadow: "0 0 10px currentColor",
             }}
@@ -53,13 +53,13 @@ export function InteractiveCodeBlock() {
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             <span className="relative inline-block">
-              <span className="absolute inset-0 blur-xl bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] opacity-15" />
+              <span className="absolute inset-0 blur-xl bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] opacity-15" />
               <span className="relative">
                 <GradientShineText text="Code in Perfect Harmony" />
               </span>
             </span>
           </h2>
-          <p className="text-xl text-[#94A3B8] max-w-2xl mx-auto">
+          <p className="text-xl text-[#A1A1AA] max-w-2xl mx-auto">
             Write, collaborate, and execute code in real-time with your entire team
           </p>
         </motion.div>
@@ -67,14 +67,14 @@ export function InteractiveCodeBlock() {
         {/* Tabs */}
         <div className="flex justify-center mb-8 md:mb-12">
           <button
-            className={`px-4 py-2 md:px-6 md:py-3 rounded-lg ${activeTab === 0 ? "bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+            className={`px-4 py-2 md:px-6 md:py-3 rounded-lg ${activeTab === 0 ? "bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] text-white" : "bg-[#F1F5F9] text-[#71717A]"
               }`}
             onClick={() => setActiveTab(0)}
           >
             Collaborative Session
           </button>
           <button
-            className={`px-4 py-2 md:px-6 md:py-3 rounded-lg ${activeTab === 1 ? "bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+            className={`px-4 py-2 md:px-6 md:py-3 rounded-lg ${activeTab === 1 ? "bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] text-white" : "bg-[#F1F5F9] text-[#71717A]"
               }`}
             onClick={() => setActiveTab(1)}
           >
@@ -88,13 +88,13 @@ export function InteractiveCodeBlock() {
           <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/10">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-[#EF6461]/80" />
-              <div className="w-3 h-3 rounded-full bg-[#FBBF24]/80" />
+              <div className="w-3 h-3 rounded-full bg-[#F59E0B]/80" />
               <div className="w-3 h-3 rounded-full bg-[#4ADE80]/80" />
             </div>
-            <span className="text-xs md:text-sm text-[#94A3B8]">collaborative-session.js</span>
+            <span className="text-xs md:text-sm text-[#A1A1AA]">collaborative-session.js</span>
             <motion.button
               onClick={() => setIsTyping(!isTyping)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-xl bg-white/5 border border-white/10 hover:border-[#2DD4BF]/50 transition-all duration-300 text-xs md:text-sm"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-xl bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 transition-all duration-300 text-xs md:text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -116,25 +116,25 @@ export function InteractiveCodeBlock() {
           <div className="p-4 md:p-6 font-mono text-xs md:text-sm overflow-x-auto">
             <pre className="text-[#CBD5E1]">
               <code>
-                <span className="text-[#64748B]">// Real-time collaboration in action</span>
+                <span className="text-[#71717A]">// Real-time collaboration in action</span>
                 {"\n"}
-                <span className="text-[#7DD3FC]">const</span> <span className="text-[#2DD4BF]">session</span> = <span className="text-[#7DD3FC]">await</span> <span className="text-[#94A3B8]">Parallax</span>.<span className="text-[#FBBF24]">join</span>({"{"}
+                <span className="text-[#F59E0B]">const</span> <span className="text-[#D4AF37]">session</span> = <span className="text-[#F59E0B]">await</span> <span className="text-[#A1A1AA]">Parallax</span>.<span className="text-[#F59E0B]">join</span>({"{"}
                 {"\n  "}
-                <span className="text-[#2DD4BF]">room</span>: <span className="text-[#4ADE80]">"cosmic-coders"</span>,
+                <span className="text-[#D4AF37]">room</span>: <span className="text-[#4ADE80]">"cosmic-coders"</span>,
                 {"\n  "}
-                <span className="text-[#2DD4BF]">mode</span>: <span className="text-[#4ADE80]">"collaborative"</span>
+                <span className="text-[#D4AF37]">mode</span>: <span className="text-[#4ADE80]">"collaborative"</span>
                 {"\n}"});
                 {"\n\n"}
-                <span className="text-[#64748B]">// Share your cursor position</span>
+                <span className="text-[#71717A]">// Share your cursor position</span>
                 {"\n"}
-                <span className="text-[#2DD4BF]">session</span>.<span className="text-[#FBBF24]">on</span>(<span className="text-[#4ADE80]">"cursorMove"</span>, (<span className="text-[#F59E0B]">user</span>, <span className="text-[#F59E0B]">pos</span>) {"=>"} {"{"}
+                <span className="text-[#D4AF37]">session</span>.<span className="text-[#F59E0B]">on</span>(<span className="text-[#4ADE80]">"cursorMove"</span>, (<span className="text-[#F59E0B]">user</span>, <span className="text-[#F59E0B]">pos</span>) {"=>"} {"{"}
                 {"\n  "}
-                <span className="text-[#FBBF24]">renderCursor</span>(<span className="text-[#F59E0B]">user</span>.<span className="text-[#2DD4BF]">avatar</span>, <span className="text-[#F59E0B]">pos</span>);
+                <span className="text-[#F59E0B]">renderCursor</span>(<span className="text-[#F59E0B]">user</span>.<span className="text-[#D4AF37]">avatar</span>, <span className="text-[#F59E0B]">pos</span>);
                 {"\n}"});
                 {"\n\n"}
-                <span className="text-[#64748B]">// Sync code changes instantly</span>
+                <span className="text-[#71717A]">// Sync code changes instantly</span>
                 {"\n"}
-                <span className="text-[#2DD4BF]">session</span>.<span className="text-[#FBBF24]">sync</span>(<span className="text-[#94A3B8]">editor</span>.<span className="text-[#FBBF24]">getContent</span>());
+                <span className="text-[#D4AF37]">session</span>.<span className="text-[#F59E0B]">sync</span>(<span className="text-[#A1A1AA]">editor</span>.<span className="text-[#F59E0B]">getContent</span>());
               </code>
             </pre>
           </div>
@@ -152,7 +152,7 @@ export function InteractiveCodeBlock() {
               ease: "easeInOut",
             }}
           >
-            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-[#2DD4BF] to-[#64748B] border-2 border-white/20 flex items-center justify-center text-xs">
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#71717A] border-2 border-white/20 flex items-center justify-center text-xs">
               A
             </div>
           </motion.div>
@@ -170,7 +170,7 @@ export function InteractiveCodeBlock() {
               ease: "easeInOut",
             }}
           >
-            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-[#7DD3FC] to-[#F472B6] border-2 border-white/20 flex items-center justify-center text-xs">
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D4AF37] border-2 border-white/20 flex items-center justify-center text-xs">
               B
             </div>
           </motion.div>

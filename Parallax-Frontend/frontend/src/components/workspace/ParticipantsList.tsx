@@ -74,7 +74,7 @@ export function ParticipantsList() {
 
   // Helper to generate color (simple hash)
   const getColor = (name: string) => {
-    const colors = ['#38BDF8', '#2DD4BF', '#2DD4BF', '#666', '#FBBF24', '#F472B6', '#4ADE80'];
+    const colors = ['#D4AF37', '#D4AF37', '#D4AF37', '#666', '#F59E0B', '#D4AF37', '#4ADE80'];
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
     return colors[hash % colors.length];
@@ -105,18 +105,18 @@ export function ParticipantsList() {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'OWNER':
-        return <Crown className="w-3 h-3 text-[#FBBF24]" />;
+        return <Crown className="w-3 h-3 text-[#F59E0B]" />;
       case 'COLLABORATOR':
-        return <Code className="w-3 h-3 text-[#94A3B8]" />;
+        return <Code className="w-3 h-3 text-[#A1A1AA]" />;
       case 'VIEWER':
-        return <Eye className="w-3 h-3 text-[#94A3B8]" />;
+        return <Eye className="w-3 h-3 text-[#A1A1AA]" />;
       default:
         return null;
     }
   };
 
   return (
-    <div className="border-b border-white/5 bg-[#060910] h-full flex flex-col">
+    <div className="border-b border-white/5 bg-[#09090B] h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0">
         <div className="text-xs font-semibold tracking-wide text-white/60 uppercase">COLLABORATORS</div>
@@ -185,7 +185,7 @@ export function ParticipantsList() {
 
                   {/* Status indicator - Mock for now unless linked to VoiceContext or OnlineStatusContext */}
                   <div
-                    className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-[#060910] bg-[#4ADE80]"
+                    className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-[#09090B] bg-[#4ADE80]"
                   />
                 </div>
 
@@ -272,7 +272,7 @@ export function ParticipantsList() {
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-white/40 uppercase tracking-wider ml-1">Email Address</label>
                 <input
-                  className="w-full px-4 py-3 rounded-lg bg-[#162032] text-white border border-white/5 focus:outline-none focus:ring-2 focus:ring-[#38BDF8] transition-all placeholder:text-white/20"
+                  className="w-full px-4 py-3 rounded-lg bg-[#162032] text-white border border-white/5 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all placeholder:text-white/20"
                   placeholder="name@example.com"
                   value={inviteInput}
                   onChange={e => setInviteInput(e.target.value)}
@@ -285,13 +285,13 @@ export function ParticipantsList() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     className={`relative p-3 rounded-xl border transition-all duration-200 text-left group overflow-hidden ${inviteRole === 'COLLABORATOR'
-                      ? 'bg-[#38BDF8]/10 border-[#38BDF8] ring-1 ring-[#38BDF8] shadow-[0_0_20px_rgba(56, 189, 248,0.15)]'
+                      ? 'bg-[#D4AF37]/10 border-[#D4AF37] ring-1 ring-[#D4AF37] shadow-[0_0_20px_rgba(212, 175, 55,0.15)]'
                       : 'bg-[#162032] border-white/5 hover:border-white/10 hover:bg-[#162032]'
                       }`}
                     onClick={() => setInviteRole('COLLABORATOR')}
                   >
                     <div className="flex flex-col gap-2 relative z-10">
-                      <div className={`p-2 w-fit rounded-lg transition-colors ${inviteRole === 'COLLABORATOR' ? 'bg-[#38BDF8] text-white shadow-lg shadow-[#38BDF8]/25' : 'bg-white/5 text-white/40 group-hover:text-white/60'
+                      <div className={`p-2 w-fit rounded-lg transition-colors ${inviteRole === 'COLLABORATOR' ? 'bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/25' : 'bg-white/5 text-white/40 group-hover:text-white/60'
                         }`}>
                         <Code className="w-4 h-4" />
                       </div>
@@ -304,13 +304,13 @@ export function ParticipantsList() {
 
                   <button
                     className={`relative p-3 rounded-xl border transition-all duration-200 text-left group overflow-hidden ${inviteRole === 'VIEWER'
-                      ? 'bg-[#38BDF8]/10 border-[#38BDF8] ring-1 ring-[#38BDF8] shadow-[0_0_20px_rgba(56, 189, 248,0.15)]'
+                      ? 'bg-[#D4AF37]/10 border-[#D4AF37] ring-1 ring-[#D4AF37] shadow-[0_0_20px_rgba(212, 175, 55,0.15)]'
                       : 'bg-[#162032] border-white/5 hover:border-white/10 hover:bg-[#162032]'
                       }`}
                     onClick={() => setInviteRole('VIEWER')}
                   >
                     <div className="flex flex-col gap-2 relative z-10">
-                      <div className={`p-2 w-fit rounded-lg transition-colors ${inviteRole === 'VIEWER' ? 'bg-[#38BDF8] text-white shadow-lg shadow-[#38BDF8]/25' : 'bg-white/5 text-white/40 group-hover:text-white/60'
+                      <div className={`p-2 w-fit rounded-lg transition-colors ${inviteRole === 'VIEWER' ? 'bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/25' : 'bg-white/5 text-white/40 group-hover:text-white/60'
                         }`}>
                         <Eye className="w-4 h-4" />
                       </div>
@@ -326,7 +326,7 @@ export function ParticipantsList() {
               <div className="pt-2 relative z-10">
                 <button
                   disabled={isInviting}
-                  className="w-full py-3.5 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl hover:opacity-90 transition-all duration-300 text-sm font-bold text-white shadow-lg shadow-[#38BDF8]/25 disabled:opacity-50 disabled:shadow-none"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl hover:opacity-90 transition-all duration-300 text-sm font-bold text-white shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50 disabled:shadow-none"
                   onClick={handleInvite}
                 >
                   {isInviting ? "Sending Invitation..." : "Send Invite"}

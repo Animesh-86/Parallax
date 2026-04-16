@@ -74,7 +74,7 @@ export default function Dashboard() {
 
     // Helpers
     const getColor = (str: string) => {
-        const colors = ['#38BDF8', '#94A3B8', '#94A3B8', '#7DD3FC', '#F472B6', '#1E293B'];
+        const colors = ['#D4AF37', '#F59E0B', '#A1A1AA', '#71717A', '#F8FAFC', '#18181B'];
         let hash = 0;
         for (let i = 0; i < str.length; i++) hash += str.charCodeAt(i);
         return colors[hash % colors.length];
@@ -367,7 +367,7 @@ export default function Dashboard() {
         fetchTeams();
     }, [lastUpdate]);
 
-    const createRoomButtonClass = "px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-lg text-sm hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2";
+    const createRoomButtonClass = "px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#F59E0B] rounded-lg text-sm font-bold text-black hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2";
 
     const projectsToShow = showAllProjects ? projects : projects.slice(0, 4);
 
@@ -392,23 +392,23 @@ export default function Dashboard() {
                 {/* Hero Panel */}
                 <section className="mb-12">
                     <div
-                        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0C1220] to-[#060910] border border-white/10 p-12">
+                        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0D0D0F] to-[#09090B] border border-white/10 p-12">
                         {/* Holographic background effect */}
                         <div className="absolute inset-0 opacity-20">
                             <div
-                                className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#38BDF8]/30 via-transparent to-[#94A3B8]/30" />
+                                className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#D4AF37]/30 via-transparent to-[#A1A1AA]/30" />
                             <div
-                                className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#38BDF8] rounded-full blur-[100px]" />
+                                className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#D4AF37] rounded-full blur-[100px]" />
                             <div
-                                className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#94A3B8] rounded-full blur-[100px]" />
+                                className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#A1A1AA] rounded-full blur-[100px]" />
                         </div>
 
                         <div className="relative z-10 flex items-center justify-between">
                             <div className="flex-1">
-                                <h1 className="text-5xl font-bold mb-3 text-white">
+                                <h1 className="text-5xl font-bold mb-3 text-white font-serif italic">
                                     Welcome to Parallax
                                 </h1>
-                                <p className="text-xl text-white/60 mb-8">
+                                <p className="text-xl text-white/60 mb-8 font-serif italic">
                                     Your collaborative coding workspace in the cloud
                                 </p>
 
@@ -437,30 +437,30 @@ export default function Dashboard() {
                             <div className="hidden lg:block">
                                 <div className="w-64 h-64 relative">
                                     <div
-                                        className="absolute inset-0 bg-gradient-to-br from-[#38BDF8]/20 to-[#94A3B8]/20 rounded-2xl backdrop-blur-sm border border-white/10 p-6">
+                                        className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 rounded-2xl backdrop-blur-sm border border-white/10 p-6">
                                         <div className="space-y-3 font-mono text-xs">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-[#38BDF8]" />
+                                                <div className="w-2 h-2 rounded-full bg-[#D4AF37]" />
                                                 <span className="text-white/40">const</span>
-                                                <span className="text-[#94A3B8]">project</span>
+                                                <span className="text-[#A1A1AA]">project</span>
                                             </div>
                                             <div className="flex items-center gap-2 ml-4">
                                                 <span className="text-white/40">team:</span>
-                                                <span className="text-[#94A3B8]">"collaborative"</span>
+                                                <span className="text-[#D4AF37]">"collaborative"</span>
                                             </div>
                                             <div className="flex items-center gap-2 ml-4">
                                                 <span className="text-white/40">status:</span>
-                                                <span className="text-[#4ADE80]">"active"</span>
+                                                <span className="text-[#F59E0B]">"active"</span>
                                             </div>
                                             <div className="w-full h-px bg-white/10 my-3" />
                                             <div className="flex items-center gap-2">
-                                                <Play className="w-3 h-3 text-[#94A3B8]" />
+                                                <Play className="w-3 h-3 text-[#A1A1AA]" />
                                                 <span className="text-white/40">Running...</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div
-                                        className="absolute inset-0 bg-gradient-to-br from-[#38BDF8] to-[#94A3B8] rounded-2xl blur-2xl opacity-20" />
+                                        className="absolute inset-0 bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] rounded-2xl blur-2xl opacity-20" />
                                 </div>
                             </div>
                         </div>
@@ -473,7 +473,7 @@ export default function Dashboard() {
                     <section className="lg:col-span-2">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-semibold flex items-center gap-3">
-                                <Folder className="w-6 h-6 text-[#38BDF8]" />
+                                <Folder className="w-6 h-6 text-[#D4AF37]" />
                                 Your Projects
                             </h2>
                             <div className="flex items-center gap-2">
@@ -516,7 +516,7 @@ export default function Dashboard() {
                                     <p className="text-white/60">No projects yet</p>
                                     <button
                                         onClick={() => setIsCreateModalOpen(true)}
-                                        className="mt-4 px-4 py-2 bg-[#38BDF8] hover:bg-[#38BDF8] rounded-lg text-sm font-medium transition-colors"
+                                        className="mt-4 px-4 py-2 bg-[#D4AF37] hover:bg-[#D4AF37] rounded-lg text-sm font-medium transition-colors"
                                     >
                                         Create your first project
                                     </button>
@@ -526,7 +526,7 @@ export default function Dashboard() {
                             {projectsToShow.map(project => (
                                 <div
                                     key={project.id}
-                                    className="group relative glass-panel rounded-2xl p-6 min-h-[220px] hover:border-[#38BDF8]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#38BDF8]/10 cursor-pointer"
+                                    className="group relative glass-panel rounded-2xl p-6 min-h-[220px] hover:border-[#D4AF37]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#D4AF37]/10 cursor-pointer"
                                     onClick={() => {
                                         updateRecentAccess(project.id);
                                         navigate(`/editor/${project.id}`);
@@ -535,13 +535,13 @@ export default function Dashboard() {
                                     <div className="relative z-10">
                                         <div className="flex items-start justify-between mb-4">
                                             <div>
-                                                <h3 className="text-lg font-semibold mb-1 group-hover:text-[#38BDF8] transition-colors">{project.name}</h3>
+                                                <h3 className="text-lg font-bold mb-1 group-hover:text-[#D4AF37] transition-colors font-serif italic">{project.name}</h3>
                                                 <span className="text-xs text-white/40 font-mono px-2 py-0.5 rounded bg-white/5">
                                                     {project.language}
                                                 </span>
                                             </div>
-                                            <div className="p-2 rounded-lg bg-white/5 group-hover:bg-[#38BDF8]/20 transition-colors">
-                                                <Code2 className="w-4 h-4 text-white/40 group-hover:text-[#38BDF8]" />
+                                            <div className="p-2 rounded-lg bg-white/5 group-hover:bg-[#D4AF37]/20 transition-colors">
+                                                <Code2 className="w-4 h-4 text-white/40 group-hover:text-[#D4AF37]" />
                                             </div>
                                         </div>
 
@@ -565,7 +565,7 @@ export default function Dashboard() {
                     <section>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-semibold flex items-center gap-3">
-                                <Users className="w-6 h-6 text-[#94A3B8]" />
+                                <Users className="w-6 h-6 text-[#A1A1AA]" />
                                 Friends
                             </h2>
                             <button className="p-2 hover:bg-white/5 rounded-lg transition-colors">
@@ -616,8 +616,8 @@ export default function Dashboard() {
                                                     </div>
                                                 )}
                                                 <div
-                                                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#060910] ${friend.status === 'online' ? 'bg-[#4ADE80]' : 
-                                                        friend.status === 'pending' ? 'bg-[#F59E0B]' : 'bg-[#64748B]'
+                                                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#09090B] ${friend.status === 'online' ? 'bg-[#4ADE80]' : 
+                                                        friend.status === 'pending' ? 'bg-[#F59E0B]' : 'bg-[#71717A]'
                                                         }`}
                                                 />
                                             </div>
@@ -648,7 +648,7 @@ export default function Dashboard() {
                     <section>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-semibold flex items-center gap-3">
-                                <Video className="w-6 h-6 text-[#94A3B8]" />
+                                <Video className="w-6 h-6 text-[#A1A1AA]" />
                                 Your Rooms
                             </h2>
                             <div className="flex items-center gap-2">
@@ -682,11 +682,11 @@ export default function Dashboard() {
                                 {rooms.slice(0, 2).map((room) => (
                                     <div
                                         key={room.id}
-                                        className="glass-panel rounded-2xl p-6 min-h-[220px] hover:border-[#94A3B8]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#94A3B8]/10 h-full"
+                                        className="glass-panel rounded-2xl p-6 min-h-[220px] hover:border-[#A1A1AA]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#A1A1AA]/10 h-full"
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex-1">
-                                                <h3 className="text-lg font-semibold mb-2 group-hover:text-[#94A3B8] transition-colors">{room.name}</h3>
+                                                <h3 className="text-lg font-semibold mb-2 group-hover:text-[#A1A1AA] transition-colors">{room.name}</h3>
                                                 <div className="flex items-center gap-2 text-sm text-white/50">
                                                     <Users className="w-4 h-4" />
                                                     Code: {room.roomCode}
@@ -706,7 +706,7 @@ export default function Dashboard() {
                                         <div className="flex gap-2 mt-4">
                                             <button
                                                 onClick={() => navigate(`/room/${room.roomCode}`)}
-                                                className="flex-1 px-4 py-2 bg-gradient-to-r from-[#94A3B8]/20 to-[#94A3B8]/20 border border-[#94A3B8]/30 rounded-xl text-sm font-medium hover:from-[#94A3B8]/30 hover:to-[#94A3B8]/30 transition-all"
+                                                className="flex-1 px-4 py-2 bg-gradient-to-r from-[#A1A1AA]/20 to-[#A1A1AA]/20 border border-[#A1A1AA]/30 rounded-xl text-sm font-medium hover:from-[#A1A1AA]/30 hover:to-[#A1A1AA]/30 transition-all"
                                             >
                                                 Join Room
                                             </button>
@@ -731,7 +731,7 @@ export default function Dashboard() {
                     <section>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-semibold flex items-center gap-3">
-                                <Users className="w-6 h-6 text-[#94A3B8]" />
+                                <Users className="w-6 h-6 text-[#A1A1AA]" />
                                 Teams
                             </h2>
                             <button
@@ -757,12 +757,12 @@ export default function Dashboard() {
                                 {teams.slice(0, 2).map((team) => (
                                     <div
                                         key={team.id}
-                                        className="glass-panel rounded-2xl p-6 min-h-[220px] hover:border-[#38BDF8]/30 transition-all duration-300 group cursor-pointer h-full"
+                                        className="glass-panel rounded-2xl p-6 min-h-[220px] hover:border-[#D4AF37]/30 transition-all duration-300 group cursor-pointer h-full"
                                         onClick={() => navigate(`/team/${team.id}`)}
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex-1">
-                                                <h3 className="text-lg font-semibold mb-1 group-hover:text-[#38BDF8] transition-colors">{team.name}</h3>
+                                                <h3 className="text-lg font-semibold mb-1 group-hover:text-[#D4AF37] transition-colors">{team.name}</h3>
                                                 {team.description && (
                                                     <p className="text-sm text-white/50 line-clamp-1">{team.description}</p>
                                                 )}
@@ -776,7 +776,7 @@ export default function Dashboard() {
                                             </div>
                                             <div className="flex items-center justify-between text-white/70">
                                                 <span>Pending</span>
-                                                <span className="font-medium text-[#FBBF24]">{team.pendingInvites}</span>
+                                                <span className="font-medium text-[#F59E0B]">{team.pendingInvites}</span>
                                             </div>
                                         </div>
 
@@ -785,7 +785,7 @@ export default function Dashboard() {
                                                 e.stopPropagation();
                                                 navigate(`/team/${team.id}`);
                                             }}
-                                            className="w-full px-4 py-2 bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 border border-[#38BDF8]/30 rounded-xl text-sm font-medium hover:from-[#38BDF8]/30 hover:to-[#94A3B8]/30 transition-all"
+                                            className="w-full px-4 py-2 bg-gradient-to-r from-[#D4AF37]/20 to-[#A1A1AA]/20 border border-[#D4AF37]/30 rounded-xl text-sm font-medium hover:from-[#D4AF37]/30 hover:to-[#A1A1AA]/30 transition-all"
                                         >
                                             Open Workspace
                                         </button>

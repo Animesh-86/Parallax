@@ -24,10 +24,10 @@ export function EditorTabs({
   const navigate = useNavigate();
 
   return (
-    <div className="bg-[#060910] border-b border-white/5">
+    <div className="bg-[#09090B] border-b border-white/5">
       {/* Tagline */}
       <div className="px-4 py-2 text-center border-b border-white/5">
-        <h2 className="text-lg font-semibold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+        <h2 className="text-lg font-bold bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent font-serif italic">
           {projectName}
         </h2>
       </div>
@@ -46,12 +46,12 @@ export function EditorTabs({
                 key={file}
                 onClick={() => onSelect(file)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all cursor-pointer group flex-shrink-0 ${isActive
-                    ? 'bg-[#060910] text-white border-t border-x border-white/10'
+                    ? 'bg-[#09090B] text-white border-t border-x border-white/10'
                     : 'bg-transparent text-white/60 hover:bg-white/5 hover:text-white/90'
                   }`}
               >
                 <span className="text-sm whitespace-nowrap">{fileName}</span>
-                {/* {tab.modified && <div className="w-1.5 h-1.5 rounded-full bg-[#94A3B8]" />} */}
+                {/* {tab.modified && <div className="w-1.5 h-1.5 rounded-full bg-[#A1A1AA]" />} */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -70,16 +70,16 @@ export function EditorTabs({
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
           {/* Run Code Button - VS Code style */}
           <button
-            className="group px-3 py-1.5 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] hover:from-[#7DD3FC] hover:to-[#94A3B8] rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl hover:shadow-[#38BDF8]/40"
+            className="group px-3 py-1.5 bg-gradient-to-r from-[#D4AF37] to-[#F59E0B] hover:shadow-lg hover:shadow-[#D4AF37]/30 rounded-lg transition-all duration-300 flex items-center gap-2 text-black"
             title="Run Code"
             onClick={onRun}
           >
             <Play className="w-3.5 h-3.5 fill-current" />
-            <span className="text-xs font-medium">Run</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Run</span>
           </button>
           <button
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm rounded bg-[#EF6461] hover:bg-[#9A3412] transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all"
           >
             <LogOut className="w-4 h-4" />
             Exit

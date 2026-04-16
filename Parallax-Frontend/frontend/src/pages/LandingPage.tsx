@@ -40,7 +40,9 @@ export default function LandingPage() {
     }, [navigate, location]);
 
     return (
-        <div className="relative bg-[#060910] text-white min-h-screen selection:bg-[#38BDF8]/30 selection:text-[#2DD4BF]">
+        <div className="relative bg-[#09090B] text-white min-h-screen selection:bg-[#D4AF37]/30 selection:text-[#FAFAFA]">
+            {/* Material Texture: Grain */}
+            <div className="grain-overlay" />
 
             <div className="relative z-10">
                 <Header />
@@ -48,17 +50,17 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <section className="h-screen relative w-full overflow-hidden flex flex-col items-center justify-center">
 
-                    {/* Waves Effect - Behind text */}
+                    {/* Waves Effect - Stellar Nebula */}
                     <ParticlesWaves
                         className="absolute inset-0 z-20 pointer-events-none"
-                        particleColor="#38BDF8"
-                        lineColor="rgba(56, 189, 248, 0.4)"
+                        particleColor="#F8FAFC" // Diamond White Stars
+                        lineColor="rgba(212, 175, 55, 0.15)" // Subtle Golden Nebula lines
                         amountX={120}
                         amountY={120}
                         separation={140}
-                        cameraHeight={150} // Lower camera for more dramatic "floor" perspective
+                        cameraHeight={150}
                         cameraXdeg={0}
-                        amplitude={45} // More pronounced waves
+                        amplitude={55} // Increased frequency for "galactic" feel
                         speed={0.015} // Slightly slower, more majestic
                         mouseParallaxStrength={0.8}
                     />
@@ -73,28 +75,30 @@ export default function LandingPage() {
                                 fontSize={24}
                                 fontWeight={300}
                                 letterSpacing={0.5}
-                                className="text-[#94A3B8] uppercase"
+                                className="text-zinc-500 font-serif italic"
                             />
                         </div>
 
                         {/* Center Headline: Parallax */}
                         <div className="mb-10 w-full overflow-visible">
                             <TextIlluminate
-                                text="Parallax"
-                                theme="parallax"
-                                fontSize="min(15vw, 12vw)"
+                                text="PARALLAX"
+                                theme="stellar"
+                                fontSize="min(13vw, 10vw)"
                                 textAlign="center"
+                                fontFamily="var(--font-sans)"
+                                fontWeight={700}
                                 reveal={{
                                     trigger: "onView",
                                     direction: "center",
-                                    stagger: 0.08,
-                                    duration: 1.2
+                                    stagger: 0.1,
+                                    duration: 1.5
                                 }}
                                 glow={{
                                     enabled: true,
-                                    intensity: 15
+                                    intensity: 30
                                 }}
-                                className="font-black tracking-tighter leading-none"
+                                className="tracking-[0.25em] uppercase leading-none whitespace-nowrap"
                             />
                         </div>
 
@@ -103,9 +107,9 @@ export default function LandingPage() {
                             <div className="flex flex-row items-baseline justify-center gap-3 md:gap-6 text-3xl md:text-7xl lg:text-8xl font-bold">
                                 <WordRotator 
                                     words={["Build", "Ship", "Code", "Scale"]} 
-                                    className="text-[#7DD3FC]"
+                                    className="text-[#D4AF37]"
                                 />
-                                <span className="text-[#2DD4BF] whitespace-nowrap opacity-90">
+                                <span className="text-zinc-400 whitespace-nowrap opacity-90 font-serif italic">
                                     in orbit
                                 </span>
                             </div>

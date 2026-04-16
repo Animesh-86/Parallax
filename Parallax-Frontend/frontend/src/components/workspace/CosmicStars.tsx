@@ -94,14 +94,14 @@ export function CosmicStars() {
 
         // Alternate colors for cosmic effect
         if (star.id % 3 === 0) {
-          gradient.addColorStop(0, `rgba(56, 189, 248, ${star.opacity})`);
-          gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+          gradient.addColorStop(0, `rgba(212, 175, 55, ${star.opacity})`);
+          gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
         } else if (star.id % 3 === 1) {
-          gradient.addColorStop(0, `rgba(45, 212, 191, ${star.opacity})`);
-          gradient.addColorStop(1, 'rgba(45, 212, 191, 0)');
+          gradient.addColorStop(0, `rgba(212, 175, 55, ${star.opacity})`);
+          gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
         } else {
-          gradient.addColorStop(0, `rgba(45, 212, 191, ${star.opacity})`);
-          gradient.addColorStop(1, 'rgba(45, 212, 191, 0)');
+          gradient.addColorStop(0, `rgba(212, 175, 55, ${star.opacity})`);
+          gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
         }
 
         ctx.fillStyle = gradient;

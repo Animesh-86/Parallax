@@ -113,31 +113,31 @@ export default function MyProjects() {
     };
 
     return (
-        <div className="min-h-screen bg-[#060910] text-white relative overflow-x-hidden">
+        <div className="min-h-screen bg-[#09090B] text-white relative overflow-x-hidden">
             {/* Cosmic Background */}
             <CosmicStars />
             <div className="fixed inset-0 pointer-events-none opacity-10">
-                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#38BDF8] rounded-full blur-[150px]" />
-                <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#94A3B8] rounded-full blur-[150px]" />
+                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px]" />
+                <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#A1A1AA] rounded-full blur-[150px]" />
             </div>
 
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-[#060910]/95 backdrop-blur-md border-b border-white/5">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-[#09090B]/95 backdrop-blur-md border-b border-white/5">
                 <div className="max-w-[1800px] mx-auto px-6 h-16 flex items-center justify-between">
                     <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 group">
                         <div className="relative">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#38BDF8] to-[#94A3B8] flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] flex items-center justify-center">
                                 <Code2 className="w-5 h-5" />
                             </div>
                         </div>
-                        <span className="text-xl font-semibold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+                        <span className="text-xl font-semibold bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] bg-clip-text text-transparent">
                             Parallax
                         </span>
                     </button>
 
                     <nav className="flex items-center gap-1">
                         <button onClick={() => navigate('/dashboard')} className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Home</button>
-                        <button className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 text-white border border-[#38BDF8]/30 transition-all">My Projects</button>
+                        <button className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-[#D4AF37]/20 to-[#A1A1AA]/20 text-white border border-[#D4AF37]/30 transition-all">My Projects</button>
                         <button className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Rooms</button>
                         <button className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Teams</button>
                         <button className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Friends</button>
@@ -145,7 +145,7 @@ export default function MyProjects() {
 
                     <div className="flex items-center gap-3">
                         <NotificationBell />
-                        <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#38BDF8] to-[#94A3B8] flex items-center justify-center font-semibold">AC</button>
+                        <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] flex items-center justify-center font-semibold">AC</button>
                     </div>
                 </div>
             </header>
@@ -159,7 +159,7 @@ export default function MyProjects() {
                     </div>
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="px-4 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all flex items-center gap-2"
+                        className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2"
                     >
                         <Plus className="w-5 h-5" />
                         New Project
@@ -174,7 +174,7 @@ export default function MyProjects() {
                         placeholder="Search projects..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#38BDF8]/50 text-base transition-all"
+                        className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#D4AF37]/50 text-base transition-all"
                     />
                 </div>
 
@@ -191,8 +191,8 @@ export default function MyProjects() {
                         <ProjectSkeleton />
                     </div>
                 ) : filteredProjects.length === 0 ? (
-                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#060910]/70">
-                        <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] bg-clip-text text-transparent">
+                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#09090B]/70">
+                        <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] bg-clip-text text-transparent">
                             No Projects Yet
                         </div>
                         <p className="text-white/45 text-lg max-w-md">
@@ -200,7 +200,7 @@ export default function MyProjects() {
                         </p>
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="px-6 py-2 bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] rounded-xl hover:shadow-lg hover:shadow-[#38BDF8]/30 transition-all text-white"
+                            className="px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all text-white"
                         >
                             Create Project
                         </button>
@@ -211,17 +211,17 @@ export default function MyProjects() {
                             <div
                                 key={project.id}
                                 onClick={() => navigate(`/editor/${project.id}`)}
-                                className="group glass-panel rounded-2xl p-5 hover:border-[#38BDF8]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#38BDF8]/5 cursor-pointer relative overflow-hidden"
+                                className="group glass-panel rounded-2xl p-5 hover:border-[#D4AF37]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#D4AF37]/5 cursor-pointer relative overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <ArrowUpRight className="w-5 h-5 text-white/40" />
                                 </div>
 
-                                <div className="w-10 h-10 rounded-lg bg-[#38BDF8]/10 flex items-center justify-center mb-4 group-hover:bg-[#38BDF8]/20 transition-colors">
-                                    <Code2 className="w-5 h-5 text-[#38BDF8]" />
+                                <div className="w-10 h-10 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center mb-4 group-hover:bg-[#D4AF37]/20 transition-colors">
+                                    <Code2 className="w-5 h-5 text-[#D4AF37]" />
                                 </div>
 
-                                <h3 className="text-lg font-semibold mb-1 group-hover:text-[#38BDF8] transition-colors truncatre">
+                                <h3 className="text-lg font-semibold mb-1 group-hover:text-[#D4AF37] transition-colors truncatre">
                                     {project.name}
                                 </h3>
                                 <div className="flex items-center justify-between mt-4">

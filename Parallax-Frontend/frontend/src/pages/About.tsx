@@ -3,275 +3,247 @@ import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { FluidFlowBackground } from '../components/effects/FluidFlowBackground';
-import { ArrowRight, Code2, Zap, Target, Sparkles, Rocket, Terminal, Globe, Shield } from 'lucide-react';
+import { ParticlesWaves } from '../components/effects/ParticlesWaves';
+import { TextIlluminate } from '../components/effects/TextIlluminate';
+import { Code2, Zap, Target, Sparkles, Rocket, Terminal, Globe, Shield, ArrowRight, Cpu, Layers } from 'lucide-react';
 
 export default function About() {
     return (
-        <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
+        <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden font-sans">
+            {/* Synchronized Background System */}
             <div className="fixed inset-0 z-0">
-                <FluidFlowBackground
-                    colors={["#1D4ED8", "#38BDF8", "#2DD4BF", "#A78BFA"]}
-                    mouseForce={24}
-                    cursorSize={130}
-                    resolution={0.3}
-                    autoDemo={true}
-                    autoSpeed={0.55}
-                    autoIntensity={2.4}
-                    autoResumeDelay={1200}
-                    style={{ width: "100%", height: "100%" }}
+                <ParticlesWaves
+                    particleCount={800}
+                    lineOpacity={0.15}
+                    particleOpacity={0.3}
+                    speed={0.015}
+                    lineDistance={130}
+                    color="#D4AF37"
                 />
             </div>
-            <div className="pointer-events-none fixed inset-0 z-0 bg-[#060910]/45" />
+            <div className="fixed inset-0 z-0 opacity-40">
+                <FluidFlowBackground
+                    colors={["#D4AF37", "#F59E0B", "#09090B", "#000000"]}
+                    mouseForce={20}
+                    cursorSize={120}
+                    autoDemo={true}
+                />
+            </div>
+            <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-[#09090B]/20 via-transparent to-[#09090B]" />
 
-            {/* Navigation Header */}
             <Header />
 
-            {/* Main Content */}
-            <main className="relative z-10 pb-20">
-
-                {/* Hero */}
-                <section className="relative pt-28 pb-16">
-                    <div className="max-w-6xl mx-auto px-6 lg:px-8">
+            <main className="relative z-10 pt-32 pb-24">
+                <div className="max-w-6xl mx-auto px-6">
+                    
+                    {/* Architectural Header */}
+                    <div className="mb-20 text-center">
                         <motion.div
-                            className="text-center space-y-6"
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
+                            className="space-y-4"
                         >
-                            <h1 className="text-4xl md:text-5xl xl:text-6xl font-semibold tracking-tight">
-                                The Story Behind{" "}
-                                <span className="relative inline-block">
-                                    <span className="absolute inset-0 blur-2xl bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] opacity-20" />
-                                    <span className="relative bg-gradient-to-r from-[#38BDF8] via-[#F472B6] to-[#2DD4BF] bg-clip-text text-transparent">
-                                        Parallax
-                                    </span>
-                                </span>
-                            </h1>
-                            <p className="text-lg md:text-xl text-[#94A3B8] max-w-3xl mx-auto leading-relaxed">
-                                A solo-built platform for real-time collaborative coding, live interviews, and team problem-solving — built because the existing tools weren't good enough.
+                            <div className="flex items-center justify-center gap-3 mb-6">
+                                <span className="h-px w-12 bg-gradient-to-r from-transparent to-[#D4AF37]/50" />
+                                <span className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-mono">Registry_ID: PX-MSN-01</span>
+                                <span className="h-px w-12 bg-gradient-to-l from-transparent to-[#D4AF37]/50" />
+                            </div>
+                            <TextIlluminate 
+                                text="MISSION TRAJECTORY" 
+                                className="text-4xl md:text-6xl font-bold tracking-[0.3em] uppercase"
+                            />
+                            <p className="text-[#A1A1AA] max-w-2xl mx-auto text-sm md:text-base tracking-wide leading-relaxed pt-4">
+                                Re-engineering technical collaboration from the substrate up. 
+                                A precision instrument for the modern developer.
                             </p>
                         </motion.div>
                     </div>
-                </section>
 
-                {/* Two-column: Origin + Why */}
-                <section className="relative py-12">
-                    <div className="max-w-6xl mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Mission Terminal Structure */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-20">
+                        
+                        {/* Core Narrative Terminal */}
                         <motion.div
-                            className="p-8 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm"
                             initial={{ opacity: 0, x: -20 }}
                             whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
+                            className="lg:col-span-8 p-8 rounded-[32px] bg-zinc-950/40 border border-white/5 backdrop-blur-md relative overflow-hidden group"
                         >
-                            <h2 className="text-2xl font-semibold text-[#38BDF8] mb-4">Why I Built This</h2>
-                            <div className="space-y-4 text-[#CBD5E1] leading-relaxed">
-                                <p>
-                                    I got tired of watching technical interviews happen on platforms that feel nothing like actual engineering. Whiteboard questions, isolated sandboxes, no real collaboration — it's a broken process.
-                                </p>
-                                <p>
-                                    I wanted something where two people could open a file, write code together, run it instantly, talk through problems, and actually see how someone thinks — not just what they memorized.
-                                </p>
-                                <p className="text-[#2DD4BF] font-medium">
-                                    So I started building it myself.
-                                </p>
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Cpu className="w-24 h-24 text-[#D4AF37]" strokeWidth={0.5} />
+                            </div>
+                            
+                            <div className="relative z-10 space-y-12">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 text-[10px] text-[#D4AF37] font-mono uppercase tracking-widest">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+                                        DEP_ORIGIN: THE_WHY
+                                    </div>
+                                    <h2 className="text-2xl font-bold tracking-widest uppercase">The Foundational Gap</h2>
+                                    <div className="space-y-4 text-[#CBD5E1] text-sm leading-relaxed max-w-2xl">
+                                        <p>
+                                            Technical interviews and remote pair-programming often feel like disconnected simulations. Whiteboards lack execution, and screen-sharing lacks agency. 
+                                        </p>
+                                        <p>
+                                            <span className="text-white font-medium">Parallax</span> was engineered to bridge this divide—providing a high-fidelity environment where two minds can converge on a single source of truth, with instant execution and zero friction.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-8 border-t border-white/5">
+                                    <div className="flex items-center gap-2 text-[10px] text-[#D4AF37] font-mono uppercase tracking-widest">
+                                        <div className="w-1.5 h-1.5 invisible" />
+                                        DEP_NATURE: THE_PLATFORM
+                                    </div>
+                                    <h3 className="text-xl font-bold tracking-widest uppercase">Architectural Agency</h3>
+                                    <p className="text-[#CBD5E1] text-sm leading-relaxed max-w-2xl">
+                                        Think Google Docs functionality with Dockerized isolation. It's a real-time collaborative coding system designed for technical interviews, pair programming, and architectural brainstorming.
+                                    </p>
+                                </div>
                             </div>
                         </motion.div>
 
-                        <motion.div
-                            className="p-8 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm"
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <h2 className="text-2xl font-semibold text-[#2DD4BF] mb-4">What Parallax Is</h2>
-                            <div className="space-y-4 text-[#CBD5E1] leading-relaxed">
-                                <p>
-                                    Parallax is a real-time collaborative coding platform. You create a session, invite people, and start coding together — with live cursors, shared file trees, integrated terminals, voice chat, and instant code execution.
+                        {/* Engineering Specs Sidebar */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                className="p-8 rounded-[32px] bg-gradient-to-br from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/20 backdrop-blur-sm"
+                            >
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Sparkles className="w-5 h-5 text-[#D4AF37]" />
+                                    <h4 className="text-sm font-bold tracking-[0.2em] uppercase">SOLO_CRAFTED</h4>
+                                </div>
+                                <p className="text-xs text-[#CBD5E1] leading-relaxed mb-6">
+                                    Every component of Parallax is meticulously developed by a single engineer. No templates, no agencies—just high-precision craft code designed to perform.
                                 </p>
-                                <p>
-                                    It's designed for technical interviews, pair programming, mentoring sessions, and any scenario where multiple developers need to work on the same codebase simultaneously.
-                                </p>
-                                <p className="text-[#38BDF8] font-medium">
-                                    Think Google Docs, but for code — with actual execution.
-                                </p>
-                            </div>
-                        </motion.div>
+                                <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-2">
+                                    <div className="flex justify-between text-[9px] font-mono text-[#71717A]">
+                                        <span>SYSTEM_STATUS</span>
+                                        <span className="text-[#D4AF37]">OPERATIONAL</span>
+                                    </div>
+                                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: "94%" }}
+                                            transition={{ duration: 1.5, ease: "easeOut" }}
+                                            className="h-full bg-[#D4AF37]"
+                                        />
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="p-8 rounded-[32px] bg-zinc-950/60 border border-white/10"
+                            >
+                                <h4 className="text-[10px] text-[#71717A] font-mono uppercase tracking-[0.2em] mb-4">Registry_Type</h4>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
+                                        <Layers className="w-6 h-6 text-[#D4AF37]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold tracking-wider">COLLABORATIVE</p>
+                                        <p className="text-xs text-[#A1A1AA]">SUBSYSTEM_V3.8</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
                     </div>
-                </section>
 
-                {/* Features Grid */}
-                <section className="relative py-12">
-                    <div className="max-w-6xl mx-auto px-6 lg:px-8">
-                        <motion.h2
-                            className="text-2xl md:text-3xl font-semibold text-center mb-10"
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                        >
-                            What's <span className="bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] bg-clip-text text-transparent">Under the Hood</span>
-                        </motion.h2>
+                    {/* Under the Hood - Technical Grid */}
+                    <div className="mb-24">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                            <div className="space-y-2">
+                                <p className="text-[10px] text-[#D4AF37] font-mono tracking-[0.4em] uppercase">Tech_Capabilities</p>
+                                <h2 className="text-2xl font-bold tracking-[0.2em] uppercase">Under The Hood</h2>
+                            </div>
+                            <div className="h-px bg-white/5 flex-grow mx-8 hidden md:block" />
+                        </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[
-                                { icon: Code2, title: "Live Collaborative Editor", desc: "Real-time multi-cursor editing with syntax highlighting, powered by Monaco Editor and WebSockets." },
-                                { icon: Terminal, title: "Sandboxed Execution", desc: "Isolated Docker containers run your code safely — Python, Java, JavaScript, and more, with zero setup." },
-                                { icon: Globe, title: "Voice & Video Chat", desc: "Built-in WebRTC voice and video so you can discuss code while writing it. No switching tabs." },
-                                { icon: Zap, title: "Instant Sessions", desc: "Create a room, share a link, start coding. No accounts required for guests. Zero friction onboarding." },
-                                { icon: Shield, title: "Secure by Default", desc: "OAuth 2.0 auth, encrypted connections, sandboxed execution environments. Security isn't an afterthought." },
-                                { icon: Rocket, title: "Built to Scale", desc: "Spring Boot backend, React frontend, PostgreSQL, Docker orchestration — production-grade architecture from day one." },
+                                { icon: Code2, title: "Registry: Editor", desc: "Monaco-driven collaborative environment with syntax-sync and low-latency cursor broadcasting." },
+                                { icon: Terminal, title: "Runner: Docker", desc: "Isolated per-language environments providing instantaneous code execution and output streaming." },
+                                { icon: Globe, title: "Comms: WebRTC", desc: "High-bandwidth voice and video synchronization for seamless technical discussion during sessions." },
+                                { icon: Zap, title: "Flow: Zero-Init", desc: "Instant-on collaboration rooms that require no complex environment setup or account hurdles." },
+                                { icon: Shield, title: "Protocol: Secure", desc: "Standardized OAuth 2.0 integration and encrypted session state management by design." },
+                                { icon: Rocket, title: "Arch: Spring-Go", desc: "A robust backend infrastructure built on Spring Boot for maximum concurrency and scale." },
                             ].map((item, index) => (
                                 <motion.div
                                     key={index}
-                                    className="group p-6 rounded-2xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.07] hover:border-[#38BDF8]/20 transition-all duration-300"
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.08, duration: 0.5 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className="p-6 rounded-[24px] bg-zinc-950/20 border border-white/5 hover:border-[#D4AF37]/30 hover:bg-zinc-950/40 transition-all duration-300 group"
                                 >
-                                    <div className="w-10 h-10 rounded-xl bg-[#38BDF8]/10 border border-[#38BDF8]/20 flex items-center justify-center mb-4 group-hover:bg-[#38BDF8]/20 transition-colors">
-                                        <item.icon className="w-5 h-5 text-[#2DD4BF]" />
+                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-[#D4AF37]/10 transition-colors">
+                                        <item.icon className="w-5 h-5 text-[#A1A1AA] group-hover:text-[#D4AF37] transition-colors" />
                                     </div>
-                                    <h3 className="text-lg font-medium text-white mb-2">{item.title}</h3>
-                                    <p className="text-sm text-[#94A3B8] leading-relaxed">{item.desc}</p>
+                                    <h3 className="text-sm font-bold tracking-widest uppercase mb-2">{item.title}</h3>
+                                    <p className="text-xs text-[#A1A1AA] leading-relaxed">{item.desc}</p>
                                 </motion.div>
                             ))}
                         </div>
                     </div>
-                </section>
 
-                {/* Tech Stack + Solo Dev */}
-                <section className="relative py-12">
-                    <div className="max-w-6xl mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-5 gap-6">
-                        {/* Solo Dev Note */}
-                        <motion.div
-                            className="lg:col-span-2 p-8 rounded-2xl bg-gradient-to-br from-[#38BDF8]/10 to-[#2DD4BF]/5 border border-[#38BDF8]/20 backdrop-blur-sm"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <div className="flex items-center gap-3 mb-4">
-                                <Sparkles className="w-6 h-6 text-[#38BDF8]" />
-                                <h2 className="text-2xl font-semibold text-white">Solo Built</h2>
-                            </div>
-                            <div className="space-y-4 text-[#CBD5E1] leading-relaxed">
-                                <p>
-                                    Every line of code in Parallax — frontend, backend, infrastructure, design — is written by one person. No team, no agency, no templates.
-                                </p>
-                                <p>
-                                    I'm building this because I genuinely believe collaborative coding platforms can be better. This isn't a startup pitch — it's a craft project that happens to solve a real problem.
-                                </p>
-                                <p className="text-[#2DD4BF] font-medium text-sm">
-                                    Currently in active development. Shipping fast, breaking nothing.
+                    {/* Tech Stack Registry */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        className="p-12 rounded-[40px] bg-zinc-950 border border-white/5 relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 relative z-10">
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold tracking-[0.2em] uppercase">Architecture</h3>
+                                <p className="text-sm text-[#A1A1AA] leading-relaxed">
+                                    The Parallax engine is built on a distributed substrate designed for real-time state synchronization across global participants.
                                 </p>
                             </div>
-                        </motion.div>
-
-                        {/* Tech Stack */}
-                        <motion.div
-                            className="lg:col-span-3 p-8 rounded-2xl bg-white/[0.04] border border-white/10"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.1 }}
-                        >
-                            <h2 className="text-2xl font-semibold text-[#2DD4BF] mb-6">Tech Stack</h2>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 {[
-                                    { label: "Frontend", tech: "React, TypeScript, Tailwind CSS, Vite, Framer Motion" },
-                                    { label: "Backend", tech: "Java 17, Spring Boot 4, Hibernate, WebSockets" },
-                                    { label: "Database", tech: "PostgreSQL on Render" },
-                                    { label: "Auth", tech: "Google & GitHub OAuth 2.0, JWT" },
-                                    { label: "Execution", tech: "Dockerized sandboxed runners per language" },
-                                    { label: "Real-time", tech: "WebSockets, WebRTC, CRDT sync" },
-                                ].map((item, index) => (
-                                    <div key={index} className="p-3 rounded-lg bg-white/[0.04] border border-white/5">
-                                        <p className="text-xs text-[#38BDF8] font-medium uppercase tracking-wider mb-1">{item.label}</p>
-                                        <p className="text-sm text-[#CBD5E1]">{item.tech}</p>
+                                    { label: "FRONTEND", val: "React/TS/Vite" },
+                                    { label: "BACKEND", val: "Java/Spring 17" },
+                                    { label: "DATABASE", val: "PostgreSQL" },
+                                    { label: "REALTIME", val: "WebSocket/RTC" },
+                                    { label: "RUNNER", val: "Docker Engine" },
+                                    { label: "ANIMATION", val: "Motion/React" },
+                                ].map((stack, idx) => (
+                                    <div key={idx} className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                                        <p className="text-[8px] font-mono text-[#D4AF37] tracking-[0.3em] mb-1">{stack.label}</p>
+                                        <p className="text-[11px] font-bold tracking-wider">{stack.val}</p>
                                     </div>
                                 ))}
                             </div>
-                        </motion.div>
-                    </div>
-                </section>
+                        </div>
+                    </motion.div>
 
-                {/* Who It's For */}
-                <section className="relative py-12">
-                    <div className="max-w-6xl mx-auto px-6 lg:px-8">
-                        <motion.div
-                            className="p-8 rounded-2xl bg-white/[0.04] border border-white/10"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <h2 className="text-2xl font-semibold bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] bg-clip-text text-transparent mb-6">
-                                Who It's For
-                            </h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {[
-                                    { icon: Target, label: "Interviewers", desc: "Run live coding interviews that actually reflect real engineering work." },
-                                    { icon: Code2, label: "Candidates", desc: "Show how you think and collaborate, not just what you've memorized." },
-                                    { icon: Sparkles, label: "Mentors", desc: "Teach and review code in real-time with zero setup overhead." },
-                                    { icon: Zap, label: "Dev Teams", desc: "Pair program, debug together, or brainstorm with shared execution." },
-                                ].map((item, index) => (
-                                    <motion.div
-                                        key={index}
-                                        className="p-5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#2DD4BF]/20 transition-all"
-                                        initial={{ opacity: 0, y: 15 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ delay: index * 0.08, duration: 0.4 }}
-                                    >
-                                        <item.icon className="w-5 h-5 text-[#38BDF8] mb-3" />
-                                        <h3 className="text-base font-medium text-white mb-1">{item.label}</h3>
-                                        <p className="text-sm text-[#94A3B8] leading-relaxed">{item.desc}</p>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </motion.div>
+                    {/* CTA Section */}
+                    <div className="mt-24 pt-12 border-t border-white/5 text-center">
+                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                            <Link
+                                to="/signup"
+                                className="px-10 py-4 bg-[#D4AF37] text-black font-bold tracking-[0.2em] uppercase text-xs hover:bg-[#F59E0B] transition-colors flex items-center gap-3 group"
+                            >
+                                Get Started
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                            <Link
+                                to="/"
+                                className="px-10 py-4 border border-white/10 text-white font-bold tracking-[0.2em] uppercase text-xs hover:bg-white/5 transition-colors"
+                            >
+                                Back to Home
+                            </Link>
+                         </div>
                     </div>
-                </section>
 
-                {/* CTA */}
-                <section className="relative pt-8 pb-24">
-                    <div className="max-w-6xl mx-auto px-6 lg:px-8">
-                        <motion.div
-                            className="p-10 md:p-14 rounded-2xl bg-gradient-to-br from-[#38BDF8]/15 via-[#060910] to-[#2DD4BF]/15 border border-[#38BDF8]/20 text-center space-y-6"
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8 }}
-                        >
-                            <h2 className="text-3xl md:text-4xl font-semibold bg-gradient-to-r from-white to-[#2DD4BF] bg-clip-text text-transparent">
-                                Try It Out
-                            </h2>
-                            <p className="text-lg text-[#94A3B8] max-w-2xl mx-auto leading-relaxed">
-                                Create a session, invite someone, and start coding together. No credit card, no setup, no friction.
-                            </p>
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-                                <Link
-                                    to="/signup"
-                                    className="group px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] text-white font-medium text-lg hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-[#38BDF8]/20"
-                                >
-                                    Get Started Free
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </Link>
-                                <Link
-                                    to="/"
-                                    className="px-8 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-medium text-lg hover:bg-white/15 transition-all"
-                                >
-                                    Back to Home
-                                </Link>
-                            </div>
-                        </motion.div>
-                    </div>
-                </section>
+                </div>
             </main>
 
-            {/* Footer */}
             <Footer />
         </div>
     );

@@ -123,10 +123,10 @@ export default function Profile() {
   }, [profile, isMe]);
 
   const stats = [
-    { label: 'Projects', value: projectCount, icon: Code2, color: '#38BDF8' },
-    { label: 'Rooms Joined', value: profile?.stats?.roomsJoined || 0, icon: Users, color: '#94A3B8' },
-    { label: 'Contributions', value: profile?.stats?.contributions || 0, icon: GitBranch, color: '#94A3B8' },
-    { label: 'Badges', value: 0, icon: Award, color: '#FBBF24' },
+    { label: 'Projects', value: projectCount, icon: Code2, color: '#D4AF37' },
+    { label: 'Rooms Joined', value: profile?.stats?.roomsJoined || 0, icon: Users, color: '#A1A1AA' },
+    { label: 'Contributions', value: profile?.stats?.contributions || 0, icon: GitBranch, color: '#A1A1AA' },
+    { label: 'Badges', value: 0, icon: Award, color: '#F59E0B' },
     { label: 'Streak', value: 0, icon: Flame, color: '#EF6461' },
   ];
 
@@ -136,7 +136,7 @@ export default function Profile() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-[#060910] flex flex-col items-center justify-center text-white">
+      <div className="min-h-screen bg-[#09090B] flex flex-col items-center justify-center text-white">
         <h1 className="text-2xl font-bold mb-2">Oops!</h1>
         <p className="text-white/60 mb-6">{error || 'Something went wrong'}</p>
         <button onClick={() => navigate('/dashboard')} className="px-6 py-2 bg-white/10 rounded-xl hover:bg-white/20">Go Home</button>
@@ -145,20 +145,20 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden">
       {/* Cosmic background */}
       <CosmicStars />
       <div className="fixed inset-0 pointer-events-none opacity-10">
-        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#38BDF8] rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#94A3B8] rounded-full blur-[150px]" />
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#A1A1AA] rounded-full blur-[150px]" />
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#060910]/95 backdrop-blur-md border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#09090B]/95 backdrop-blur-md border-b border-white/5">
         <div className="px-6 h-16 flex items-center justify-between">
           <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="relative">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#38BDF8] to-[#94A3B8] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] flex items-center justify-center">
                 <Code2 className="w-5 h-5" />
               </div>
             </div>
@@ -184,7 +184,7 @@ export default function Profile() {
       <div className="flex pt-16 min-h-screen">
         {/* Sidebar - ONLY VISIBLE FOR ME (Private View) */}
         {isMe && (
-          <aside className="w-64 bg-[#060910] border-r border-white/5 p-4 fixed left-0 top-16 bottom-0 overflow-y-auto z-40">
+          <aside className="w-64 bg-[#09090B] border-r border-white/5 p-4 fixed left-0 top-16 bottom-0 overflow-y-auto z-40">
             <div className="space-y-2">
               {visibleItems.map((item) => {
                 const Icon = item.icon;
@@ -193,7 +193,7 @@ export default function Profile() {
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === item.id
-                      ? 'bg-gradient-to-r from-[#38BDF8]/20 to-[#94A3B8]/20 border border-[#38BDF8]/50 text-white'
+                      ? 'bg-gradient-to-r from-[#D4AF37]/20 to-[#A1A1AA]/20 border border-[#D4AF37]/50 text-white'
                       : 'text-white/60 hover:bg-white/5 hover:text-white'
                       }`}
                   >
@@ -223,7 +223,7 @@ export default function Profile() {
           {/* PROFILE VIEW */}
           {(activeTab === 'profile' || !isMe) && (
             <div className="space-y-8">
-              <div className="bg-[#060910] border border-white/5 rounded-3xl overflow-hidden">
+              <div className="bg-[#09090B] border border-white/5 rounded-3xl overflow-hidden">
                 <ProfileBanner
                   username={profile.username}
                   stats={{
@@ -238,7 +238,7 @@ export default function Profile() {
                   <div className="flex items-start gap-6 -mt-16 mb-6">
                     {/* Avatar (No Camera Trigger) */}
                     <div className="relative group">
-                      <div className="w-32 h-32 rounded-2xl flex items-center justify-center text-3xl font-bold border-4 border-[#060910] relative z-10 bg-[#0C1220] overflow-hidden text-[#38BDF8]">
+                      <div className="w-32 h-32 rounded-2xl flex items-center justify-center text-3xl font-bold border-4 border-[#09090B] relative z-10 bg-[#0D0D0F] overflow-hidden text-[#D4AF37]">
                         {profile.avatarUrl ? (
                           <img src={profile.avatarUrl} alt={profile.username} className="w-full h-full object-cover" />
                         ) : (
@@ -336,12 +336,12 @@ export default function Profile() {
               </div>
 
               {/* Activity Timeline */}
-              <div className="bg-[#060910] border border-white/5 rounded-3xl p-8">
+              <div className="bg-[#09090B] border border-white/5 rounded-3xl p-8">
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                  <TrendingUp className="w-6 h-6 text-[#38BDF8]" />
+                  <TrendingUp className="w-6 h-6 text-[#D4AF37]" />
                   Recent Activity
                 </h2>
-                <div className="bg-[#060910] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
+                <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
                   <div className="text-white/40 font-medium text-lg">Coming Soon</div>
                   <div className="text-sm text-white/20">We are tracking your coding journey across the cosmos</div>
                 </div>
@@ -352,24 +352,24 @@ export default function Profile() {
           {/* OTHER TABS - Only for ME */}
           {isMe && activeTab === 'badges' && (
             <div className="space-y-8">
-              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Award className="w-8 h-8 text-[#38BDF8]" />Achievement Badges</h1></div>
-              <div className="bg-[#060910] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
+              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Award className="w-8 h-8 text-[#D4AF37]" />Achievement Badges</h1></div>
+              <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
                 <div className="text-white/40 font-medium text-lg">Coming Soon</div>
               </div>
             </div>
           )}
           {isMe && activeTab === 'streaks' && (
             <div className="space-y-8">
-              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Flame className="w-8 h-8 text-[#FBBF24]" />Coding Streaks</h1></div>
-              <div className="bg-[#060910] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
+              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Flame className="w-8 h-8 text-[#F59E0B]" />Coding Streaks</h1></div>
+              <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
                 <div className="text-white/40 font-medium text-lg">Coming Soon</div>
               </div>
             </div>
           )}
           {isMe && activeTab === 'contributions' && (
             <div className="space-y-8">
-              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><GitBranch className="w-8 h-8 text-[#38BDF8]" />Contribution Graph</h1></div>
-              <div className="bg-[#060910] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
+              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><GitBranch className="w-8 h-8 text-[#D4AF37]" />Contribution Graph</h1></div>
+              <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
                 <div className="text-white/40 font-medium text-lg">Coming Soon</div>
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function Profile() {
           {/* SETTINGS TAB - Only for ME */}
           {isMe && activeTab === 'settings' && (
             <div className="space-y-8">
-              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Settings className="w-8 h-8 text-[#38BDF8]" />Settings</h1></div>
+              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Settings className="w-8 h-8 text-[#D4AF37]" />Settings</h1></div>
 
               {/* Inline Profile Settings Form */}
               {profile && (
@@ -390,9 +390,9 @@ export default function Profile() {
 
               {/* Account Preferences Card (Still as a card or can be moved later) */}
               <div className="grid grid-cols-1 gap-6 mt-8">
-                <div className="bg-[#060910] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all opacity-60">
+                <div className="bg-[#09090B] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all opacity-60">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-[#94A3B8]/10 rounded-xl text-[#94A3B8]">
+                    <div className="p-3 bg-[#A1A1AA]/10 rounded-xl text-[#A1A1AA]">
                       <Palette className="w-6 h-6" />
                     </div>
                   </div>

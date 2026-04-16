@@ -24,7 +24,7 @@ export function Terminal({ isOpen, onToggle, output, exitCode }: TerminalProps) 
     return (
       <button
         onClick={onToggle}
-        className="w-full h-8 bg-[#060910] border-t border-white/5 hover:bg-[#0C1220] transition-colors flex items-center justify-center gap-2 text-sm text-white/60 hover:text-white/90"
+        className="w-full h-8 bg-[#09090B] border-t border-white/5 hover:bg-[#0D0D0F] transition-colors flex items-center justify-center gap-2 text-sm text-white/60 hover:text-white/90"
       >
         <TerminalIcon className="w-4 h-4" />
         Show Terminal
@@ -35,12 +35,12 @@ export function Terminal({ isOpen, onToggle, output, exitCode }: TerminalProps) 
 
   return (
     <div
-      className="border-t border-white/5 bg-[#060910] flex flex-col relative"
+      className="border-t border-white/5 bg-[#09090B] flex flex-col relative"
       style={{ height: `${height}px` }}
     >
       {/* Drag handle */}
       <div
-        className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-[#38BDF8]/50 transition-colors group"
+        className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-[#D4AF37]/50 transition-colors group"
         onMouseDown={(e) => {
           const startY = e.clientY;
           const startHeight = height;
@@ -59,24 +59,24 @@ export function Terminal({ isOpen, onToggle, output, exitCode }: TerminalProps) 
           document.addEventListener('mouseup', handleMouseUp);
         }}
       >
-        <div className="w-full h-0.5 bg-[#38BDF8]/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="w-full h-0.5 bg-[#D4AF37]/30 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
       {/* Tab bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#060910] border-b border-white/5">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#09090B] border-b border-white/5">
         <div className="flex items-center gap-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-2 ${activeTab === tab.id
-                  ? 'bg-[#060910] text-white'
+                  ? 'bg-[#09090B] text-white'
                   : 'text-white/60 hover:text-white/90 hover:bg-white/5'
                 }`}
             >
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-[#38BDF8]/20 text-[#38BDF8] text-xs">
+                <span className="px-1.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-xs">
                   {tab.count}
                 </span>
               )}

@@ -146,15 +146,15 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
     };
 
     return (
-        <div className="bg-[#060910] border border-white/5 rounded-2xl w-full overflow-hidden flex flex-col">
+        <div className="bg-[#09090B] border border-white/5 rounded-2xl w-full overflow-hidden flex flex-col">
             {/* Tabs Header */}
-            <div className="flex items-center px-6 border-b border-white/5 bg-[#0C1220]">
+            <div className="flex items-center px-6 border-b border-white/5 bg-[#0D0D0F]">
                 <button
                     onClick={() => setActiveTab('public')}
                     className={cn(
                         "px-4 py-3 text-sm font-medium border-b-2 transition-colors",
                         activeTab === 'public'
-                            ? "border-[#38BDF8] text-white"
+                            ? "border-[#D4AF37] text-white"
                             : "border-transparent text-white/50 hover:text-white/80"
                     )}
                 >
@@ -165,7 +165,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                     className={cn(
                         "px-4 py-3 text-sm font-medium border-b-2 transition-colors",
                         activeTab === 'account'
-                            ? "border-[#38BDF8] text-white"
+                            ? "border-[#D4AF37] text-white"
                             : "border-transparent text-white/50 hover:text-white/80"
                     )}
                 >
@@ -181,7 +181,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                         {/* Avatar Section */}
                         <div className="flex items-center gap-6">
                             <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                                <div className="w-20 h-20 rounded-2xl bg-[#38BDF8]/20 border border-[#38BDF8]/50 flex items-center justify-center text-2xl font-bold text-[#38BDF8] overflow-hidden">
+                                <div className="w-20 h-20 rounded-2xl bg-[#D4AF37]/20 border border-[#D4AF37]/50 flex items-center justify-center text-2xl font-bold text-[#D4AF37] overflow-hidden">
                                     {formData.avatarUrl ? (
                                         <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-2xl" />
                                     ) : (
@@ -203,7 +203,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                             <div className="space-y-2">
                                 <button
                                     onClick={handleAvatarClick}
-                                    className="text-sm font-medium text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+                                    className="text-sm font-medium text-[#D4AF37] hover:text-[#F59E0B] transition-colors"
                                 >
                                     Change Avatar
                                 </button>
@@ -218,7 +218,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                             {/* Display Name */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-                                    <User className="w-4 h-4 text-[#94A3B8]" />
+                                    <User className="w-4 h-4 text-[#A1A1AA]" />
                                     Display Name
                                 </label>
                                 <input
@@ -226,7 +226,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                                     value={formData.displayName}
                                     onChange={e => setFormData({ ...formData, displayName: e.target.value })}
                                     maxLength={100}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 transition-colors"
                                     placeholder="E.g. Alex Chen"
                                 />
                             </div>
@@ -234,7 +234,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                             {/* Bio */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-[#94A3B8]" />
+                                    <FileText className="w-4 h-4 text-[#A1A1AA]" />
                                     Bio
                                 </label>
                                 <textarea
@@ -242,7 +242,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                                     onChange={e => setFormData({ ...formData, bio: e.target.value })}
                                     maxLength={160}
                                     rows={3}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-[#38BDF8]/50 transition-colors resize-none"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 transition-colors resize-none"
                                     placeholder="Tell us about yourself..."
                                 />
                                 <div className="text-right text-xs text-white/40">
@@ -253,7 +253,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                             {/* Location */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-[#94A3B8]" />
+                                    <MapPin className="w-4 h-4 text-[#A1A1AA]" />
                                     Location
                                 </label>
                                 <input
@@ -261,7 +261,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                                     value={formData.location}
                                     onChange={e => setFormData({ ...formData, location: e.target.value })}
                                     maxLength={100}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/50 transition-colors"
                                     placeholder="E.g. San Francisco, CA"
                                 />
                             </div>
@@ -269,9 +269,9 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                     </div>
                 ) : (
                     <div className="space-y-6 max-w-2xl">
-                        <div className="p-4 bg-[#FBBF24]/10 border border-[#FBBF24]/20 rounded-xl flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-[#FBBF24] shrink-0 mt-0.5" />
-                            <div className="text-sm text-[#FBBF24]/90">
+                        <div className="p-4 bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-xl flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-[#F59E0B] shrink-0 mt-0.5" />
+                            <div className="text-sm text-[#F59E0B]/90">
                                 <p className="font-medium mb-1">Changing your username?</p>
                                 <p className="opacity-80">This will change your public profile URL. Previous links to your profile may break.</p>
                             </div>
@@ -280,7 +280,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                         {/* Username */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-                                <AtSign className="w-4 h-4 text-[#38BDF8]" />
+                                <AtSign className="w-4 h-4 text-[#D4AF37]" />
                                 Username
                             </label>
                             <div className="relative">
@@ -290,7 +290,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
                                     onChange={e => setUsername(e.target.value)}
                                     className={cn(
                                         "w-full bg-black/40 border rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none transition-colors",
-                                        usernameError ? "border-[#EF6461] focus:border-[#EF6461]" : "border-white/10 focus:border-[#38BDF8]/50"
+                                        usernameError ? "border-[#EF6461] focus:border-[#EF6461]" : "border-white/10 focus:border-[#D4AF37]/50"
                                     )}
                                     placeholder="new_username"
                                 />
@@ -329,11 +329,11 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
             </div>
 
             {/* Footer / Actions */}
-            <div className="p-6 border-t border-white/5 bg-[#0C1220] flex justify-end gap-3 transition-all">
+            <div className="p-6 border-t border-white/5 bg-[#0D0D0F] flex justify-end gap-3 transition-all">
                 <button
                     onClick={activeTab === 'public' ? handleSavePublic : handleSaveUsername}
                     disabled={isLoading || (activeTab === 'public' && !isDirty)}
-                    className="px-6 py-2 text-sm font-medium bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] hover:shadow-lg hover:shadow-[#38BDF8]/25 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-6 py-2 text-sm font-medium bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] hover:shadow-lg hover:shadow-[#D4AF37]/25 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     {isLoading ? (
                         <>

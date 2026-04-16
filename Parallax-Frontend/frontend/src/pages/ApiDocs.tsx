@@ -16,7 +16,7 @@ const endpoints = [
         method: "GET",
         path: "/api/projects",
         desc: "List all projects for the authenticated user.",
-        methodColor: "text-[#38BDF8] bg-[#38BDF8]/10",
+        methodColor: "text-[#D4AF37] bg-[#D4AF37]/10",
     },
     {
         method: "POST",
@@ -28,7 +28,7 @@ const endpoints = [
         method: "GET",
         path: "/api/projects/:id/files",
         desc: "Fetch the file tree for a specific project.",
-        methodColor: "text-[#38BDF8] bg-[#38BDF8]/10",
+        methodColor: "text-[#D4AF37] bg-[#D4AF37]/10",
     },
     {
         method: "POST",
@@ -40,7 +40,7 @@ const endpoints = [
         method: "WS",
         path: "/ws/collaborate/:roomId",
         desc: "WebSocket endpoint for real-time collaboration in a room.",
-        methodColor: "text-[#F472B6] bg-[#F472B6]/10",
+        methodColor: "text-[#D4AF37] bg-[#D4AF37]/10",
     },
     {
         method: "POST",
@@ -52,13 +52,13 @@ const endpoints = [
         method: "GET",
         path: "/api/rooms/:id",
         desc: "Get room details including participants and active status.",
-        methodColor: "text-[#38BDF8] bg-[#38BDF8]/10",
+        methodColor: "text-[#D4AF37] bg-[#D4AF37]/10",
     },
     {
         method: "PUT",
         path: "/api/user/profile",
         desc: "Update user profile information (display name, avatar, bio).",
-        methodColor: "text-[#FBBF24] bg-[#FBBF24]/10",
+        methodColor: "text-[#F59E0B] bg-[#F59E0B]/10",
     },
     {
         method: "DELETE",
@@ -70,7 +70,7 @@ const endpoints = [
 
 export default function ApiDocs() {
     return (
-        <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
+        <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden">
             <CosmicStars />
             <Header />
 
@@ -82,17 +82,17 @@ export default function ApiDocs() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 text-[#2DD4BF] text-sm mb-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] text-sm mb-4">
                             <Code2 className="w-4 h-4" />
                             API Reference
                         </div>
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
                             API{" "}
-                            <span className="bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] bg-clip-text text-transparent">
                                 Reference
                             </span>
                         </h1>
-                        <p className="text-lg text-[#94A3B8] max-w-2xl mx-auto">
+                        <p className="text-lg text-[#A1A1AA] max-w-2xl mx-auto">
                             Core endpoints for the Parallax platform. All requests require JWT authentication unless noted otherwise.
                         </p>
                     </motion.div>
@@ -104,8 +104,8 @@ export default function ApiDocs() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                     >
-                        <span className="text-[#94A3B8]">Base URL: </span>
-                        <span className="text-[#38BDF8]">https://api.parallax.dev/v1</span>
+                        <span className="text-[#A1A1AA]">Base URL: </span>
+                        <span className="text-[#D4AF37]">https://api.parallax.dev/v1</span>
                     </motion.div>
 
                     {/* Endpoints */}
@@ -122,15 +122,15 @@ export default function ApiDocs() {
                                 <span className={`inline-flex items-center justify-center w-14 px-2 py-0.5 rounded text-xs font-bold ${ep.methodColor} shrink-0`}>
                                     {ep.method}
                                 </span>
-                                <code className="text-sm text-[#2DD4BF] font-mono shrink-0">{ep.path}</code>
-                                <span className="text-sm text-[#94A3B8] sm:ml-auto">{ep.desc}</span>
+                                <code className="text-sm text-[#D4AF37] font-mono shrink-0">{ep.path}</code>
+                                <span className="text-sm text-[#A1A1AA] sm:ml-auto">{ep.desc}</span>
                             </motion.div>
                         ))}
                     </div>
 
                     {/* Note */}
                     <motion.div
-                        className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-[#38BDF8]/10 to-[#2DD4BF]/10 border border-[#38BDF8]/20 text-center space-y-3"
+                        className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-[#D4AF37]/10 to-[#D4AF37]/10 border border-[#D4AF37]/20 text-center space-y-3"
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
@@ -138,7 +138,7 @@ export default function ApiDocs() {
                         <p className="text-[#CBD5E1]">
                             Full API documentation with request/response schemas is in progress.
                         </p>
-                        <Link to="/docs" className="inline-flex items-center gap-1.5 text-[#38BDF8] text-sm hover:underline">
+                        <Link to="/docs" className="inline-flex items-center gap-1.5 text-[#D4AF37] text-sm hover:underline">
                             View general docs <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                     </motion.div>

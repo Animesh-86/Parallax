@@ -2,7 +2,9 @@ import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
-import { Mail, Github, Twitter, MessageSquare, Send } from "lucide-react";
+import { ParticlesWaves } from "../components/effects/ParticlesWaves";
+import { TextIlluminate } from "../components/effects/TextIlluminate";
+import { Mail, Github, Twitter, MessageSquare, Send, Radio, Link as LinkIcon } from "lucide-react";
 import { useState } from "react";
 
 export default function Contact() {
@@ -13,127 +15,178 @@ export default function Contact() {
     };
 
     return (
-        <div className="min-h-screen bg-[#060910] text-white relative overflow-hidden">
+        <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden font-sans">
+            {/* Synchronized Background System */}
             <div className="fixed inset-0 z-0">
-                <FluidFlowBackground
-                    colors={["#1D4ED8", "#38BDF8", "#2DD4BF", "#A78BFA"]}
-                    mouseForce={24}
-                    cursorSize={130}
-                    resolution={0.3}
-                    autoDemo={true}
-                    autoSpeed={0.55}
-                    autoIntensity={2.4}
-                    autoResumeDelay={1200}
-                    style={{ width: "100%", height: "100%" }}
+                <ParticlesWaves
+                    particleCount={800}
+                    lineOpacity={0.15}
+                    particleOpacity={0.3}
+                    speed={0.015}
+                    lineDistance={130}
+                    color="#D4AF37"
                 />
             </div>
-            <div className="pointer-events-none fixed inset-0 z-0 bg-[#060910]/45" />
+            <div className="fixed inset-0 z-0 opacity-40">
+                <FluidFlowBackground
+                    colors={["#D4AF37", "#F59E0B", "#09090B", "#000000"]}
+                    mouseForce={20}
+                    cursorSize={120}
+                    autoDemo={true}
+                />
+            </div>
+            <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-[#09090B]/20 via-transparent to-[#09090B]" />
+
             <Header />
 
-            <main className="relative z-10 pt-28 pb-20">
-                <div className="max-w-5xl mx-auto px-6 lg:px-8">
-                    <motion.div
-                        className="text-center mb-16 space-y-4"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
-                            Get in{" "}
-                            <span className="bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] bg-clip-text text-transparent">
-                                Touch
-                            </span>
-                        </h1>
-                        <p className="text-lg text-[#94A3B8] max-w-2xl mx-auto">
-                            Questions, feedback, bug reports, or just want to say hi — I'm all ears.
-                        </p>
-                    </motion.div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                        {/* Contact Form */}
+            <main className="relative z-10 pt-32 pb-24">
+                <div className="max-w-5xl mx-auto px-6">
+                    
+                    {/* Architectural Header */}
+                    <div className="text-center mb-20">
                         <motion.div
-                            className="lg:col-span-3 p-8 rounded-2xl bg-white/[0.04] border border-white/10"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            className="space-y-4"
+                        >
+                            <div className="flex items-center justify-center gap-3 mb-6">
+                                <span className="h-px w-10 bg-[#D4AF37]/30" />
+                                <span className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-mono">NODE_ACCESS: PX-COMMS</span>
+                                <span className="h-px w-10 bg-[#D4AF37]/30" />
+                            </div>
+                            <TextIlluminate 
+                                text="INQUIRY TERMINAL" 
+                                className="text-4xl md:text-5xl font-bold tracking-[0.3em] uppercase"
+                            />
+                            <p className="text-[#A1A1AA] max-w-xl mx-auto text-sm tracking-wide pt-2">
+                                Establish a direct uplink. Our structural communication channels are open for collaboration and technical feedback.
+                            </p>
+                        </motion.div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+                        {/* Primary Communication Console */}
+                        <motion.div
+                            className="lg:col-span-4 rounded-[40px] bg-zinc-950/40 border border-white/5 backdrop-blur-xl relative overflow-hidden group"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6 }}
                         >
-                            <h2 className="text-xl font-medium text-white mb-6">Send a Message</h2>
-                            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                                <div>
-                                    <label htmlFor="name" className="block text-sm text-[#94A3B8] mb-1">Name</label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white text-sm placeholder:text-[#64748B] focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
-                                        placeholder="Your name"
-                                    />
+                            {/* Panel Header */}
+                            <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                                <div className="flex items-center gap-3">
+                                    <Radio className="w-4 h-4 text-[#D4AF37] animate-pulse" />
+                                    <span className="text-[10px] font-mono tracking-widest text-[#71717A] uppercase">ESTABLISH_UPLINK</span>
                                 </div>
-                                <div>
-                                    <label htmlFor="email" className="block text-sm text-[#94A3B8] mb-1">Email</label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white text-sm placeholder:text-[#64748B] focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
-                                        placeholder="you@example.com"
-                                    />
+                                <div className="flex gap-1.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]/40" />
                                 </div>
-                                <div>
-                                    <label htmlFor="message" className="block text-sm text-[#94A3B8] mb-1">Message</label>
+                            </div>
+
+                            <form className="p-10 space-y-8" onSubmit={(e) => e.preventDefault()}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-2">
+                                        <label htmlFor="name" className="text-[9px] font-mono text-[#D4AF37] tracking-[0.2em] uppercase">[FL_NAME]</label>
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            className="w-full px-0 py-2.5 bg-transparent border-b border-white/10 text-white text-sm placeholder:text-zinc-700 focus:outline-none focus:border-[#D4AF37] transition-all"
+                                            placeholder="REGISTRY_IDENTIFIER"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="email" className="text-[9px] font-mono text-[#D4AF37] tracking-[0.2em] uppercase">[FL_MAIL]</label>
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            className="w-full px-0 py-2.5 bg-transparent border-b border-white/10 text-white text-sm placeholder:text-zinc-700 focus:outline-none focus:border-[#D4AF37] transition-all"
+                                            placeholder="AUTH_DOMAIN_REFERENCE"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <label htmlFor="message" className="text-[9px] font-mono text-[#D4AF37] tracking-[0.2em] uppercase">[FL_MSG_CONTENT]</label>
                                     <textarea
                                         id="message"
                                         name="message"
                                         value={formData.message}
                                         onChange={handleChange}
-                                        rows={5}
-                                        className="w-full px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white text-sm placeholder:text-[#64748B] focus:outline-none focus:border-[#38BDF8]/50 transition-colors resize-none"
-                                        placeholder="What's on your mind?"
+                                        rows={6}
+                                        className="w-full px-0 py-2.5 bg-transparent border-b border-white/10 text-white text-sm placeholder:text-zinc-700 focus:outline-none focus:border-[#D4AF37] transition-all resize-none"
+                                        placeholder="INPUT_STREAM_HERE..."
                                     />
                                 </div>
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-gradient-to-r from-[#38BDF8] to-[#2DD4BF] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                                >
-                                    <Send className="w-4 h-4" />
-                                    Send Message
-                                </button>
+
+                                <div className="pt-4 flex items-center justify-between">
+                                    <p className="text-[9px] font-mono text-[#71717A] uppercase tracking-widest hidden md:block">
+                                        // PENDING_USER_INPUT
+                                    </p>
+                                    <motion.button
+                                        type="submit"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className="group flex items-center gap-3 px-8 py-3.5 bg-[#D4AF37] text-black font-bold tracking-[0.2em] uppercase text-[10px]"
+                                    >
+                                        <Send className="w-3.5 h-3.5" />
+                                        Transmit Data
+                                    </motion.button>
+                                </div>
                             </form>
                         </motion.div>
 
-                        {/* Sidebar */}
+                        {/* Communication Nodes Sidebar */}
                         <motion.div
                             className="lg:col-span-2 space-y-4"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.1 }}
+                            transition={{ delay: 0.1 }}
                         >
                             {[
-                                { icon: Mail, title: "Email", value: "hello@parallax.dev", href: "mailto:hello@parallax.dev" },
-                                { icon: Github, title: "GitHub", value: "github.com/parallax", href: "#" },
-                                { icon: Twitter, title: "Twitter / X", value: "@parallaxdev", href: "#" },
-                                { icon: MessageSquare, title: "Discord", value: "Coming soon", href: "#" },
+                                { icon: Mail, title: "CORE_CHANNEL", value: "hello@parallax.dev", href: "mailto:hello@parallax.dev", tag: "PRIMARY" },
+                                { icon: Github, title: "CODE_LINK", value: "github.com/parallax", href: "#", tag: "MIRROR" },
+                                { icon: Twitter, title: "SOCIAL_GRID", value: "@parallaxdev", href: "#", tag: "FEED" },
+                                { icon: MessageSquare, title: "VOICE_LINK", value: "Discord Registry", href: "#", tag: "OFFLINE" },
                             ].map((item, index) => (
-                                <a
+                                <motion.a
                                     key={index}
                                     href={item.href}
-                                    className="block p-5 rounded-2xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.07] hover:border-[#38BDF8]/20 transition-all"
+                                    whileHover={{ x: 6 }}
+                                    className="block p-6 rounded-[28px] bg-zinc-950/20 border border-white/5 hover:border-[#D4AF37]/30 transition-all group"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-lg bg-[#38BDF8]/10 border border-[#38BDF8]/20 flex items-center justify-center">
-                                            <item.icon className="w-4 h-4 text-[#2DD4BF]" />
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-[#D4AF37]/10 transition-colors">
+                                            <item.icon className="w-4 h-4 text-[#71717A] group-hover:text-[#D4AF37] transition-colors" />
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-white">{item.title}</p>
-                                            <p className="text-xs text-[#94A3B8]">{item.value}</p>
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-0.5">
+                                                <span className="text-[9px] font-mono text-[#71717A] tracking-wider">{item.title}</span>
+                                                <span className={`text-[8px] font-mono ${item.tag === 'OFFLINE' ? 'text-zinc-600' : 'text-[#D4AF37]/60'}`}>{item.tag}</span>
+                                            </div>
+                                            <p className="text-sm font-bold tracking-wider text-white/90">{item.value}</p>
                                         </div>
                                     </div>
-                                </a>
+                                </motion.a>
                             ))}
+
+                            {/* Additional Metadata Node */}
+                            <div className="p-6 rounded-[28px] border border-white/5 bg-white/[0.01]">
+                                <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-600 uppercase mb-3">
+                                    <LinkIcon className="w-3 h-3" />
+                                    Security_Handshake
+                                </div>
+                                <p className="text-[10px] text-zinc-500 leading-relaxed font-mono">
+                                    All transmissions are routed through encrypted VPC channels. Data persistence follows PX-SEC-V2 standards.
+                                </p>
+                            </div>
                         </motion.div>
                     </div>
                 </div>

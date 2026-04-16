@@ -79,7 +79,7 @@ export function FloatingIcons() {
                 <div
                   className="absolute inset-0 rounded-full blur-xl"
                   style={{
-                    background: `radial-gradient(circle, rgba(45, 212, 191, 0.4) 0%, transparent 70%)`,
+                    background: `radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, transparent 70%)`,
                   }}
                 />
               )}
@@ -88,8 +88,8 @@ export function FloatingIcons() {
               <Icon
                 className="w-full h-full"
                 style={{
-                  color: isHovered === icon.id ? '#2DD4BF' : '#666',
-                  filter: isHovered === icon.id ? `drop-shadow(0 0 10px #2DD4BF)` : 'none',
+                  color: isHovered === icon.id ? '#D4AF37' : '#666',
+                  filter: isHovered === icon.id ? `drop-shadow(0 0 10px #D4AF37)` : 'none',
                 }}
               />
             </div>

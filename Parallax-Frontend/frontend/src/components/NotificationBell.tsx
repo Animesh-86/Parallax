@@ -48,19 +48,19 @@ export function NotificationBell({ onInviteAction }: NotificationBellProps) {
                 <button className="relative p-2 rounded-lg hover:bg-white/5 transition-colors">
                     <Bell className="w-5 h-5 text-white/60" />
                     {pendingCount > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-r from-[#38BDF8] to-[#94A3B8] text-[10px] leading-[18px] text-white text-center font-semibold border border-[#060910]">
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] text-[10px] leading-[18px] text-white text-center font-semibold border border-[#09090B]">
                             {pendingCount > 9 ? "9+" : pendingCount}
                         </span>
                     )}
                 </button>
             </PopoverTrigger>
             <PopoverContent
-                className="w-[min(92vw,380px)] p-0 bg-[#060910]/95 backdrop-blur-xl border border-white/10 text-white rounded-2xl shadow-2xl"
+                className="w-[min(92vw,380px)] p-0 bg-[#09090B]/95 backdrop-blur-xl border border-white/10 text-white rounded-2xl shadow-2xl"
                 align="end"
                 sideOffset={10}
                 collisionPadding={16}
             >
-                <div className="px-4 py-3 border-b border-white/10 bg-gradient-to-r from-[#38BDF8]/10 to-transparent rounded-t-2xl">
+                <div className="px-4 py-3 border-b border-white/10 bg-gradient-to-r from-[#D4AF37]/10 to-transparent rounded-t-2xl">
                     <h4 className="font-semibold leading-none text-base">Notifications</h4>
                     <p className="text-xs text-white/50 mt-1">
                         {pendingCount === 0
@@ -72,7 +72,7 @@ export function NotificationBell({ onInviteAction }: NotificationBellProps) {
                     {pendingCount === 0 ? (
                         <div className="px-6 py-12 text-center flex flex-col items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-[#38BDF8]" />
+                                <Sparkles className="w-5 h-5 text-[#D4AF37]" />
                             </div>
                             <p className="text-sm font-medium text-white/70">No new notifications</p>
                             <p className="text-xs text-white/40">Invites and updates will appear here.</p>
@@ -82,13 +82,13 @@ export function NotificationBell({ onInviteAction }: NotificationBellProps) {
                             {pendingInvites.map((invite) => (
                                 <div
                                     key={invite.invitationId}
-                                    className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#38BDF8]/30 transition-colors"
+                                    className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#D4AF37]/30 transition-colors"
                                 >
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
                                             <h5 className="font-medium text-sm">{invite.projectName}</h5>
                                             <p className="text-xs text-white/60">
-                                                Invited by <span className="text-[#94A3B8]">{invite.inviterEmail}</span>
+                                                Invited by <span className="text-[#A1A1AA]">{invite.inviterEmail}</span>
                                             </p>
                                         </div>
                                         <span className="text-[10px] text-white/30 uppercase border border-white/10 px-1.5 py-0.5 rounded">

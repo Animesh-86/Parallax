@@ -7,7 +7,8 @@ const THEMES = {
     ocean: { textColor: "#CFFAFE", accentColor: "#22D3EE" },
     aurora: { textColor: "#D1FAE5", accentColor: "#6EE7B7" },
     monochrome: { textColor: "#F5F5F5", accentColor: "#D4D4D4" },
-    parallax: { textColor: "#F8FAFC", accentColor: "#38BDF8" }, // Custom Parallax Theme
+    parallax: { textColor: "#F8FAFC", accentColor: "#D4AF37" },
+    stellar: { textColor: "#F8FAFC", accentColor: "#D4AF37" }, // New Stellar Obsidian Theme
 };
 
 function shuffleIndices(length: number) {
@@ -221,6 +222,7 @@ interface TextIlluminateProps {
         enabled?: boolean;
         intensity?: number;
     };
+    fontWeight?: string | number;
     hoverLift?: boolean;
     style?: React.CSSProperties;
 }
@@ -235,6 +237,7 @@ export function TextIlluminate({
     palette = {},
     reveal = {},
     glow = {},
+    fontWeight: fontWeightProp,
     hoverLift = false,
     style
 }: TextIlluminateProps) {
@@ -252,7 +255,7 @@ export function TextIlluminate({
     const glowIntensity = glow.intensity ?? 10;
 
     const fontFamily = fontFamilyProp ?? "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif";
-    const fontWeight = 600;
+    const fontWeight = fontWeightProp ?? 600;
 
     const containerRef = useRef<HTMLDivElement>(null);
     const isInView = useInView(containerRef, { once: false, amount: 0.3 });
@@ -348,7 +351,7 @@ export function TextIlluminate({
             style={{
                 ...style,
                 display: "flex",
-                flexWrap: "wrap",
+                flexWrap: "nowrap",
                 justifyContent,
                 alignItems: "center",
                 width: "100%",
@@ -369,7 +372,7 @@ export function TextIlluminate({
                     glowIntensity={glowIntensity}
                     duration={duration}
                     fontFamily={fontFamily}
-                    fontWeight={600}
+                    fontWeight={fontWeight}
                     fontSize={fontSize}
                     isSpace={char === " "}
                 />

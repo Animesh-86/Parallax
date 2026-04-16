@@ -9,7 +9,7 @@ export function VoiceControlPanel() {
     if (!isConnected) return null;
 
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-[#060910] border border-white/10 p-3 rounded-2xl shadow-2xl shadow-[#38BDF8]/20 animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-[#09090B] border border-white/10 p-3 rounded-2xl shadow-2xl shadow-[#D4AF37]/20 animate-in slide-in-from-bottom-10 fade-in duration-300">
             {/* Status Indicator */}
             <div className="flex items-center gap-2 px-2">
                 <div className="relative">

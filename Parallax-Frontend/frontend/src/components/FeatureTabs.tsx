@@ -26,7 +26,7 @@ const tabs: Tab[] = [
             "Conflict-free collaborative editing (CRDT)",
             "Role-based participation controls"
         ],
-        image: "linear-gradient(135deg, #7DD3FC 0%, #38BDF8 100%)"
+        image: "linear-gradient(135deg, #D4AF37 0%, #09090B 100%)"
     },
     {
         id: "comms",
@@ -40,7 +40,7 @@ const tabs: Tab[] = [
             "Screen sharing & presentation mode",
             "Low-latency WebRTC peer connections"
         ],
-        image: "linear-gradient(135deg, #F472B6 0%, #7DD3FC 100%)"
+        image: "linear-gradient(135deg, #F8FAFC 0%, #D4AF37 100%)"
     },
     {
         id: "workflows",
@@ -54,7 +54,7 @@ const tabs: Tab[] = [
             "Live debugging with context sharing",
             "Team collaboration rooms"
         ],
-        image: "linear-gradient(135deg, #64748B 0%, #1E293B 100%)"
+        image: "linear-gradient(135deg, #71717A 0%, #09090B 100%)"
     }
 ];
 
@@ -94,19 +94,19 @@ export const FeatureTabs = () => {
             <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
 
                 {/* Ambient Background Glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#0C1220]/20 blur-[120px] rounded-full pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#0D0D0F]/20 blur-[120px] rounded-full pointer-events-none" />
 
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 font-sans">
                     <div className="text-center mb-8 md:mb-12">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-6 italic font-serif">
                             <span className="relative inline-block">
-                                <span className="absolute inset-0 blur-xl bg-gradient-to-r from-[#2DD4BF] to-[#38BDF8] opacity-15" />
+                                <span className="absolute inset-0 blur-xl bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] opacity-15" />
                                 <span className="relative">
                                     <GradientShineText text="Built for Human Connection" />
                                 </span>
                             </span>
                         </h2>
-                        <p className="text-xl text-[#94A3B8] max-w-2xl mx-auto">
+                        <p className="text-xl text-zinc-400 max-w-2xl mx-auto italic font-serif opacity-80">
                             More than just an editor. Parallax is a complete workspace for synchronized teamwork.
                         </p>
                     </div>
@@ -118,7 +118,7 @@ export const FeatureTabs = () => {
                                 key={tab.id}
                                 className={`
                                     relative px-6 py-3 rounded-full flex items-center gap-2 text-sm font-medium transition-all duration-300
-                                    ${activeTab.id === tab.id ? "text-white" : "text-[#94A3B8]"}
+                                    ${activeTab.id === tab.id ? "text-white" : "text-[#A1A1AA]"}
                                 `}
                             >
                                 {activeTab.id === tab.id && (
@@ -148,10 +148,10 @@ export const FeatureTabs = () => {
                                 {/* Left: Text Content */}
                                 <div className={`text-left space-y-8 ${tabs.indexOf(activeTab) % 2 !== 0 ? 'lg:order-2' : ''}`}>
                                     <div>
-                                        <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                                        <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 font-serif italic">
                                             {activeTab.title}
                                         </h3>
-                                        <p className="text-lg text-[#CBD5E1] leading-relaxed">
+                                        <p className="text-lg text-zinc-300 leading-relaxed">
                                             {activeTab.description}
                                         </p>
                                     </div>
@@ -165,7 +165,7 @@ export const FeatureTabs = () => {
                                                 transition={{ delay: 0.1 + i * 0.1 }}
                                                 className="flex items-center gap-3 text-[#CBD5E1]"
                                             >
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] shadow-[0_0_8px_rgba(56, 189, 248,0.8)]" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212, 175, 55,0.8)]" />
                                                 {feature}
                                             </motion.li>
                                         ))}
@@ -174,7 +174,7 @@ export const FeatureTabs = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="px-8 py-3 bg-white text-black font-semibold rounded-lg hover:bg-[#CBD5E1] transition-colors pointer-events-auto"
+                                        className="px-8 py-3 bg-[#D4AF37] text-black font-bold rounded-lg hover:bg-[#F59E0B] transition-colors pointer-events-auto shadow-[0_4px_20px_rgba(212,175,55,0.4)]"
                                     >
                                         Learn more
                                     </motion.button>
@@ -183,7 +183,7 @@ export const FeatureTabs = () => {
                                 {/* Right: Visual/Preview */}
                                 <div className={`relative ${tabs.indexOf(activeTab) % 2 !== 0 ? 'lg:order-1' : ''}`}>
                                     {/* Decorator elements behind */}
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-[#38BDF8]/10 to-[#64748B]/10 rounded-2xl blur-2xl transform rotate-3 scale-105" />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/10 to-[#71717A]/10 rounded-2xl blur-2xl transform rotate-3 scale-105" />
 
                                     <div className="relative aspect-[4/3] rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl overflow-hidden shadow-2xl flex items-center justify-center group">
                                         <div
