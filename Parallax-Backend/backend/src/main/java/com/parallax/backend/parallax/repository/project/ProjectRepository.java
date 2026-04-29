@@ -13,4 +13,6 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     boolean existsByOwner_IdAndName(UUID ownerId, String name);
 
     List<Project> findByOwner_Id(UUID ownerId);
+
+    List<Project> findByTeam_Id(UUID teamId);
 }

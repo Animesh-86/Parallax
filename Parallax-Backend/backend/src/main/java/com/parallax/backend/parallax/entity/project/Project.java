@@ -1,6 +1,7 @@
 package com.parallax.backend.parallax.entity.project;
 
 import com.parallax.backend.parallax.entity.auth.User;
+import com.parallax.backend.parallax.entity.team.Team;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
@@ -29,6 +30,10 @@ public class Project {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;  // nullable — solo projects have no team
+
     public Project() {}
 
     public Project(UUID id, String name, String language) {
@@ -56,4 +61,7 @@ public class Project {
 
     public User getOwner() { return owner; }
     public void setOwner(User owner) { this.owner = owner; }
+
+    public Team getTeam() { return team; }
+    public void setTeam(Team team) { this.team = team; }
 }

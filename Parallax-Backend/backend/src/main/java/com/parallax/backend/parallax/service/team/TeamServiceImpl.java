@@ -17,12 +17,18 @@ import com.parallax.backend.parallax.dto.team.InviteTeamMemberRequest;
 import com.parallax.backend.parallax.dto.team.TeamMemberResponse;
 import com.parallax.backend.parallax.dto.team.TeamResponse;
 import com.parallax.backend.parallax.entity.auth.User;
+import com.parallax.backend.parallax.entity.collaborator.CollaboratorRole;
+import com.parallax.backend.parallax.entity.collaborator.CollaboratorStatus;
+import com.parallax.backend.parallax.entity.collaborator.ProjectCollaborator;
+import com.parallax.backend.parallax.entity.project.Project;
 import com.parallax.backend.parallax.entity.team.Team;
 import com.parallax.backend.parallax.entity.team.TeamMember;
 import com.parallax.backend.parallax.entity.team.TeamMemberRole;
 import com.parallax.backend.parallax.entity.team.TeamMemberStatus;
 import com.parallax.backend.parallax.exception.ResourceNotFoundException;
 import com.parallax.backend.parallax.repository.UserRepository;
+import com.parallax.backend.parallax.repository.collaborator.ProjectCollaboratorRepository;
+import com.parallax.backend.parallax.repository.project.ProjectRepository;
 import com.parallax.backend.parallax.repository.team.TeamMemberRepository;
 import com.parallax.backend.parallax.repository.team.TeamRepository;
 import com.parallax.backend.parallax.store.SessionRegistry;
@@ -37,6 +43,8 @@ public class TeamServiceImpl implements TeamService {
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
     private final SessionRegistry sessionRegistry;
+    private final ProjectRepository projectRepository;
+    private final ProjectCollaboratorRepository collaboratorRepository;
 
     @Override
     @Transactional
@@ -174,6 +182,11 @@ public class TeamServiceImpl implements TeamService {
         Team team = findTeam(teamId);
         team.setUpdatedAt(Instant.now());
         teamRepository.save(team);
+
+        // Auto-sync: add new member to all team projects if setting is on
+        if (team.isAutoAddMembersToProjects()) {
+            autoSyncMemberToTeamProjects(team, membership.getUser());
+        }
     }
 
     @Override
@@ -315,7 +328,8 @@ public class TeamServiceImpl implements TeamService {
                 myMembership.getRole(),
                 myMembership.getStatus(),
                 active,
-                pending
+                pending,
+                team.isAutoAddMembersToProjects()
         );
     }
 
@@ -348,4 +362,68 @@ public class TeamServiceImpl implements TeamService {
         }
         return trimmed;
     }
+
+    /**
+     * When a new member joins a team, add them as COLLABORATOR to all projects belonging to that team.
+     */
+    public void autoSyncMemberToTeamProjects(Team team, User user) {
+        List<Project> teamProjects = projectRepository.findByTeam_Id(team.getId());
+        for (Project project : teamProjects) {
+            // Skip if already a collaborator
+            if (collaboratorRepository.findByProjectIdAndUserId(project.getId(), user.getId()).isPresent()) {
+                continue;
+            }
+            ProjectCollaborator collab = new ProjectCollaborator(project, user, CollaboratorRole.COLLABORATOR);
+            collab.setStatus(CollaboratorStatus.ACCEPTED);
+            collab.setAcceptedAt(Instant.now());
+            collaboratorRepository.save(collab);
+        }
+    }
+
+    /**
+     * When a project is linked to a team, add all active team members as COLLABORATOR.
+     */
+    public void syncAllTeamMembersToProject(Team team, Project project) {
+        if (!team.isAutoAddMembersToProjects()) {
+            return;
+        }
+        List<TeamMember> activeMembers = teamMemberRepository.findByTeam_IdAndStatus(team.getId(), TeamMemberStatus.ACTIVE);
+        for (TeamMember member : activeMembers) {
+            User user = member.getUser();
+            // Skip if already a collaborator
+            if (collaboratorRepository.findByProjectIdAndUserId(project.getId(), user.getId()).isPresent()) {
+                continue;
+            }
+            ProjectCollaborator collab = new ProjectCollaborator(project, user, CollaboratorRole.COLLABORATOR);
+            collab.setStatus(CollaboratorStatus.ACCEPTED);
+            collab.setAcceptedAt(Instant.now());
+            collaboratorRepository.save(collab);
+        }
+    }
+
+    /**
+     * Get all projects belonging to a team.
+     */
+    @Transactional(readOnly = true)
+    public List<Project> getTeamProjects(UUID teamId, UUID requesterId) {
+        requireMembership(teamId, requesterId);
+        return projectRepository.findByTeam_Id(teamId);
+    }
+
+    /**
+     * Toggle autoAddMembersToProjects setting (owner/admin only).
+     */
+    @Transactional
+    public TeamResponse updateAutoAddSetting(UUID teamId, UUID requesterId, boolean autoAdd) {
+        Team team = findTeam(teamId);
+        TeamMember requesterMembership = requireMembership(teamId, requesterId);
+        ensureCanManageMembers(team, requesterMembership, requesterId);
+
+        team.setAutoAddMembersToProjects(autoAdd);
+        team.setUpdatedAt(Instant.now());
+        team = teamRepository.save(team);
+
+        return toTeamResponse(team, requesterMembership);
+    }
 }
+

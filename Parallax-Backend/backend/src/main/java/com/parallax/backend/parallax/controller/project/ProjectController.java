@@ -4,6 +4,7 @@ import com.parallax.backend.parallax.dto.project.CreateProjectRequest;
 import com.parallax.backend.parallax.dto.project.ProjectResponse;
 import com.parallax.backend.parallax.security.AuthUtil;
 import com.parallax.backend.parallax.service.project.ProjectService;
+import com.parallax.backend.parallax.service.project.ProjectServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProjectController {
 
-    private final ProjectService projectService;
+    private final ProjectServiceImpl projectService;
 
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(
@@ -57,4 +59,16 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    @PatchMapping("/{projectId}/team")
+    public ResponseEntity<ProjectResponse> linkProjectToTeam(
+            @PathVariable UUID projectId,
+            @RequestBody Map<String, String> body,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        String teamIdStr = body.get("teamId"); // null means unlink
+        UUID teamId = teamIdStr != null && !teamIdStr.isBlank() ? UUID.fromString(teamIdStr) : null;
+        ProjectResponse response = projectService.linkProjectToTeam(projectId, userId, teamId);
+        return ResponseEntity.ok(response);
+    }
 }

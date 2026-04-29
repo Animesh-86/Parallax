@@ -97,8 +97,8 @@ export function Header() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <div className="w-8 h-8 bg-zinc-950 border border-white/10 rounded-xl flex items-center justify-center group-hover:border-[#D4AF37]/50 transition-colors duration-500">
-              <span className="text-[#D4AF37] font-mono text-sm">PX</span>
+            <div className="w-8 h-8 bg-zinc-950 border border-white/10 rounded-xl flex items-center justify-center group-hover:border-[#D4AF37]/50 transition-colors duration-500 overflow-hidden">
+              <img src="/icon.png" alt="Parallax" className="w-full h-full object-cover" />
             </div>
             <span className="hidden sm:inline text-white/90 text-[10px] font-bold uppercase tracking-[0.4em]">
               parallax
