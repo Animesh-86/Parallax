@@ -8,14 +8,17 @@ import com.parallax.backend.parallax.entity.collaborator.CollaboratorRole;
 import com.parallax.backend.parallax.entity.collaborator.ProjectCollaborator;
 import com.parallax.backend.parallax.entity.file.ProjectFile;
 import com.parallax.backend.parallax.entity.project.Project;
+import com.parallax.backend.parallax.entity.team.Team;
 import com.parallax.backend.parallax.exception.DuplicateResourceException;
 import com.parallax.backend.parallax.exception.ResourceNotFoundException;
 import com.parallax.backend.parallax.repository.*;
 import com.parallax.backend.parallax.repository.collaborator.ProjectCollaboratorRepository;
 import com.parallax.backend.parallax.repository.file.ProjectFileRepository;
 import com.parallax.backend.parallax.repository.project.ProjectRepository;
+import com.parallax.backend.parallax.repository.team.TeamRepository;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
 import com.parallax.backend.parallax.security.ProjectPermission;
+import com.parallax.backend.parallax.service.team.TeamServiceImpl;
 import com.parallax.backend.parallax.store.SessionRegistry;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -45,6 +48,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final SessionRegistry sessionRegistry;
     private final StorageProperties storageProperties;
     private final ProjectAccessManager accessManager;
+    private final TeamRepository teamRepository;
+    private final TeamServiceImpl teamService;
 
     // CREATE PROJECT
     @Override
@@ -71,6 +76,13 @@ public class ProjectServiceImpl implements ProjectService {
         project.setCreatedAt(Instant.now());
         project.setUpdatedAt(Instant.now());
 
+        // Link to team if teamId is provided
+        if (request.getTeamId() != null) {
+            Team team = teamRepository.findById(request.getTeamId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + request.getTeamId()));
+            project.setTeam(team);
+        }
+
         project = projectRepository.save(project);
 
         // DEFAULT FILES
@@ -82,6 +94,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         // OWNER AS COLLABORATOR (CRITICAL)
         registerOwnerCollaborator(project, owner);
+
+        // Auto-sync team members as collaborators
+        if (project.getTeam() != null) {
+            teamService.syncAllTeamMembersToProject(project.getTeam(), project);
+        }
 
         return ProjectResponse.from(project, initialFiles, null);
     }
@@ -267,5 +284,35 @@ public class ProjectServiceImpl implements ProjectService {
         ));
 
         return files;
+    }
+
+    // LINK / UNLINK PROJECT TO TEAM
+    @Override
+    @Transactional
+    public ProjectResponse linkProjectToTeam(UUID projectId, UUID requesterId, UUID teamId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+
+        // Only the project owner can link/unlink
+        if (!project.getOwner().getId().equals(requesterId)) {
+            throw new SecurityException("Only the project owner can link/unlink a project to a team");
+        }
+
+        if (teamId == null) {
+            // Unlink
+            project.setTeam(null);
+        } else {
+            Team team = teamRepository.findById(teamId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + teamId));
+            project.setTeam(team);
+
+            // Auto-sync team members
+            teamService.syncAllTeamMembersToProject(team, project);
+        }
+
+        project.setUpdatedAt(Instant.now());
+        project = projectRepository.save(project);
+
+        return toResponse(project);
     }
 }

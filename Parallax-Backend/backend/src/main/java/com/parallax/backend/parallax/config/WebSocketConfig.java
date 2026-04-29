@@ -59,11 +59,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         private final com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler;
         private final com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor;
+        private final com.parallax.backend.parallax.websocket.chat.TeamChatWebSocketHandler teamChatHandler;
+        private final com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor;
 
         RawWebSocketConfig(com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler,
-                com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor) {
+                com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor,
+                com.parallax.backend.parallax.websocket.chat.TeamChatWebSocketHandler teamChatHandler,
+                com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor) {
             this.chatHandler = chatHandler;
             this.chatInterceptor = chatInterceptor;
+            this.teamChatHandler = teamChatHandler;
+            this.teamChatInterceptor = teamChatInterceptor;
         }
 
         @Override
@@ -71,7 +77,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry registry) {
             registry.addHandler(chatHandler, "/ws/chat/{projectId}")
                     .addInterceptors(chatInterceptor)
-                    .setAllowedOriginPatterns("*"); // Allow all for now, specific origins better in prod
+                    .setAllowedOriginPatterns("*");
+
+            registry.addHandler(teamChatHandler, "/ws/team-chat/{teamId}")
+                    .addInterceptors(teamChatInterceptor)
+                    .setAllowedOriginPatterns("*");
         }
     }
 }

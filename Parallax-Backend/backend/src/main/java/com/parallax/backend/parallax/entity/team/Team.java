@@ -44,6 +44,9 @@ public class Team {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "auto_add_members_to_projects", columnDefinition = "boolean default true")
+    private boolean autoAddMembersToProjects = true;
+
     public Team() {
     }
 
@@ -93,5 +96,13 @@ public class Team {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isAutoAddMembersToProjects() {
+        return autoAddMembersToProjects;
+    }
+
+    public void setAutoAddMembersToProjects(boolean autoAddMembersToProjects) {
+        this.autoAddMembersToProjects = autoAddMembersToProjects;
     }
 }

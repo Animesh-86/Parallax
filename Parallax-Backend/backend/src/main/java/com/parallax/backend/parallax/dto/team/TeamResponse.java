@@ -16,6 +16,7 @@ public record TeamResponse(
         TeamMemberRole myRole,
         TeamMemberStatus myStatus,
         long activeMembers,
-        long pendingInvites
+        long pendingInvites,
+        boolean autoAddMembersToProjects
 ) {
 }

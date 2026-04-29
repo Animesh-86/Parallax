@@ -34,6 +34,8 @@ type DashboardProject = {
     name: string;
     language: string;
     updatedAt: string;
+    teamId?: string;
+    teamName?: string;
 };
 
 // UI Type for Friend (Derived from Collaborator)
@@ -290,6 +292,8 @@ export default function Dashboard() {
                 name: p.name,
                 language: p.language || "Unknown",
                 updatedAt: p.updatedAt || p.updated_at || p.createdAt || p.created_at || "",
+                teamId: p.teamId || undefined,
+                teamName: p.teamName || undefined,
             }));
 
             // sort by newest (local access or server modification)
@@ -539,6 +543,11 @@ export default function Dashboard() {
                                                 <span className="text-xs text-white/40 font-mono px-2 py-0.5 rounded bg-white/5">
                                                     {project.language}
                                                 </span>
+                                                {project.teamName && (
+                                                    <span className="text-xs text-[#D4AF37]/80 font-mono px-2 py-0.5 rounded bg-[#D4AF37]/10 border border-[#D4AF37]/20">
+                                                        <Users className="w-3 h-3 inline mr-1" />{project.teamName}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="p-2 rounded-lg bg-white/5 group-hover:bg-[#D4AF37]/20 transition-colors">
                                                 <Code2 className="w-4 h-4 text-white/40 group-hover:text-[#D4AF37]" />

@@ -20,6 +20,8 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
 
     List<TeamMember> findByUser_IdAndStatus(UUID userId, TeamMemberStatus status);
 
+    List<TeamMember> findByTeam_IdAndStatus(UUID teamId, TeamMemberStatus status);
+
     long countByTeam_IdAndStatus(UUID teamId, TeamMemberStatus status);
 
     void deleteByTeam_Id(UUID teamId);

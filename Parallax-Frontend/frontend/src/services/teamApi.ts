@@ -14,6 +14,7 @@ export interface Team {
   myStatus: TeamStatus;
   activeMembers: number;
   pendingInvites: number;
+  autoAddMembersToProjects: boolean;
 }
 
 export interface TeamMember {
@@ -26,6 +27,16 @@ export interface TeamMember {
   isOnline: boolean;
   invitedAt?: string;
   joinedAt?: string;
+}
+
+export interface TeamProject {
+  id: string;
+  name: string;
+  language: string;
+  teamId?: string;
+  teamName?: string;
+  files?: { id: string; name: string; path: string }[];
+  activeSessionId?: string;
 }
 
 export const teamApi = {
@@ -78,5 +89,27 @@ export const teamApi = {
 
   deleteTeam: async (teamId: string): Promise<void> => {
     await api.delete(`/api/teams/${teamId}`);
+  },
+
+  // ===== NEW: Team <-> Project relationship =====
+
+  getTeamProjects: async (teamId: string): Promise<TeamProject[]> => {
+    const response = await api.get(`/api/teams/${teamId}/projects`);
+    return response.data;
+  },
+
+  updateAutoAddSetting: async (teamId: string, autoAdd: boolean): Promise<Team> => {
+    const response = await api.patch(`/api/teams/${teamId}/settings/auto-add`, {
+      autoAddMembersToProjects: autoAdd,
+    });
+    return response.data;
+  },
+
+  // Link/unlink a project to/from a team
+  linkProjectToTeam: async (projectId: string, teamId: string | null): Promise<any> => {
+    const response = await api.patch(`/api/projects/${projectId}/team`, {
+      teamId: teamId,
+    });
+    return response.data;
   },
 };

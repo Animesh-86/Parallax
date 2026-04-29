@@ -1,6 +1,7 @@
 package com.parallax.backend.parallax.controller.team;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -15,12 +16,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.parallax.backend.parallax.dto.project.ProjectResponse;
 import com.parallax.backend.parallax.dto.team.CreateTeamRequest;
 import com.parallax.backend.parallax.dto.team.InviteTeamMemberRequest;
 import com.parallax.backend.parallax.dto.team.TeamMemberResponse;
 import com.parallax.backend.parallax.dto.team.TeamResponse;
+import com.parallax.backend.parallax.entity.file.ProjectFile;
+import com.parallax.backend.parallax.entity.project.Project;
+import com.parallax.backend.parallax.repository.file.ProjectFileRepository;
 import com.parallax.backend.parallax.security.AuthUtil;
-import com.parallax.backend.parallax.service.team.TeamService;
+import com.parallax.backend.parallax.service.team.TeamServiceImpl;
+import com.parallax.backend.parallax.store.SessionRegistry;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +36,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TeamController {
 
-    private final TeamService teamService;
+    private final TeamServiceImpl teamService;
+    private final ProjectFileRepository projectFileRepository;
+    private final SessionRegistry sessionRegistry;
 
     @PostMapping
     public ResponseEntity<TeamResponse> createTeam(
@@ -126,5 +134,37 @@ public class TeamController {
         UUID userId = AuthUtil.requireUserId(authentication);
         teamService.deleteTeam(teamId, userId);
         return ResponseEntity.ok().build();
+    }
+
+    // ===== NEW ENDPOINTS: Team <-> Project relationship =====
+
+    @GetMapping("/{teamId}/projects")
+    public ResponseEntity<List<ProjectResponse>> getTeamProjects(
+            @PathVariable UUID teamId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        List<Project> projects = teamService.getTeamProjects(teamId, userId);
+
+        List<ProjectResponse> responses = projects.stream()
+                .map(p -> {
+                    List<ProjectFile> files = projectFileRepository.findByProjectId(p.getId());
+                    String sessionId = sessionRegistry.getSessionIdForProject(p.getId()).orElse(null);
+                    return ProjectResponse.from(p, files, sessionId);
+                })
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @PatchMapping("/{teamId}/settings/auto-add")
+    public ResponseEntity<TeamResponse> updateAutoAddSetting(
+            @PathVariable UUID teamId,
+            @RequestBody Map<String, Boolean> body,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        boolean autoAdd = body.getOrDefault("autoAddMembersToProjects", true);
+        return ResponseEntity.ok(teamService.updateAutoAddSetting(teamId, userId, autoAdd));
     }
 }

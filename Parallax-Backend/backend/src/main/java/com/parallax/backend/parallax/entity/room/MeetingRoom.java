@@ -69,6 +69,9 @@ public class MeetingRoom {
     @Column(name = "screen_share_disabled", nullable = false)
     private boolean screenShareDisabled;
 
+    @Column(name = "team_id")
+    private UUID teamId;  // nullable — standalone rooms have no team
+
     protected MeetingRoom() {}
 
     public MeetingRoom(String name, UUID createdBy, String roomCode) {
@@ -124,4 +127,6 @@ public class MeetingRoom {
     public void setCodeEditorUserIds(String codeEditorUserIds) { this.codeEditorUserIds = codeEditorUserIds; }
     public void setChatDisabled(boolean chatDisabled) { this.chatDisabled = chatDisabled; }
     public void setScreenShareDisabled(boolean screenShareDisabled) { this.screenShareDisabled = screenShareDisabled; }
+    public UUID getTeamId() { return teamId; }
+    public void setTeamId(UUID teamId) { this.teamId = teamId; }
 }

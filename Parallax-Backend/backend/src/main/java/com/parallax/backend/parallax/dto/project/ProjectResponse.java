@@ -21,6 +21,8 @@ public class ProjectResponse {
     private String language;
     private List<FileDto> files;
     private String activeSessionId; // nullable
+    private UUID teamId;            // nullable
+    private String teamName;        // nullable
 
     @Data
     @AllArgsConstructor
@@ -36,6 +38,8 @@ public class ProjectResponse {
                 .name(project.getName())
                 .language(project.getLanguage())
                 .activeSessionId(activeSessionId)
+                .teamId(project.getTeam() != null ? project.getTeam().getId() : null)
+                .teamName(project.getTeam() != null ? project.getTeam().getName() : null)
                 .files(files.stream()
                         .map(f -> new FileDto(
                                 f.getId(),
