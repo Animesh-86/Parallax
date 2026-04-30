@@ -9,7 +9,8 @@ import CodeEditor from "../components/workspace/CodeEditor";
 import { Terminal } from "../components/workspace/Terminal";
 import { VideoPanel } from "../components/workspace/VideoPanel";
 import { ParticipantsList } from "../components/workspace/ParticipantsList";
-import { ChatPanel } from "../components/workspace/ChatPanel";
+import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
+import { projectChatWs } from "../services/wsChatClient";
 import { CosmicStars } from "../components/workspace/CosmicStars";
 import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
@@ -398,7 +399,14 @@ export default function Workspace() {
           >
             <div className="flex-1 overflow-hidden">
               {activeTool === "video" && <VideoPanel mode="video" onModeChange={() => { }} />}
-              {activeTool === "chat" && <ChatPanel />}
+              {activeTool === "chat" && projectId && (
+                <UnifiedChatPanel 
+                  contextId={projectId} 
+                  contextType="PROJECT" 
+                  contextName={projectName}
+                  wsClient={projectChatWs} 
+                />
+              )}
               {activeTool === "collaborators" && <ParticipantsList />}
               {activeTool === "ai" && (
                 <div className="flex flex-col h-full w-full">

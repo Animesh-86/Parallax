@@ -4,13 +4,14 @@ import { UserProfile, profileService } from '../../services/profileService';
 import { uploadService } from '../../services/uploadService';
 import { toast } from 'sonner';
 import { cn } from '../../components/ui/utils';
+import { useProfile } from '../../context/ProfileContext';
 
 interface ProfileSettingsProps {
     currentUser: UserProfile;
-    onProfileUpdate: () => void;
 }
 
-export default function ProfileSettings({ currentUser, onProfileUpdate }: ProfileSettingsProps) {
+export default function ProfileSettings({ currentUser }: ProfileSettingsProps) {
+    const { refreshProfile } = useProfile();
     const [activeTab, setActiveTab] = useState<'public' | 'account'>('public');
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,7 +68,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
             toast.success("Avatar updated successfully", { id: toastId });
 
             // Refresh parent state
-            onProfileUpdate();
+            await refreshProfile();
         } catch (error: any) {
             console.error("Avatar update failed", error);
             toast.error(error.message || "Failed to update avatar", { id: toastId });
@@ -101,7 +102,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
 
             if (success) {
                 toast.success('Profile settings saved');
-                await onProfileUpdate();
+                await refreshProfile();
             }
 
         } catch (error: any) {
@@ -133,7 +134,7 @@ export default function ProfileSettings({ currentUser, onProfileUpdate }: Profil
         try {
             await profileService.updateUsername({ username });
             toast.success('Username updated successfully');
-            onProfileUpdate();
+            await refreshProfile();
         } catch (error: any) {
             if (error.status === 409) {
                 setUsernameError('Username is already taken');

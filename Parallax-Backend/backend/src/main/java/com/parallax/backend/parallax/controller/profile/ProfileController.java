@@ -2,11 +2,13 @@ package com.parallax.backend.parallax.controller.profile;
 
 import com.parallax.backend.parallax.dto.profile.*;
 import com.parallax.backend.parallax.security.AuthUtil;
+import com.parallax.backend.parallax.service.profile.FileStorageService;
 import com.parallax.backend.parallax.service.profile.ProfileCommandService;
 import com.parallax.backend.parallax.service.profile.ProfileQueryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -16,13 +18,16 @@ public class ProfileController {
 
     private final ProfileQueryService profileQueryService;
     private final ProfileCommandService profileCommandService;
+    private final FileStorageService fileStorageService;
 
     public ProfileController(
             ProfileQueryService profileQueryService,
-            ProfileCommandService profileCommandService
+            ProfileCommandService profileCommandService,
+            FileStorageService fileStorageService
     ) {
         this.profileQueryService = profileQueryService;
         this.profileCommandService = profileCommandService;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -84,5 +89,22 @@ public class ProfileController {
         UUID userId = AuthUtil.getCurrentUserId();
         profileCommandService.updateAvatar(userId, request);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Upload avatar file
+     */
+    @PostMapping("/me/avatar/upload")
+    public ResponseEntity<ProfileResponse> uploadAvatar(
+            @RequestParam("file") MultipartFile file
+    ) {
+        UUID userId = AuthUtil.getCurrentUserId();
+        String fileUrl = fileStorageService.storeFile(file);
+        
+        UpdateAvatarRequest request = new UpdateAvatarRequest();
+        request.setAvatarUrl(fileUrl);
+        profileCommandService.updateAvatar(userId, request);
+        
+        return ResponseEntity.ok(profileQueryService.getMyProfile(userId));
     }
 }

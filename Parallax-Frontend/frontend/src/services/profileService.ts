@@ -85,7 +85,7 @@ export const profileService = {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await api.put('/api/profiles/me/avatar', formData, {
+            const response = await api.post('/api/profiles/me/avatar/upload', formData, {
                 headers
             });
             return response.data;

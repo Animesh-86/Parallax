@@ -1,33 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Code2 } from 'lucide-react';
 import { NotificationBell } from "./NotificationBell";
-import { useState, useEffect } from "react";
-import { profileService } from "../services/profileService";
+import { useProfile } from "../context/ProfileContext";
 
 export function DashboardHeader() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [initials, setInitials] = useState("..");
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const profile = await profileService.getMyProfile();
-                const name = profile.displayName || profile.username || "User";
-                // Generate initials (First 2 chars of name, or First char of First/Last words)
-                const parts = name.trim().split(' ');
-                if (parts.length >= 2) {
-                    setInitials((parts[0][0] + parts[1][0]).toUpperCase());
-                } else {
-                    setInitials(name.substring(0, 2).toUpperCase());
-                }
-            } catch (e) {
-                console.error("Failed to load header profile", e);
-                setInitials("??");
-            }
-        };
-        fetchUser();
-    }, []);
+    const { initials, profile } = useProfile();
 
     const getLinkClass = (path: string) => {
         const isActive = location.pathname === path;
@@ -60,8 +39,12 @@ export function DashboardHeader() {
 
                 <div className="flex items-center gap-3">
                     <NotificationBell />
-                    <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#F59E0B] flex items-center justify-center font-bold text-black border border-[#D4AF37]/50">
-                        {initials}
+                    <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#F59E0B] flex items-center justify-center font-bold text-black border border-[#D4AF37]/50 overflow-hidden">
+                        {profile?.avatarUrl ? (
+                            <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            initials
+                        )}
                     </button>
                 </div>
             </div>

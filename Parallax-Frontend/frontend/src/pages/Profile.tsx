@@ -25,6 +25,7 @@ import ProfileSettings from '../components/profile/ProfileSettings';
 import { ProfileBanner } from '../components/profile/ProfileBanner';
 import { ProfileSkeleton } from '../components/profile/ProfileSkeleton';
 import { apiBaseUrl } from '../services/env';
+import { useProfile } from '../context/ProfileContext';
 
 type TabView = 'profile' | 'badges' | 'streaks' | 'contributions' | 'settings' | 'preferences';
 
@@ -33,53 +34,49 @@ export default function Profile() {
   const { username } = useParams(); // If present, viewing public profile
 
   const [activeTab, setActiveTab] = useState<TabView>('profile');
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [publicProfile, setPublicProfile] = useState<UserProfile | null>(null);
+  const [loadingPublic, setLoadingPublic] = useState(false);
   const [error, setError] = useState('');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isMe, setIsMe] = useState(false);
-
-  // If visiting /profile, isMe is true. If /u/:username, check if it matches current user.
-  // For simplicity, we trust the profileService output or the route.
-  // Ideally we should check if username === current_user.username
-
-  const fetchProfile = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      let data: UserProfile;
-      if (username) {
-        // Public View
-        data = await profileService.getPublicProfile(username);
-        // Check if this public profile is actually ME (optional optimization, but strict separation is fine)
-        // For now, assume if username param exists, it's public view.
-        setIsMe(false);
-      } else {
-        // Private View (/profile)
-        data = await profileService.getMyProfile();
-        setIsMe(true);
-      }
-      setProfile(data);
-      console.log("🐛 [Profile] Fetch Result:", data);
-      console.log("🐛 [Profile] DisplayName:", data.displayName);
-      console.log("🐛 [Profile] FullName:", data.fullName);
-    } catch (err: any) {
-      console.error(err);
-      if (err.status === 404) {
-        setError('User not found');
-      } else if (err.status === 401) {
-        setError('Unauthorized: Please log in again to view your profile.');
-      } else {
-        setError('Failed to load profile');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  // Use global context
+  const { profile: globalProfile, loading: loadingGlobal, displayName: globalDisplayName } = useProfile();
+  
+  const isMe = !username;
 
   useEffect(() => {
-    fetchProfile();
+    const fetchPublic = async () => {
+      if (username) {
+        setLoadingPublic(true);
+        setError('');
+        try {
+          const data = await profileService.getPublicProfile(username);
+          setPublicProfile(data);
+        } catch (err: any) {
+          console.error(err);
+          if (err.status === 404) {
+            setError('User not found');
+          } else {
+            setError('Failed to load profile');
+          }
+        } finally {
+          setLoadingPublic(false);
+        }
+      }
+    };
+    fetchPublic();
   }, [username]);
+
+  const profile = isMe ? globalProfile : publicProfile;
+  const loading = isMe ? loadingGlobal : loadingPublic;
+  const displayName = isMe && globalProfile ? globalDisplayName : (() => {
+    if (!profile) return "Unknown";
+    const vals = [profile.displayName, profile.fullName, profile.name, profile.username].map(v => v?.trim());
+    const [dn, fn, n, un] = vals;
+    if (dn && dn.length > 0 && dn !== '?' && dn !== 'User') return dn;
+    if (fn && fn.length > 0) return fn;
+    if (n && n.length > 0 && n !== 'User') return n;
+    return un || "Unknown Star";
+  })();
 
   // Sidebar items - Filter based on View Mode
   const sidebarItems = [
@@ -252,26 +249,7 @@ export default function Profile() {
                         <div>
                           {/* Name Header */}
                           <h1 className="text-2xl font-bold mb-1 text-white min-h-[2rem]">
-                            {(() => {
-                              // Extract raw values
-                              const vals = [
-                                profile.displayName,
-                                profile.fullName,
-                                profile.name,
-                                profile.username
-                              ].map(v => v?.trim());
-
-                              const [dn, fn, n, un] = vals;
-
-                              // 1. Display Name (if valid)
-                              if (dn && dn.length > 0 && dn !== '?' && dn !== 'User') return dn;
-                              // 2. Full Name
-                              if (fn && fn.length > 0) return fn;
-                              // 3. Name (Google Auth Name)
-                              if (n && n.length > 0 && n !== 'User') return n;
-                              // 4. Username (Fallback)
-                              return un || "Unknown Star";
-                            })()}
+                            {displayName}
                           </h1>
 
                           {/* Username Handle */}
@@ -384,7 +362,6 @@ export default function Profile() {
               {profile && (
                 <ProfileSettings
                   currentUser={profile}
-                  onProfileUpdate={fetchProfile}
                 />
               )}
 

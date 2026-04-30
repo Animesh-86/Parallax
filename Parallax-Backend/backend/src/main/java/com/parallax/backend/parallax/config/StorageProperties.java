@@ -13,4 +13,5 @@ public class StorageProperties {
     private String root;       // e.g. C:/Users/Animesh/parallax
     private String projects;   // e.g. C:/Users/Animesh/parallax/projects
     private String sessions;   // e.g. C:/Users/Animesh/parallax/sessions
+    private String avatars;    // e.g. C:/Users/Animesh/parallax/avatars
 }

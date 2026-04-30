@@ -1,32 +1,38 @@
-
 import { wsBaseUrl } from "./env";
 
-export type ChatMessage = {
+export type GenericChatMessage = {
     id?: string;
-    projectId: string;
     senderId?: string | null;
     senderName: string;
     content: string;
     type: "USER" | "SYSTEM";
     createdAt?: string;
+    projectId?: string; // Optional: Present if project chat
+    teamId?: string;    // Optional: Present if team chat
 };
 
 type ChatHistoryPayload = {
     type: "HISTORY";
-    messages: ChatMessage[];
+    messages: GenericChatMessage[];
 };
 
-class ChatWebSocketService {
+export class ChatWebSocketClient {
     private ws: WebSocket | null = null;
-    private projectId: string | null = null;
-    private onMessage: ((msg: ChatMessage) => void) | null = null;
-    private onHistory: ((msgs: ChatMessage[]) => void) | null = null;
+    private contextId: string | null = null;
+    private contextType: "PROJECT" | "TEAM" | null = null;
+    private onMessage: ((msg: GenericChatMessage) => void) | null = null;
+    private onHistory: ((msgs: GenericChatMessage[]) => void) | null = null;
     private reconnectTimeout: NodeJS.Timeout | null = null;
     private isExplicitDisconnect = false;
 
-    connect(projectId: string, onMessage: (msg: ChatMessage) => void, onHistory: (msgs: ChatMessage[]) => void) {
-        if (this.ws?.readyState === WebSocket.OPEN && this.projectId === projectId) {
-            console.log("🟢 Chat WS already connected to project", projectId);
+    connect(
+        contextId: string, 
+        contextType: "PROJECT" | "TEAM", 
+        onMessage: (msg: GenericChatMessage) => void, 
+        onHistory: (msgs: GenericChatMessage[]) => void
+    ) {
+        if (this.ws?.readyState === WebSocket.OPEN && this.contextId === contextId && this.contextType === contextType) {
+            console.log(`🟢 ${contextType} Chat WS already connected to ${contextId}`);
             this.onMessage = onMessage;
             this.onHistory = onHistory;
             return;
@@ -36,18 +42,22 @@ class ChatWebSocketService {
             this.disconnect();
         }
 
-        this.projectId = projectId;
+        this.contextId = contextId;
+        this.contextType = contextType;
         this.onMessage = onMessage;
         this.onHistory = onHistory;
         this.isExplicitDisconnect = false;
 
         const token = localStorage.getItem("access_token");
-        const url = `${wsBaseUrl}/ws/chat/${projectId}?token=${token}`;
+        
+        // Construct correct endpoint based on type
+        const endpoint = contextType === "PROJECT" ? "chat" : "team-chat";
+        const url = `${wsBaseUrl}/ws/${endpoint}/${contextId}?token=${token}`;
 
         this.ws = new WebSocket(url);
 
         this.ws.onopen = () => {
-            console.log(`🟢 Chat WebSocket connected for project ${projectId}`);
+            console.log(`🟢 ${contextType} Chat WebSocket connected for ${contextId}`);
             if (this.reconnectTimeout) {
                 clearTimeout(this.reconnectTimeout);
                 this.reconnectTimeout = null;
@@ -63,26 +73,26 @@ class ChatWebSocketService {
                     if (this.onHistory) this.onHistory(data.messages);
                 } else if (data.content && data.senderName) {
                     // It's a single chat message
-                    if (this.onMessage) this.onMessage(data as ChatMessage);
+                    if (this.onMessage) this.onMessage(data as GenericChatMessage);
                 }
             } catch (e) {
-                console.error("Failed to parse chat message", e);
+                console.error(`Failed to parse ${contextType} chat message`, e);
             }
         };
 
         this.ws.onclose = () => {
             if (!this.isExplicitDisconnect) {
-                console.warn("⚠️ Chat WS disconnected, reconnecting in 5s...");
+                console.warn(`⚠️ ${contextType} Chat WS disconnected, reconnecting in 5s...`);
                 this.reconnectTimeout = setTimeout(() => {
-                    this.connect(projectId, onMessage, onHistory);
+                    this.connect(contextId, contextType, onMessage, onHistory);
                 }, 5000);
             } else {
-                console.log("🔴 Chat WS disconnected explicitly");
+                console.log(`🔴 ${contextType} Chat WS disconnected explicitly`);
             }
         };
 
         this.ws.onerror = (err) => {
-            console.error("❌ Chat WS Error", err);
+            console.error(`❌ ${contextType} Chat WS Error`, err);
             // Close will trigger reconnect
         };
     }
@@ -91,7 +101,7 @@ class ChatWebSocketService {
         if (this.ws?.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ content }));
         } else {
-            console.warn("⚠️ Chat WS not open, cannot send message");
+            console.warn(`⚠️ ${this.contextType} Chat WS not open, cannot send message`);
         }
     }
 
@@ -105,10 +115,13 @@ class ChatWebSocketService {
             clearTimeout(this.reconnectTimeout);
             this.reconnectTimeout = null;
         }
-        this.projectId = null;
+        this.contextId = null;
+        this.contextType = null;
         this.onMessage = null;
         this.onHistory = null;
     }
 }
 
-export const chatWs = new ChatWebSocketService();
+// Export singleton instances for backward compatibility or global usage if needed
+export const projectChatWs = new ChatWebSocketClient();
+export const teamChatWsClient = new ChatWebSocketClient();

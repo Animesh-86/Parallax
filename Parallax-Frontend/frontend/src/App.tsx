@@ -29,6 +29,7 @@ import Rooms from "./pages/Rooms";
 import Teams from "./pages/Teams";
 import Friends from "./pages/Friends";
 import DashboardLayout from "./components/layouts/DashboardLayout";
+import { ProfileProvider } from "./context/ProfileContext";
 
 
 
@@ -60,11 +61,13 @@ export default function App() {
 
         <Route element={
           <RequireAuth>
-            <CollaborationProvider>
-              <VoiceProvider>
-                <DashboardLayout />
-              </VoiceProvider>
-            </CollaborationProvider>
+            <ProfileProvider>
+              <CollaborationProvider>
+                <VoiceProvider>
+                  <DashboardLayout />
+                </VoiceProvider>
+              </CollaborationProvider>
+            </ProfileProvider>
           </RequireAuth>
         }>
           <Route path="/dashboard" element={<Dashboard />} />

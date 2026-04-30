@@ -8,7 +8,8 @@ import { teamApi, Team, TeamMember, TeamProject } from '../services/teamApi';
 import { collabApi } from '../services/collabApi';
 import { QuickCreateModal } from '../components/modals/QuickCreateModal';
 import { CreateRoomModal } from '../components/modals/CreateRoomModal';
-import { TeamChatPanel } from '../components/chat/TeamChatPanel';
+import { UnifiedChatPanel } from '../components/chat/UnifiedChatPanel';
+import { teamChatWsClient } from '../services/wsChatClient';
 import { LinkProjectModal } from '../components/modals/LinkProjectModal';
 import { apiBaseUrl } from '../services/env';
 
@@ -473,14 +474,13 @@ export default function TeamWorkspace() {
           </motion.div>
         )}
 
-        {/* CHAT TAB */}
         {activeTab === 'chat' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
               <Hash className="w-6 h-6 text-[#D4AF37]" />
               Team Chat
             </h2>
-            <TeamChatPanel teamId={team.id} teamName={team.name} />
+            <UnifiedChatPanel contextId={team.id} contextType="TEAM" contextName={team.name} wsClient={teamChatWsClient} />
           </motion.div>
         )}
 
