@@ -200,16 +200,33 @@ export default function CodeEditor({
       base: "vs-dark",
       inherit: true,
       rules: [
-        { token: "comment", foreground: "6A9955" },
-        { token: "keyword", foreground: "C586C0" },
+        { token: "", foreground: "D4D4D4" },
+        { token: "keyword", foreground: "C586C0", fontStyle: "bold" },
+        { token: "comment", foreground: "6A9955", fontStyle: "italic" },
         { token: "string", foreground: "CE9178" },
         { token: "number", foreground: "B5CEA8" },
+        { token: "type", foreground: "4EC9B0" },
+        { token: "function", foreground: "DCDCAA" },
+        { token: "variable", foreground: "9CDCFE" },
+        { token: "constant", foreground: "4FC1FF" },
       ],
       colors: {
         "editor.background": "#000000",
+        "editor.foreground": "#D4D4D4",
+        "editorCursor.foreground": "#D4AF37",
+        "editor.lineHighlightBackground": "#1A1A1A",
+        "editorLineNumber.foreground": "#858585",
+        "editorLineNumber.activeForeground": "#D4AF37",
       },
     });
     monaco.editor.setTheme("Parallax-dark");
+    
+    // Explicitly set language on the model
+    const model = editor.getModel();
+    if (model && filePath) {
+      const lang = getLanguageFromPath(filePath);
+      monaco.editor.setModelLanguage(model, lang);
+    }
   };
 
   if (!filePath) {

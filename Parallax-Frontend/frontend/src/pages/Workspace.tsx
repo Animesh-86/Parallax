@@ -11,6 +11,8 @@ import { VideoPanel } from "../components/workspace/VideoPanel";
 import { ParticipantsList } from "../components/workspace/ParticipantsList";
 import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
 import { projectChatWs } from "../services/wsChatClient";
+import { ActivityPanel } from "../components/workspace/ActivityPanel";
+import { versioningApi, ProjectBranch } from "../services/versioningApi";
 import { CosmicStars } from "../components/workspace/CosmicStars";
 import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
@@ -68,6 +70,11 @@ export default function Workspace() {
   const [loadingTree, setLoadingTree] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
 
+  /* Versioning State */
+  const [activeBranch, setActiveBranch] = useState<ProjectBranch | null>(null);
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const [teamName, setTeamName] = useState<string | null>(null);
+
 
   /* Right Panel Tools State */
   type RightTool = "video" | "chat" | "collaborators" | "ai" | "settings" | null;
@@ -104,6 +111,34 @@ export default function Workspace() {
       }
     };
     fetchProjectName();
+  }, [projectId]);
+
+  /* Initialize versioning main branch */
+  useEffect(() => {
+    if (!projectId) return;
+    const initVersioning = async () => {
+      try {
+        const mainBranch = await versioningApi.ensureMainBranch(projectId);
+        setActiveBranch(mainBranch);
+      } catch (err) {
+        console.error('Failed to init versioning:', err);
+      }
+    };
+
+    const fetchTeamContext = async () => {
+      try {
+        const res = await api.get(`/projects/${projectId}`);
+        if (res.data.teamId) {
+          setTeamId(res.data.teamId);
+          setTeamName(res.data.teamName || 'Team');
+        }
+      } catch (err) {
+        // Non-critical
+      }
+    };
+
+    initVersioning();
+    fetchTeamContext();
   }, [projectId]);
 
   // ---------------- API calls ----------------
@@ -262,16 +297,18 @@ export default function Workspace() {
                   )
                 )}
 
-                {activeLeftTool === "git" && (
+                {activeLeftTool === "git" && projectId && (
                   <div className="flex flex-col h-full w-full">
                     <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
                       <span className="text-xs font-semibold tracking-wide text-white/60">SOURCE CONTROL</span>
                       <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                     </div>
-                    <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/50">
-                      <GitBranch className="w-12 h-12 mb-4 opacity-50" />
-                      <h3 className="text-lg font-bold text-white mb-2">Git Disconnected</h3>
-                      <p className="text-sm">Git is taking a coffee break. <br />(Coming Soon)</p>
+                    <div className="flex-1 overflow-y-auto">
+                      <ActivityPanel
+                        projectId={projectId}
+                        activeBranchId={activeBranch?.id || null}
+                        onBranchChange={(branch) => setActiveBranch(branch)}
+                      />
                     </div>
                   </div>
                 )}
@@ -333,16 +370,16 @@ export default function Workspace() {
             </div>
           )}
 
-          <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col pt-6">
             <EditorTabs
               projectName={loadingName ? <Skeleton className="h-5 w-32 inline-block" /> : projectName}
               files={openFiles}
               activeFile={activeFile}
+              teamId={teamId}
+              teamName={teamName}
+              activeBranch={activeBranch}
               onSelect={(path) => {
                 setActiveFile(path);
-                // We also need to fetch content if we just switched back to it
-                // Ideally we cache content, but for now let's re-fetch or rely on existing state if valid?
-                // Actually, openFile handles fetching. Let's reuse openFile but maybe optimize later.
                 openFile(path);
               }}
               onClose={closeFile}

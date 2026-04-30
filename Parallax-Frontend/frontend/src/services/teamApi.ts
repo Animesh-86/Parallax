@@ -112,4 +112,8 @@ export const teamApi = {
     });
     return response.data;
   },
+
+  unlinkProjectFromTeam: async (teamId: string, projectId: string): Promise<void> => {
+    await api.delete(`/api/teams/${teamId}/projects/${projectId}`);
+  },
 };

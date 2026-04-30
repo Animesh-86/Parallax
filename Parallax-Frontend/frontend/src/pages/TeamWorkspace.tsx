@@ -387,6 +387,22 @@ export default function TeamWorkspace() {
                         <Code2 className="w-4 h-4 text-white/40 group-hover:text-[#D4AF37]" />
                       </div>
                     </div>
+                    {(team.myRole === 'OWNER' || team.myRole === 'ADMIN') && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Unlink "${project.name}" from this team? Members will retain access.`)) {
+                            teamApi.unlinkProjectFromTeam(team.id, project.id)
+                              .then(() => fetchTeamProjects())
+                              .catch(err => console.error('Failed to unlink:', err));
+                          }
+                        }}
+                        className="w-full mt-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] text-white/40 hover:text-white/70 hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Link2 className="w-3 h-3" />
+                        Unlink from Team
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

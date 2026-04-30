@@ -199,6 +199,9 @@ public class TeamServiceImpl implements TeamService {
             throw new IllegalStateException("You do not have a pending invitation for this team");
         }
 
+        // Revoke any provisional project access granted during invite
+        revokeProjectAccessForUser(teamId, requesterId);
+
         teamMemberRepository.delete(membership);
 
         Team team = findTeam(teamId);
@@ -226,6 +229,9 @@ public class TeamServiceImpl implements TeamService {
 
         TeamMember member = teamMemberRepository.findByTeam_IdAndUser_Id(teamId, memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team member not found"));
+
+        // Cascade: revoke access from all team projects
+        revokeProjectAccessForUser(teamId, memberId);
 
         teamMemberRepository.delete(member);
         team.setUpdatedAt(Instant.now());
@@ -269,6 +275,14 @@ public class TeamServiceImpl implements TeamService {
 
         if (!team.getOwner().getId().equals(requesterId)) {
             throw new SecurityException("Only the team owner can delete the team");
+        }
+
+        // Safely unlink all projects from the team before deletion
+        List<Project> teamProjects = projectRepository.findByTeam_Id(teamId);
+        for (Project project : teamProjects) {
+            project.setTeam(null);
+            project.setUpdatedAt(Instant.now());
+            projectRepository.save(project);
         }
 
         teamMemberRepository.deleteByTeam_Id(teamId);
@@ -364,16 +378,33 @@ public class TeamServiceImpl implements TeamService {
     }
 
     /**
-     * When a new member joins a team, add them as COLLABORATOR to all projects belonging to that team.
+     * Maps a TeamMemberRole to a CollaboratorRole for RBAC sync.
+     */
+    private CollaboratorRole mapTeamRoleToProjectRole(TeamMemberRole teamRole) {
+        return switch (teamRole) {
+            case OWNER -> CollaboratorRole.OWNER;
+            case ADMIN -> CollaboratorRole.ADMIN;
+            case MEMBER -> CollaboratorRole.COLLABORATOR;
+        };
+    }
+
+    /**
+     * When a new member joins a team, add them to all projects belonging to that team
+     * with a role derived from their team membership role.
      */
     public void autoSyncMemberToTeamProjects(Team team, User user) {
+        TeamMember membership = teamMemberRepository.findByTeam_IdAndUser_Id(team.getId(), user.getId()).orElse(null);
+        CollaboratorRole projectRole = (membership != null)
+                ? mapTeamRoleToProjectRole(membership.getRole())
+                : CollaboratorRole.COLLABORATOR;
+
         List<Project> teamProjects = projectRepository.findByTeam_Id(team.getId());
         for (Project project : teamProjects) {
             // Skip if already a collaborator
             if (collaboratorRepository.findByProjectIdAndUserId(project.getId(), user.getId()).isPresent()) {
                 continue;
             }
-            ProjectCollaborator collab = new ProjectCollaborator(project, user, CollaboratorRole.COLLABORATOR);
+            ProjectCollaborator collab = new ProjectCollaborator(project, user, projectRole);
             collab.setStatus(CollaboratorStatus.ACCEPTED);
             collab.setAcceptedAt(Instant.now());
             collaboratorRepository.save(collab);
@@ -381,7 +412,8 @@ public class TeamServiceImpl implements TeamService {
     }
 
     /**
-     * When a project is linked to a team, add all active team members as COLLABORATOR.
+     * When a project is linked to a team, add all active team members
+     * with roles derived from their team membership roles.
      */
     public void syncAllTeamMembersToProject(Team team, Project project) {
         if (!team.isAutoAddMembersToProjects()) {
@@ -394,10 +426,27 @@ public class TeamServiceImpl implements TeamService {
             if (collaboratorRepository.findByProjectIdAndUserId(project.getId(), user.getId()).isPresent()) {
                 continue;
             }
-            ProjectCollaborator collab = new ProjectCollaborator(project, user, CollaboratorRole.COLLABORATOR);
+            CollaboratorRole projectRole = mapTeamRoleToProjectRole(member.getRole());
+            ProjectCollaborator collab = new ProjectCollaborator(project, user, projectRole);
             collab.setStatus(CollaboratorStatus.ACCEPTED);
             collab.setAcceptedAt(Instant.now());
             collaboratorRepository.save(collab);
+        }
+    }
+
+    /**
+     * Revoke project access for a user across all projects belonging to a team.
+     * Used when a member is removed or rejects an invite.
+     */
+    private void revokeProjectAccessForUser(UUID teamId, UUID userId) {
+        List<Project> teamProjects = projectRepository.findByTeam_Id(teamId);
+        for (Project project : teamProjects) {
+            // Don't revoke access if the user is the project owner
+            if (project.getOwner().getId().equals(userId)) {
+                continue;
+            }
+            collaboratorRepository.findByProjectIdAndUserId(project.getId(), userId)
+                    .ifPresent(collaboratorRepository::delete);
         }
     }
 
@@ -425,5 +474,29 @@ public class TeamServiceImpl implements TeamService {
 
         return toTeamResponse(team, requesterMembership);
     }
-}
 
+    /**
+     * Unlink a project from a team. The project continues to exist as a personal project.
+     * Per design decision: team members RETAIN their collaborator access after unlinking.
+     */
+    @Transactional
+    public void unlinkProjectFromTeam(UUID teamId, UUID projectId, UUID requesterId) {
+        Team team = findTeam(teamId);
+        TeamMember requesterMembership = requireMembership(teamId, requesterId);
+        ensureCanManageMembers(team, requesterMembership, requesterId);
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+
+        if (project.getTeam() == null || !project.getTeam().getId().equals(teamId)) {
+            throw new IllegalStateException("Project is not linked to this team");
+        }
+
+        project.setTeam(null);
+        project.setUpdatedAt(Instant.now());
+        projectRepository.save(project);
+
+        team.setUpdatedAt(Instant.now());
+        teamRepository.save(team);
+    }
+}

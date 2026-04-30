@@ -1,9 +1,5 @@
-import { X, Split, Play } from 'lucide-react';
-import { LogOut } from "lucide-react";
+import { X, Split, Play, LogOut, GitBranch, Users } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-
-
-
 type EditorTabsProps = {
   projectName: string;
   files: string[];
@@ -11,6 +7,9 @@ type EditorTabsProps = {
   onSelect: (path: string) => void;
   onClose: (path: string) => void;
   onRun: () => void;
+  teamId?: string | null;
+  teamName?: string | null;
+  activeBranch?: { name: string } | null;
 };
 
 export function EditorTabs({
@@ -20,16 +19,43 @@ export function EditorTabs({
   onSelect,
   onClose,
   onRun,
+  teamId,
+  teamName,
+  activeBranch,
 }: EditorTabsProps) {
   const navigate = useNavigate();
 
   return (
     <div className="bg-[#09090B] border-b border-white/5">
-      {/* Tagline */}
-      <div className="px-4 py-2 text-center border-b border-white/5">
-        <h2 className="text-lg font-bold bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent font-serif italic">
-          {projectName}
-        </h2>
+      {/* Header with Project Info and Badges */}
+      <div className="px-4 py-2 flex items-center border-b border-white/5 bg-[#0D0D0F]">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {teamId && (
+            <a
+              href={`/team/${teamId}`}
+              className="flex items-center gap-1.5 px-2 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-md text-[10px] text-[#D4AF37] hover:bg-[#D4AF37]/20 transition-all truncate max-w-[120px]"
+            >
+              <Users className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{teamName}</span>
+            </a>
+          )}
+          {activeBranch && (
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-[10px] text-white/50 truncate max-w-[120px]">
+              <GitBranch className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{activeBranch.name}</span>
+            </span>
+          )}
+        </div>
+
+        <div className="flex-[2] text-center">
+          <h2 className="text-sm md:text-lg font-bold bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent font-serif italic truncate px-2">
+            {projectName}
+          </h2>
+        </div>
+
+        <div className="flex-1 flex justify-end">
+          {/* Potential right-side header items */}
+        </div>
       </div>
 
       {/* Tabs */}

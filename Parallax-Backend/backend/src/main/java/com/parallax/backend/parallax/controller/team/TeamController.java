@@ -167,4 +167,15 @@ public class TeamController {
         boolean autoAdd = body.getOrDefault("autoAddMembersToProjects", true);
         return ResponseEntity.ok(teamService.updateAutoAddSetting(teamId, userId, autoAdd));
     }
+
+    @DeleteMapping("/{teamId}/projects/{projectId}")
+    public ResponseEntity<Void> unlinkProject(
+            @PathVariable UUID teamId,
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        teamService.unlinkProjectFromTeam(teamId, projectId, userId);
+        return ResponseEntity.ok().build();
+    }
 }
