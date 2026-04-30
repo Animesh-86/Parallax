@@ -34,6 +34,15 @@ public class Project {
     @JoinColumn(name = "team_id")
     private Team team;  // nullable — solo projects have no team
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String settingsJson; // JSON representation of settings
+
+    @Column(columnDefinition = "TEXT")
+    private String enabledExtensionsJson; // JSON list of enabled extensions
+
     public Project() {}
 
     public Project(UUID id, String name, String language) {
@@ -42,6 +51,8 @@ public class Project {
         this.language = language;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
+        this.settingsJson = "{}";
+        this.enabledExtensionsJson = "[]";
     }
 
     public UUID getId() { return id; }
@@ -64,4 +75,13 @@ public class Project {
 
     public Team getTeam() { return team; }
     public void setTeam(Team team) { this.team = team; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public String getSettingsJson() { return settingsJson; }
+    public void setSettingsJson(String settingsJson) { this.settingsJson = settingsJson; }
+
+    public String getEnabledExtensionsJson() { return enabledExtensionsJson; }
+    public void setEnabledExtensionsJson(String enabledExtensionsJson) { this.enabledExtensionsJson = enabledExtensionsJson; }
 }

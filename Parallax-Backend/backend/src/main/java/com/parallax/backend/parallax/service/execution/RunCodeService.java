@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +46,16 @@ public class RunCodeService {
     @Value("${code.runner.python-image:parallax-python-runner}")
     private String pythonRunnerImage;
 
-    public CommandResult runPythonInSession(
+    @Value("${code.runner.java-image:parallax-java-runner}")
+    private String javaRunnerImage;
+
+    @Value("${code.runner.js-image:parallax-js-runner}")
+    private String jsRunnerImage;
+
+    @Value("${code.runner.cpp-image:parallax-cpp-runner}")
+    private String cppRunnerImage;
+
+    public CommandResult runCodeInSession(
             String sessionId,
             String filename,
             int timeoutSeconds,
@@ -61,6 +71,7 @@ public class RunCodeService {
         }
 
         UUID projectId = session.getProjectId();
+        String language = session.getLanguage();
 
         if (!runRateLimiter.allow(projectId)) {
             return new CommandResult(-1, "Run limit exceeded");
@@ -103,30 +114,46 @@ public class RunCodeService {
                     );
                 }
 
-                // Runner bootstrap
-                Path runner = jobDir.resolve("__runner__.py");
-                Files.writeString(
-                        runner,
-                        """
-                        import runpy, sys
-                        print('[runner] running:', sys.argv[1])
-                        runpy.run_path(sys.argv[1], run_name='__main__')
-                        """,
-                        StandardCharsets.UTF_8
-                );
-
-                // Docker execution
-                List<String> cmd = List.of(
+                // Prepare Docker command based on language
+                List<String> cmd = new ArrayList<>(List.of(
                         "docker", "run", "--rm",
                         "--cpus=0.5",
                         "--memory=256m",
                         "--network=none",
                         "-w", "/workspace",
-                        "-v", jobDir.toAbsolutePath() + ":/workspace",
-                        pythonRunnerImage,
-                        "__runner__.py",
-                        safePath
-                );
+                        "-v", jobDir.toAbsolutePath() + ":/workspace"
+                ));
+
+                if ("python".equalsIgnoreCase(language)) {
+                    Path runner = jobDir.resolve("__runner__.py");
+                    Files.writeString(
+                            runner,
+                            """
+                            import runpy, sys
+                            print('[runner] running:', sys.argv[1])
+                            runpy.run_path(sys.argv[1], run_name='__main__')
+                            """,
+                            StandardCharsets.UTF_8
+                    );
+                    cmd.add(pythonRunnerImage);
+                    cmd.add("python3");
+                    cmd.add("__runner__.py");
+                    cmd.add(safePath);
+                } else if ("java".equalsIgnoreCase(language)) {
+                    cmd.add(javaRunnerImage);
+                    cmd.add("java");
+                    cmd.add(safePath);
+                } else if ("javascript".equalsIgnoreCase(language)) {
+                    cmd.add(jsRunnerImage);
+                    cmd.add("node");
+                    cmd.add(safePath);
+                } else if ("cpp".equalsIgnoreCase(language)) {
+                    cmd.add(cppRunnerImage);
+                    cmd.add("./run_cpp.sh");
+                    cmd.add(safePath);
+                } else {
+                    throw new IllegalArgumentException("Unsupported language: " + language);
+                }
 
                 log.info("🐳 Docker command:\n{}", String.join(" ", cmd));
 

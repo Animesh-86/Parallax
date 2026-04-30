@@ -18,4 +18,6 @@ public enum ProjectPermission {
 
     OWNER_ONLY,
     READ_COLLABORATORS,
+    MANAGE_SETTINGS,
+    MANAGE_EXTENSIONS,
 }

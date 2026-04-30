@@ -3,6 +3,7 @@ package com.parallax.backend.parallax.service.project;
 import com.parallax.backend.parallax.config.StorageProperties;
 import com.parallax.backend.parallax.dto.project.CreateProjectRequest;
 import com.parallax.backend.parallax.dto.project.ProjectResponse;
+import com.parallax.backend.parallax.dto.project.UpdateProjectSettingsRequest;
 import com.parallax.backend.parallax.entity.auth.User;
 import com.parallax.backend.parallax.entity.collaborator.CollaboratorRole;
 import com.parallax.backend.parallax.entity.collaborator.ProjectCollaborator;
@@ -71,7 +72,8 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = new Project();
         project.setId(UUID.randomUUID());
         project.setName(request.getName());
-        project.setLanguage(request.getLanguage());
+        // Force language to lowercase for consistent matching
+        project.setLanguage(request.getLanguage() != null ? request.getLanguage().toLowerCase() : "python");
         project.setOwner(owner);
         project.setCreatedAt(Instant.now());
         project.setUpdatedAt(Instant.now());
@@ -85,9 +87,9 @@ public class ProjectServiceImpl implements ProjectService {
 
         project = projectRepository.save(project);
 
-        // DEFAULT FILES
+        // DEFAULT FILES - using the normalized language
         List<ProjectFile> initialFiles =
-                createDefaultFiles(project.getId());
+                createDefaultFiles(project.getId(), project.getLanguage());
 
         projectFileRepository.saveAll(initialFiles);
         createProjectRootOnDisk(project.getId(), initialFiles);
@@ -194,7 +196,24 @@ public class ProjectServiceImpl implements ProjectService {
                         .getSessionIdForProject(project.getId())
                         .orElse(null);
 
-        return ProjectResponse.from(project, files, activeSessionId);
+        ProjectResponse response = ProjectResponse.from(project, files, activeSessionId);
+        
+        // Inject runtime info based on language
+        response.setRuntimeName(getRuntimeName(project.getLanguage()));
+        
+        return response;
+    }
+
+    private String getRuntimeName(String language) {
+        if (language == null) return "Standard Sandbox";
+        return switch (language.toLowerCase()) {
+            case "java" -> "OpenJDK 17 / Maven 3.9";
+            case "python" -> "Python 3.11 / Pip";
+            case "javascript", "typescript" -> "Node.js 20 / NPM";
+            case "c" -> "GCC 12 / GDB";
+            case "cpp" -> "G++ 12 / CMake";
+            default -> "Standard Sandbox";
+        };
     }
 
     private void validateProjectName(String name) {
@@ -255,7 +274,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private List<ProjectFile> createDefaultFiles(UUID projectId) {
+    private List<ProjectFile> createDefaultFiles(UUID projectId, String language) {
 
         List<ProjectFile> files = new ArrayList<>();
 
@@ -267,11 +286,39 @@ public class ProjectServiceImpl implements ProjectService {
                 "FOLDER"
         ));
 
+        String mainFile = "README.md";
+        String mainContent = "# New Project\n\nThis project was created in Parallax.";
+        
+        if (language != null) {
+            switch (language.toLowerCase()) {
+                case "python" -> {
+                    mainFile = "src/main.py";
+                    mainContent = "print('Hello from Parallax!')";
+                }
+                case "java" -> {
+                    mainFile = "src/Main.java";
+                    mainContent = "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello from Parallax!\");\n    }\n}";
+                }
+                case "javascript" -> {
+                    mainFile = "src/index.js";
+                    mainContent = "console.log('Hello from Parallax!');";
+                }
+                case "c" -> {
+                    mainFile = "src/main.c";
+                    mainContent = "#include <stdio.h>\n\nint main() {\n    printf(\"Hello from Parallax!\\n\");\n    return 0;\n}";
+                }
+                case "cpp" -> {
+                    mainFile = "src/main.cpp";
+                    mainContent = "#include <iostream>\n\nint main() {\n    std::cout << \"Hello from Parallax!\" << std::endl;\n    return 0;\n}";
+                }
+            }
+        }
+
         files.add(new ProjectFile(
                 UUID.randomUUID(),
                 projectId,
-                "src/main.py",
-                "print('Hello from Parallax')",
+                mainFile,
+                mainContent,
                 "FILE"
         ));
 
@@ -279,7 +326,7 @@ public class ProjectServiceImpl implements ProjectService {
                 UUID.randomUUID(),
                 projectId,
                 "README.md",
-                "# New Project\n\nThis project was created in Parallax.",
+                "# " + language + " Project\n\nGenerated by Parallax.",
                 "FILE"
         ));
 
@@ -313,6 +360,69 @@ public class ProjectServiceImpl implements ProjectService {
         project.setUpdatedAt(Instant.now());
         project = projectRepository.save(project);
 
+        return toResponse(project);
+    }
+
+    @Override
+    @Transactional
+    public ProjectResponse updateSettings(UUID projectId, UUID requesterId, UpdateProjectSettingsRequest request) {
+        accessManager.require(projectId, requesterId, ProjectPermission.MANAGE_SETTINGS);
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            project.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            project.setDescription(request.getDescription());
+        }
+        if (request.getSettingsJson() != null) {
+            project.setSettingsJson(request.getSettingsJson());
+        }
+
+        project.setUpdatedAt(Instant.now());
+        project = projectRepository.save(project);
+        return toResponse(project);
+    }
+
+    @Override
+    @Transactional
+    public ProjectResponse toggleExtension(UUID projectId, UUID requesterId, String extensionId, boolean enabled) {
+        accessManager.require(projectId, requesterId, ProjectPermission.MANAGE_EXTENSIONS);
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+
+        String currentExtJson = project.getEnabledExtensionsJson();
+        List<String> extensions = new ArrayList<>();
+        if (currentExtJson != null && !currentExtJson.equals("[]") && !currentExtJson.isBlank()) {
+            // Very basic JSON parsing since we don't have a complex mapper here
+            String clean = currentExtJson.replace("[", "").replace("]", "").replace("\"", "");
+            if (!clean.isBlank()) {
+                extensions.addAll(Arrays.asList(clean.split(",")));
+            }
+        }
+
+        if (enabled) {
+            if (!extensions.contains(extensionId)) {
+                extensions.add(extensionId);
+            }
+        } else {
+            extensions.remove(extensionId);
+        }
+
+        // Re-serialize (very basic)
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < extensions.size(); i++) {
+            sb.append("\"").append(extensions.get(i).trim()).append("\"");
+            if (i < extensions.size() - 1) sb.append(",");
+        }
+        sb.append("]");
+        project.setEnabledExtensionsJson(sb.toString());
+
+        project.setUpdatedAt(Instant.now());
+        project = projectRepository.save(project);
         return toResponse(project);
     }
 }

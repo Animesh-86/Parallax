@@ -75,6 +75,22 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
         return switch (role) {
 
             case OWNER -> EnumSet.allOf(ProjectPermission.class);
+            
+            case ADMIN -> EnumSet.of(
+                    ProjectPermission.READ_PROJECT,
+                    ProjectPermission.READ_TREE,
+                    ProjectPermission.READ_FILE,
+                    ProjectPermission.READ_COLLABORATORS,
+                    ProjectPermission.CREATE_FILE,
+                    ProjectPermission.CREATE_FOLDER,
+                    ProjectPermission.UPDATE_FILE,
+                    ProjectPermission.DELETE_FILE,
+                    ProjectPermission.EXECUTE_CODE,
+                    ProjectPermission.START_SESSION,
+                    ProjectPermission.STOP_SESSION,
+                    ProjectPermission.MANAGE_SETTINGS,
+                    ProjectPermission.MANAGE_EXTENSIONS
+            );
 
             case COLLABORATOR -> EnumSet.of(
                     ProjectPermission.READ_PROJECT,

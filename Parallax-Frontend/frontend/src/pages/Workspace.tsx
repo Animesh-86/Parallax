@@ -17,6 +17,8 @@ import { CosmicStars } from "../components/workspace/CosmicStars";
 import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
+import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
+import { ExtensionsPanel } from "../components/workspace/ExtensionsPanel";
 
 type FileNode = {
   name: string;
@@ -74,6 +76,7 @@ export default function Workspace() {
   const [activeBranch, setActiveBranch] = useState<ProjectBranch | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [projectSettings, setProjectSettings] = useState<any>(null);
 
 
   /* Right Panel Tools State */
@@ -102,6 +105,7 @@ export default function Workspace() {
           setLoadingName(true);
           const res = await api.get(`/projects/${projectId}`);
           setProjectName(res.data.name);
+          setProjectSettings(res.data);
         }
       } catch (err) {
         console.error("Failed to fetch project details", err);
@@ -128,6 +132,7 @@ export default function Workspace() {
     const fetchTeamContext = async () => {
       try {
         const res = await api.get(`/projects/${projectId}`);
+        setProjectSettings(res.data);
         if (res.data.teamId) {
           setTeamId(res.data.teamId);
           setTeamName(res.data.teamName || 'Team');
@@ -313,18 +318,8 @@ export default function Workspace() {
                   </div>
                 )}
 
-                {activeLeftTool === "extensions" && (
-                  <div className="flex flex-col h-full w-full">
-                    <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
-                      <span className="text-xs font-semibold tracking-wide text-white/60">EXTENSIONS</span>
-                      <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
-                    </div>
-                    <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/50">
-                      <Puzzle className="w-12 h-12 mb-4 opacity-50" />
-                      <h3 className="text-lg font-bold text-white mb-2">No Extensions</h3>
-                      <p className="text-sm">Who needs extensions when you have raw talent? <br />(Coming Soon)</p>
-                    </div>
-                  </div>
+                {activeLeftTool === "extensions" && projectId && (
+                  <ExtensionsPanel projectId={projectId} />
                 )}
 
                 {activeLeftTool === "ai" && (
@@ -345,21 +340,13 @@ export default function Workspace() {
                   </div>
                 )}
 
-                {activeLeftTool === "settings" && (
+                {activeLeftTool === "settings" && projectId && (
                   <div className="flex flex-col h-full w-full">
                     <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
-                      <span className="text-xs font-semibold tracking-wide text-white/60">SETTINGS</span>
+                      <span className="text-xs font-semibold tracking-wide text-white/60">PROJECT SETTINGS</span>
                       <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                     </div>
-                    <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                      <Settings className="w-12 h-12 mb-4 text-zinc-600 animate-[spin_5s_linear_infinite]" />
-                      <h3 className="text-lg font-bold text-white mb-2">No Settings Here!</h3>
-                      <p className="text-sm">
-                        The code is already perfect.
-                        <br />
-                        <span className="opacity-50 text-xs block mt-2">(Just kidding, coming soon!)</span>
-                      </p>
-                    </div>
+                    <ProjectSettingsPanel projectId={projectId} onUpdate={() => fetchProjectName()} />
                   </div>
                 )}
               </div>
@@ -409,6 +396,17 @@ export default function Workspace() {
                   setRunOutput(out);
                   setRunExitCode(code);
                 }}
+                {...(() => {
+                  const s = JSON.parse(projectSettings?.settingsJson || '{}');
+                  return {
+                    tabSize: s.tabSize || 2,
+                    fontSize: s.fontSize || 14,
+                    fontFamily: s.fontFamily || "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+                    minimap: s.minimap !== undefined ? s.minimap : true,
+                    wordWrap: s.wordWrap || "on",
+                    autoSave: s.autoSave !== undefined ? s.autoSave : true,
+                  };
+                })()}
               />
             </div>
 
@@ -461,20 +459,13 @@ export default function Workspace() {
                   </div>
                 </div>
               )}
-              {activeTool === "settings" && (
+              {activeTool === "settings" && projectId && (
                 <div className="flex flex-col h-full w-full">
                   <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
-                    <span className="text-xs font-semibold tracking-wide text-white/60">SETTINGS</span>
+                    <span className="text-xs font-semibold tracking-wide text-white/60">PROJECT SETTINGS</span>
+                    <button onClick={() => setActiveTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                   </div>
-                  <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                    <Settings className="w-12 h-12 mb-4 text-[#27272A] animate-[spin_5s_linear_infinite]" />
-                    <h3 className="text-lg font-bold text-white mb-2">No Settings Here!</h3>
-                    <p className="text-sm">
-                      The code is already perfect.
-                      <br />
-                      <span className="opacity-50 text-xs block mt-2">(Just kidding, coming soon!)</span>
-                    </p>
-                  </div>
+                  <ProjectSettingsPanel projectId={projectId} onUpdate={() => fetchProjectName()} />
                 </div>
               )}
             </div>

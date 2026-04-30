@@ -20,6 +20,12 @@ type CodeEditorProps = {
   onChange: (value: string) => void;
   runSignal: number;
   onRunResult: (output: string, exitCode: number | null) => void;
+  tabSize?: number;
+  fontSize?: number;
+  fontFamily?: string;
+  minimap?: boolean;
+  wordWrap?: "on" | "off";
+  autoSave?: boolean;
 };
 
 export default function CodeEditor({
@@ -28,6 +34,12 @@ export default function CodeEditor({
   onChange,
   runSignal,
   onRunResult,
+  tabSize = 2,
+  fontSize = 14,
+  fontFamily = "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+  minimap = true,
+  wordWrap = "on",
+  autoSave = true,
 }: CodeEditorProps) {
   const { projectId } = useParams();
 
@@ -223,10 +235,25 @@ export default function CodeEditor({
     
     // Explicitly set language on the model
     const model = editor.getModel();
-    if (model && filePath) {
-      const lang = getLanguageFromPath(filePath);
-      monaco.editor.setModelLanguage(model, lang);
+    if (model) {
+      if (filePath) {
+        const lang = getLanguageFromPath(filePath);
+        monaco.editor.setModelLanguage(model, lang);
+      }
+      // Apply tab settings
+      model.updateOptions({ 
+        tabSize: tabSize, 
+        insertSpaces: true 
+      });
     }
+
+    // Apply other settings directly to editor instance
+    editor.updateOptions({
+      fontSize: fontSize,
+      fontFamily: fontFamily,
+      minimap: { enabled: minimap },
+      wordWrap: wordWrap,
+    });
   };
 
   if (!filePath) {
@@ -292,13 +319,15 @@ export default function CodeEditor({
             theme="Parallax-dark"
             onMount={handleEditorMount}
             options={{
-              fontSize: 14,
-              fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+              fontSize: fontSize,
+              tabSize: tabSize,
+              insertSpaces: true,
+              fontFamily: fontFamily,
               fontLigatures: true,
-              minimap: { enabled: true },
+              minimap: { enabled: minimap },
               automaticLayout: true,
               scrollBeyondLastLine: false,
-              wordWrap: "on",
+              wordWrap: wordWrap,
               autoClosingBrackets: "always",
               autoClosingQuotes: "always",
               formatOnType: true,

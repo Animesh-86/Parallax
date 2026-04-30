@@ -1,5 +1,4 @@
-// QuickCreateModal.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Folder, ChevronDown, Sparkles } from 'lucide-react';
 
 interface QuickCreateModalProps {
@@ -20,8 +19,22 @@ export function QuickCreateModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Lock body scroll when open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
+
   const languages = [
-    { value: 'python', label: 'Python', color: '#71717A' },
+    { value: 'python', label: 'Python', color: '#3776AB' },
+    { value: 'java', label: 'Java', color: '#007396' },
+    { value: 'javascript', label: 'JavaScript', color: '#F7DF1E' },
+    { value: 'c', label: 'C', color: '#A8B9CC' },
+    { value: 'cpp', label: 'C++', color: '#00599C' },
   ];
 
   if (!isOpen) return null;
@@ -31,6 +44,10 @@ export function QuickCreateModal({
   const handleSelectLanguage = (value: string) => {
     setSelectedLanguage(value);
     setIsDropdownOpen(false);
+  };
+
+  const handleDropdownWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
   };
 
   const handleCreate = async () => {
@@ -155,13 +172,16 @@ export function QuickCreateModal({
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-[#09090B]/95 border border-white/10 rounded-xl shadow-2xl z-50">
+                  <div 
+                    className="absolute top-full left-0 right-0 mt-2 bg-[#09090B]/95 border border-white/10 rounded-xl shadow-2xl z-[60] max-h-48 overflow-y-auto custom-scrollbar"
+                    onWheel={handleDropdownWheel}
+                  >
                     {languages.map((lang) => (
                       <button
                         key={lang.value}
                         type="button"
                         onClick={() => handleSelectLanguage(lang.value)}
-                        className="w-full px-4 py-3 text-left hover:bg-white/5 flex items-center gap-3"
+                        className="w-full px-4 py-3 text-left hover:bg-white/5 flex items-center gap-3 transition-colors"
                       >
                         <span
                           className="w-3 h-3 rounded-full"

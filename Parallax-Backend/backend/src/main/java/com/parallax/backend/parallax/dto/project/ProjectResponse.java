@@ -23,6 +23,10 @@ public class ProjectResponse {
     private String activeSessionId; // nullable
     private UUID teamId;            // nullable
     private String teamName;        // nullable
+    private String description;     // nullable
+    private String settingsJson;    // nullable
+    private String enabledExtensionsJson; // nullable
+    private String runtimeName;     // nullable
 
     @Data
     @AllArgsConstructor
@@ -40,6 +44,9 @@ public class ProjectResponse {
                 .activeSessionId(activeSessionId)
                 .teamId(project.getTeam() != null ? project.getTeam().getId() : null)
                 .teamName(project.getTeam() != null ? project.getTeam().getName() : null)
+                .description(project.getDescription())
+                .settingsJson(project.getSettingsJson())
+                .enabledExtensionsJson(project.getEnabledExtensionsJson())
                 .files(files.stream()
                         .map(f -> new FileDto(
                                 f.getId(),

@@ -71,4 +71,32 @@ public class ProjectController {
         ProjectResponse response = projectService.linkProjectToTeam(projectId, userId, teamId);
         return ResponseEntity.ok(response);
     }
+    @PutMapping("/{projectId}/settings")
+    public ResponseEntity<ProjectResponse> updateProjectSettings(
+            @PathVariable UUID projectId,
+            @RequestBody com.parallax.backend.parallax.dto.project.UpdateProjectSettingsRequest request,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        ProjectResponse response = projectService.updateSettings(projectId, userId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{projectId}/extensions/toggle")
+    public ResponseEntity<ProjectResponse> toggleExtension(
+            @PathVariable UUID projectId,
+            @RequestBody Map<String, Object> body,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        String extensionId = (String) body.get("extensionId");
+        Boolean enabled = (Boolean) body.get("enabled");
+        
+        if (extensionId == null || enabled == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        ProjectResponse response = projectService.toggleExtension(projectId, userId, extensionId, enabled);
+        return ResponseEntity.ok(response);
+    }
 }
