@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Save, Shield, Terminal, Sparkles, Trash2, Users, Info, ChevronRight, Check, X, Type, Layout, Cpu, Globe } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { projectSettingsApi } from '../../services/projectSettingsApi';
 import { collabApi, Collaborator } from '../../services/collabApi';
 
@@ -14,6 +15,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -73,6 +75,21 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
     } catch (err) {
       setError('Failed to save settings');
     } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you absolutely sure you want to delete this project? This action cannot be undone.')) {
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await projectSettingsApi.deleteProject(projectId);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Failed to delete project');
       setSaving(false);
     }
   };
@@ -321,9 +338,12 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
               </p>
               
               <div className="space-y-2">
-                 <button className="w-full py-2.5 bg-red-500/10 border border-red-500/20 rounded-md text-[11px] font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2">
+                 <button 
+                    onClick={handleDelete}
+                    disabled={saving}
+                    className={`w-full py-2.5 bg-red-500/10 border border-red-500/20 rounded-md text-[11px] font-bold text-red-500 transition-all flex items-center justify-center gap-2 ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500 hover:text-white'}`}>
                     <Trash2 className="w-3 h-3" />
-                    DELETE THIS PROJECT
+                    {saving ? 'DELETING...' : 'DELETE THIS PROJECT'}
                  </button>
                  <button className="w-full py-2.5 bg-white/5 border border-white/10 rounded-md text-[11px] font-bold text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2">
                     ARCHIVE PROJECT

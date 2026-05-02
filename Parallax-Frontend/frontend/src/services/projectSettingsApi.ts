@@ -34,5 +34,10 @@ export const projectSettingsApi = {
   getProjectDetails: async (projectId: string): Promise<ProjectSettings> => {
     const res = await api.get(`/projects/${projectId}`);
     return res.data;
+  },
+
+  deleteProject: async (projectId: string) => {
+    const res = await api.delete(`/projects/${projectId}`);
+    return res.data;
   }
 };

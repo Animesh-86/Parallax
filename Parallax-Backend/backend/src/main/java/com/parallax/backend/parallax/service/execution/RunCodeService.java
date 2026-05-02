@@ -114,45 +114,73 @@ public class RunCodeService {
                     );
                 }
 
-                // Prepare Docker command based on language
-                List<String> cmd = new ArrayList<>(List.of(
-                        "docker", "run", "--rm",
-                        "--cpus=0.5",
-                        "--memory=256m",
-                        "--network=none",
-                        "-w", "/workspace",
-                        "-v", jobDir.toAbsolutePath() + ":/workspace"
-                ));
+                // Dynamic Language Detection based on filename
+                String detectedLanguage = detectLanguage(safePath, session.getLanguage());
+                sink.onOutput("[parallax-debug-v5] filename: " + safePath);
+                sink.onOutput("[parallax-debug-v5] detectedLanguage: " + detectedLanguage);
+                log.info("🔍 Detected language for {}: {}", safePath, detectedLanguage);
 
-                if ("python".equalsIgnoreCase(language)) {
+                List<String> cmd = new ArrayList<>();
+                cmd.add("docker");
+                cmd.add("run");
+                cmd.add("--rm");
+                cmd.add("-v");
+                cmd.add(jobDir.toAbsolutePath() + ":/workspace");
+                cmd.add("-w");
+                cmd.add("/workspace");
+
+                if ("python".equalsIgnoreCase(detectedLanguage)) {
+                    sink.onOutput("[parallax] Active Runner: Python 3");
                     Path runner = jobDir.resolve("__runner__.py");
                     Files.writeString(
                             runner,
-                            """
-                            import runpy, sys
-                            print('[runner] running:', sys.argv[1])
-                            runpy.run_path(sys.argv[1], run_name='__main__')
-                            """,
+                            "import runpy, sys\nrunpy.run_path(sys.argv[1], run_name='__main__')",
                             StandardCharsets.UTF_8
                     );
                     cmd.add(pythonRunnerImage);
                     cmd.add("python3");
                     cmd.add("__runner__.py");
                     cmd.add(safePath);
-                } else if ("java".equalsIgnoreCase(language)) {
+                } else if ("java".equalsIgnoreCase(detectedLanguage)) {
+                    sink.onOutput("[parallax] Active Runner: OpenJDK 21");
                     cmd.add(javaRunnerImage);
-                    cmd.add("java");
-                    cmd.add(safePath);
-                } else if ("javascript".equalsIgnoreCase(language)) {
+                    cmd.add("sh");
+                    cmd.add("-c");
+                    String dir = safePath.contains("/") ? safePath.substring(0, safePath.lastIndexOf("/")) : ".";
+                    String shortName = safePath.contains("/") ? safePath.substring(safePath.lastIndexOf("/") + 1) : safePath;
+                    // JDK 11+ single-file execution: 'java MyFile.java'
+                    cmd.add("cd " + dir + " && java " + shortName);
+                } else if ("javascript".equalsIgnoreCase(detectedLanguage) || "typescript".equalsIgnoreCase(detectedLanguage)) {
+                    sink.onOutput("[parallax] Active Runner: Node.js");
                     cmd.add(jsRunnerImage);
                     cmd.add("node");
                     cmd.add(safePath);
-                } else if ("cpp".equalsIgnoreCase(language)) {
+                } else if ("c".equalsIgnoreCase(detectedLanguage)) {
+                    sink.onOutput("[parallax] Active Runner: GCC (C)");
                     cmd.add(cppRunnerImage);
-                    cmd.add("./run_cpp.sh");
-                    cmd.add(safePath);
+                    cmd.add("sh");
+                    cmd.add("-c");
+                    cmd.add("gcc " + safePath + " -o out && ./out");
+                } else if ("cpp".equalsIgnoreCase(detectedLanguage)) {
+                    sink.onOutput("[parallax] Active Runner: G++ (C++)");
+                    cmd.add(cppRunnerImage);
+                    cmd.add("sh");
+                    cmd.add("-c");
+                    cmd.add("g++ " + safePath + " -o out && ./out");
                 } else {
-                    throw new IllegalArgumentException("Unsupported language: " + language);
+                    sink.onOutput("[parallax] Active Runner: Fallback (" + detectedLanguage + ")");
+                    // If it's explicitly 'c' but somehow reached here, force it
+                    if (safePath.endsWith(".c")) {
+                        sink.onOutput("[parallax-debug-v5] CRITICAL: .c file hit fallback! Forcing GCC.");
+                        cmd.add(cppRunnerImage);
+                        cmd.add("sh");
+                        cmd.add("-c");
+                        cmd.add("gcc " + safePath + " -o out && ./out");
+                    } else {
+                        cmd.add(pythonRunnerImage);
+                        cmd.add("python3");
+                        cmd.add(safePath);
+                    }
                 }
 
                 log.info("🐳 Docker command:\n{}", String.join(" ", cmd));
@@ -180,6 +208,7 @@ public class RunCodeService {
                 }
 
                 reader.join();
+                sink.onOutput("[parallax] Process finished (exit code: " + process.exitValue() + ")");
                 return new CommandResult(process.exitValue(), output.toString());
 
             } finally {
@@ -191,11 +220,31 @@ public class RunCodeService {
         }
     }
 
+    private String detectLanguage(String filename, String fallback) {
+        if (filename == null) return fallback;
+        String ext = "";
+        int i = filename.lastIndexOf('.');
+        if (i > 0) {
+            ext = filename.substring(i + 1).toLowerCase();
+        }
+
+        return switch (ext) {
+            case "py" -> "python";
+            case "java" -> "java";
+            case "js", "mjs" -> "javascript";
+            case "ts" -> "typescript";
+            case "c" -> "c";
+            case "cpp", "cc", "cxx" -> "cpp";
+            default -> (fallback != null && !fallback.isBlank()) ? fallback : "python";
+        };
+    }
+
     private void streamOutput(
             Process process,
             StringBuilder output,
             RunOutputSink sink
     ) {
+        sink.onOutput("[debug-stream-v9] Reader thread started");
         try (BufferedReader reader =
                      new BufferedReader(
                              new InputStreamReader(
@@ -203,7 +252,9 @@ public class RunCodeService {
                                      StandardCharsets.UTF_8))) {
 
             String line;
+            int count = 0;
             while ((line = reader.readLine()) != null) {
+                count++;
                 if (output.length() + line.length() > maxOutputBytes) {
                     appendTruncatedNotice(output);
                     break;
@@ -211,7 +262,9 @@ public class RunCodeService {
                 output.append(line).append("\n");
                 sink.onOutput(line);
             }
+            sink.onOutput("[debug-stream-v9] Reader thread finished. Read " + count + " lines.");
         } catch (Exception e) {
+            sink.onOutput("[debug-stream-v9] ERROR: " + e.getMessage());
             log.error("Error streaming output", e);
         }
     }

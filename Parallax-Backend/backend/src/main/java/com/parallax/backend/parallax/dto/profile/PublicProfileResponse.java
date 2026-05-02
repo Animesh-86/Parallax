@@ -17,4 +17,9 @@ public class PublicProfileResponse {
     private String location;
     private String avatarUrl;
     private Instant joinedAt;
+
+    private GamificationDtos.ProfileStatsDto stats;
+    private java.util.List<GamificationDtos.BadgeDto> badges;
+    private java.util.List<GamificationDtos.ActivityDto> recentActivity;
+    private java.util.List<GamificationDtos.DailyContributionDto> contributionGraph;
 }

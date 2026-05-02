@@ -14,8 +14,28 @@ export interface UserProfile {
         projects: number;
         roomsJoined: number;
         contributions: number;
-        streak: number;
-    }
+        currentStreak: number;
+        longestStreak: number;
+    };
+    badges?: Array<{
+        id: string;
+        type: string;
+        name: string;
+        description: string;
+        iconUrl: string;
+        tier: string;
+        awardedAt: string;
+    }>;
+    recentActivity?: Array<{
+        id: string;
+        activityType: string;
+        description: string;
+        timestamp: string;
+    }>;
+    contributionGraph?: Array<{
+        date: string;
+        count: number;
+    }>;
 }
 
 export interface ProfileUpdateDTO {

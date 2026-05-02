@@ -81,9 +81,6 @@ export default function Profile() {
   // Sidebar items - Filter based on View Mode
   const sidebarItems = [
     { id: 'profile' as TabView, label: 'Profile', icon: User, showPublic: true },
-    { id: 'badges' as TabView, label: 'Badges', icon: Award, showPublic: true },
-    { id: 'streaks' as TabView, label: 'Streaks', icon: Flame, showPublic: true },
-    { id: 'contributions' as TabView, label: 'Contributions', icon: TrendingUp, showPublic: true },
     { id: 'settings' as TabView, label: 'Settings', icon: Settings, showPublic: false }, // Private only
   ];
 
@@ -123,8 +120,8 @@ export default function Profile() {
     { label: 'Projects', value: projectCount, icon: Code2, color: '#D4AF37' },
     { label: 'Rooms Joined', value: profile?.stats?.roomsJoined || 0, icon: Users, color: '#A1A1AA' },
     { label: 'Contributions', value: profile?.stats?.contributions || 0, icon: GitBranch, color: '#A1A1AA' },
-    { label: 'Badges', value: 0, icon: Award, color: '#F59E0B' },
-    { label: 'Streak', value: 0, icon: Flame, color: '#EF6461' },
+    { label: 'Badges', value: profile?.badges?.length || 0, icon: Award, color: '#F59E0B' },
+    { label: 'Streak', value: profile?.stats?.currentStreak || 0, icon: Flame, color: '#EF6461' },
   ];
 
   if (loading) {
@@ -226,7 +223,7 @@ export default function Profile() {
                   stats={{
                     projects: projectCount,
                     contributions: profile.stats?.contributions || 0,
-                    streak: profile.stats?.streak || 0,
+                    streak: profile.stats?.currentStreak || 0,
                     roomsJoined: profile.stats?.roomsJoined || 0
                   }}
                 />
@@ -313,45 +310,134 @@ export default function Profile() {
                 </div>
               </div>
 
+              {/* Coding Streaks */}
+              <div className="bg-[#09090B] border border-white/5 rounded-3xl p-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                  <Flame className="w-6 h-6 text-[#F59E0B]" />
+                  Coding Streaks
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-6 flex items-center justify-between hover:border-white/20 transition-all">
+                        <div>
+                            <p className="text-white/60 text-sm font-medium mb-1">Current Streak (Days)</p>
+                            <h2 className="text-4xl font-bold text-white">{profile.stats?.currentStreak || 0}</h2>
+                        </div>
+                        <div className="w-16 h-16 rounded-full bg-[#EF6461]/10 flex items-center justify-center">
+                            <Flame className="w-8 h-8 text-[#EF6461]" />
+                        </div>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-6 flex items-center justify-between hover:border-white/20 transition-all">
+                        <div>
+                            <p className="text-white/60 text-sm font-medium mb-1">Longest Streak</p>
+                            <h2 className="text-4xl font-bold text-white">{profile.stats?.longestStreak || 0}</h2>
+                        </div>
+                        <div className="w-16 h-16 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
+                            <Award className="w-8 h-8 text-[#D4AF37]" />
+                        </div>
+                    </div>
+                </div>
+              </div>
+
+              {/* Contribution Graph */}
+              <div className="bg-[#09090B] border border-white/5 rounded-3xl p-8 overflow-x-auto">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                  <GitBranch className="w-6 h-6 text-[#D4AF37]" />
+                  Contribution Graph
+                </h2>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-6 inline-block max-w-full overflow-x-auto">
+                    <div className="min-w-max">
+                        {/* CSS Grid Heatmap */}
+                        <div className="flex gap-[3px]">
+                            {Array.from({ length: 52 }).map((_, weekIndex) => (
+                                <div key={weekIndex} className="flex flex-col gap-[3px]">
+                                    {Array.from({ length: 7 }).map((_, dayIndex) => {
+                                        const dayOffset = (52 * 7) - (weekIndex * 7 + dayIndex) - 1;
+                                        const date = new Date();
+                                        date.setDate(date.getDate() - dayOffset);
+                                        const dateString = date.toISOString().split('T')[0];
+                                        
+                                        const contribution = profile.contributionGraph?.find(c => c.date === dateString);
+                                        const count = contribution ? contribution.count : 0;
+                                        
+                                        let bgColor = 'bg-white/10';
+                                        if (count > 0 && count <= 2) bgColor = 'bg-[#4ADE80]/40';
+                                        else if (count > 2 && count <= 5) bgColor = 'bg-[#4ADE80]/70';
+                                        else if (count > 5) bgColor = 'bg-[#4ADE80]';
+
+                                        return (
+                                            <div key={dayIndex} className={`w-[11px] h-[11px] rounded-[2px] ${bgColor}`} title={`${count} contributions on ${dateString}`}></div>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-4 flex items-center justify-between text-[11px] text-white/50">
+                            <div>Total Contributions: {profile.stats?.contributions || 0}</div>
+                            <div className="flex items-center gap-1.5">
+                                <span>Less</span>
+                                <div className="w-[11px] h-[11px] rounded-[2px] bg-white/10"></div>
+                                <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4ADE80]/40"></div>
+                                <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4ADE80]/70"></div>
+                                <div className="w-[11px] h-[11px] rounded-[2px] bg-[#4ADE80]"></div>
+                                <span>More</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              </div>
+
+              {/* Achievement Badges */}
+              <div className="bg-[#09090B] border border-white/5 rounded-3xl p-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                  <Award className="w-6 h-6 text-[#D4AF37]" />
+                  Achievement Badges
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {profile.badges && profile.badges.length > 0 ? profile.badges.map(badge => (
+                        <div key={badge.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center hover:border-white/20 transition-all">
+                            <img src={badge.iconUrl} alt={badge.name} className="w-16 h-16 mb-4" />
+                            <h3 className="text-xl font-bold text-white mb-2">{badge.name}</h3>
+                            <p className="text-white/60 text-sm mb-4">{badge.description}</p>
+                            <div className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-white/80">{badge.tier}</div>
+                        </div>
+                    )) : (
+                        <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
+                          <div className="text-white/40 font-medium">No badges earned yet. Start coding!</div>
+                        </div>
+                    )}
+                </div>
+              </div>
+
               {/* Activity Timeline */}
               <div className="bg-[#09090B] border border-white/5 rounded-3xl p-8">
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                   <TrendingUp className="w-6 h-6 text-[#D4AF37]" />
                   Recent Activity
                 </h2>
-                <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
-                  <div className="text-white/40 font-medium text-lg">Coming Soon</div>
-                  <div className="text-sm text-white/20">We are tracking your coding journey across the cosmos</div>
+                <div className="space-y-4">
+                  {profile.recentActivity && profile.recentActivity.length > 0 ? (
+                      profile.recentActivity.map(activity => (
+                          <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                              <div className="w-10 h-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center flex-shrink-0">
+                                  <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
+                              </div>
+                              <div>
+                                  <p className="text-white font-medium">{activity.description}</p>
+                                  <p className="text-white/40 text-sm">{new Date(activity.timestamp).toLocaleString()}</p>
+                              </div>
+                          </div>
+                      ))
+                  ) : (
+                    <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[200px] flex flex-col items-center justify-center gap-4 text-center">
+                      <div className="text-white/40 font-medium text-lg">No recent activity</div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* OTHER TABS - Only for ME */}
-          {isMe && activeTab === 'badges' && (
-            <div className="space-y-8">
-              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Award className="w-8 h-8 text-[#D4AF37]" />Achievement Badges</h1></div>
-              <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
-                <div className="text-white/40 font-medium text-lg">Coming Soon</div>
-              </div>
-            </div>
-          )}
-          {isMe && activeTab === 'streaks' && (
-            <div className="space-y-8">
-              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><Flame className="w-8 h-8 text-[#F59E0B]" />Coding Streaks</h1></div>
-              <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
-                <div className="text-white/40 font-medium text-lg">Coming Soon</div>
-              </div>
-            </div>
-          )}
-          {isMe && activeTab === 'contributions' && (
-            <div className="space-y-8">
-              <div><h1 className="text-3xl font-bold mb-2 flex items-center gap-3"><GitBranch className="w-8 h-8 text-[#D4AF37]" />Contribution Graph</h1></div>
-              <div className="bg-[#09090B] border border-white/5 rounded-2xl h-[400px] flex flex-col items-center justify-center gap-4 text-center">
-                <div className="text-white/40 font-medium text-lg">Coming Soon</div>
-              </div>
-            </div>
-          )}
+
 
           {/* SETTINGS TAB - Only for ME */}
           {isMe && activeTab === 'settings' && (

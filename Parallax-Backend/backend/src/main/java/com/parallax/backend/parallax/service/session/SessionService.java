@@ -113,7 +113,8 @@ public class SessionService {
                         projectId,
                         sessionId,
                         containerName,
-                        userId
+                        userId,
+                        project.getLanguage()
                 );
 
                 return sessionId;

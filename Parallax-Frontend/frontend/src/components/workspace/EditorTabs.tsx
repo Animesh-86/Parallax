@@ -101,7 +101,9 @@ export function EditorTabs({
             onClick={onRun}
           >
             <Play className="w-3.5 h-3.5 fill-current" />
-            <span className="text-xs font-bold uppercase tracking-wider">Run</span>
+            <span className="text-xs font-bold uppercase tracking-wider">
+              {activeFile ? `Run ${activeFile.split('/').pop()}` : 'Run'}
+            </span>
           </button>
           <button
             onClick={() => navigate("/dashboard")}

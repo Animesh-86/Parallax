@@ -15,7 +15,6 @@ export function QuickCreateModal({
 }: QuickCreateModalProps) {
   const [projectName, setProjectName] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,27 +27,16 @@ export function QuickCreateModal({
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
-
   const languages = [
     { value: 'python', label: 'Python', color: '#3776AB' },
     { value: 'java', label: 'Java', color: '#007396' },
     { value: 'javascript', label: 'JavaScript', color: '#F7DF1E' },
     { value: 'c', label: 'C', color: '#A8B9CC' },
     { value: 'cpp', label: 'C++', color: '#00599C' },
+    { value: 'none', label: 'Empty Project (No Template)', color: '#A1A1AA' },
   ];
 
   if (!isOpen) return null;
-
-  const selectedLangObj = languages.find((l) => l.value === selectedLanguage);
-
-  const handleSelectLanguage = (value: string) => {
-    setSelectedLanguage(value);
-    setIsDropdownOpen(false);
-  };
-
-  const handleDropdownWheel = (e: React.WheelEvent) => {
-    e.stopPropagation();
-  };
 
   const handleCreate = async () => {
     if (!projectName.trim() || !selectedLanguage || isSubmitting) return;
@@ -62,7 +50,6 @@ export function QuickCreateModal({
       // reset local state
       setProjectName('');
       setSelectedLanguage('');
-      setIsDropdownOpen(false);
 
       onClose();
     } catch (err) {
@@ -139,63 +126,55 @@ export function QuickCreateModal({
 
             {/* Language dropdown */}
             <div className="space-y-2">
+            {/* Language Selection Grid */}
+            <div className="space-y-3">
               <label className="block text-sm font-medium text-white/70">
-                Programming Language
+                Project Template (Initial Language)
               </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen((v) => !v)}
-                  className="w-full px-4 py-3 bg:white/5 bg-white/5 border border-white/10 rounded-xl text-left flex items-center justify-between hover:bg-white/[0.07] hover:border-white/20 transition-all"
-                >
-                  <span className={selectedLanguage ? 'text-white' : 'text-white/30'}>
-                    {selectedLangObj ? (
-                      <span className="flex items-center gap-2">
-                        <span
-                          className="w-3 h-3 rounded-full"
-                          style={{
-                            backgroundColor: selectedLangObj.color,
-                            boxShadow: `0 0 10px ${selectedLangObj.color}60`,
-                          }}
-                        />
-                        {selectedLangObj.label}
-                      </span>
-                    ) : (
-                      'Select a language'
-                    )}
-                  </span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-white/40 transition-transform ${
-                      isDropdownOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-
-                {isDropdownOpen && (
-                  <div 
-                    className="absolute top-full left-0 right-0 mt-2 bg-[#09090B]/95 border border-white/10 rounded-xl shadow-2xl z-[60] max-h-48 overflow-y-auto custom-scrollbar"
-                    onWheel={handleDropdownWheel}
-                  >
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.value}
-                        type="button"
-                        onClick={() => handleSelectLanguage(lang.value)}
-                        className="w-full px-4 py-3 text-left hover:bg-white/5 flex items-center gap-3 transition-colors"
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {languages.map((lang) => {
+                  const isSelected = selectedLanguage === lang.value;
+                  return (
+                    <button
+                      key={lang.value}
+                      type="button"
+                      onClick={() => setSelectedLanguage(lang.value)}
+                      className={`relative px-3 py-4 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-3 group ${
+                        isSelected 
+                          ? 'bg-[#D4AF37]/10 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.1)]' 
+                          : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]'
+                      }`}
+                    >
+                      <div 
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                          isSelected ? 'bg-[#D4AF37]/20' : 'bg-white/5'
+                        }`}
                       >
                         <span
-                          className="w-3 h-3 rounded-full"
+                          className="w-2 h-2 rounded-full"
                           style={{
                             backgroundColor: lang.color,
-                            boxShadow: `0 0 10px ${lang.color}60`,
+                            boxShadow: isSelected ? `0 0 10px ${lang.color}` : 'none',
                           }}
                         />
-                        <span className="text-white/90">{lang.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                      </div>
+                      <span className={`text-[11px] font-bold tracking-wide uppercase transition-colors duration-300 ${
+                        isSelected ? 'text-white' : 'text-white/40 group-hover:text-white/60'
+                      }`}>
+                        {lang.label === 'Empty Project (No Template)' ? 'Empty' : lang.label}
+                      </span>
+
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#D4AF37] rounded-full flex items-center justify-center shadow-lg">
+                          <div className="w-1.5 h-1.5 bg-black rounded-full" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+            </div>
+
             </div>
 
             {error && (

@@ -34,6 +34,7 @@ type DashboardProject = {
     name: string;
     language: string;
     updatedAt: string;
+    createdAt: string;
     teamId?: string;
     teamName?: string;
 };
@@ -291,7 +292,8 @@ export default function Dashboard() {
                 id: p.id,
                 name: p.name,
                 language: p.language || "Unknown",
-                updatedAt: p.updatedAt || p.updated_at || p.createdAt || p.created_at || "",
+                updatedAt: p.updatedAt || p.updated_at || "",
+                createdAt: p.createdAt || p.created_at || p.updatedAt || "",
                 teamId: p.teamId || undefined,
                 teamName: p.teamName || undefined,
             }));
@@ -371,7 +373,7 @@ export default function Dashboard() {
         fetchTeams();
     }, [lastUpdate]);
 
-    const createRoomButtonClass = "px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#F59E0B] rounded-lg text-sm font-bold text-black hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2";
+    const createRoomButtonClass = "px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all flex items-center gap-2";
 
     const projectsToShow = showAllProjects ? projects : projects.slice(0, 4);
 
@@ -419,7 +421,7 @@ export default function Dashboard() {
                                 <div className="flex items-center gap-4">
                                     <button
                                         onClick={() => setIsCreateRoomModalOpen(true)}
-                                        className={createRoomButtonClass}>
+                                        className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl font-medium hover:bg-white/10 transition-all duration-300 flex items-center gap-2">
                                         <Plus className="w-4 h-4" />
                                         Create Room
                                     </button>
@@ -430,6 +432,7 @@ export default function Dashboard() {
                                         Create Project
                                     </button>
                                     <button
+                                        onClick={() => navigate('/teams')}
                                         className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl font-medium hover:bg-white/10 transition-all duration-300 flex items-center gap-2">
                                         <Users className="w-5 h-5" />
                                         Create Team
@@ -530,37 +533,32 @@ export default function Dashboard() {
                             {projectsToShow.map(project => (
                                 <div
                                     key={project.id}
-                                    className="group relative glass-panel rounded-2xl p-6 min-h-[220px] hover:border-[#D4AF37]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#D4AF37]/10 cursor-pointer"
+                                    className="group relative glass-panel rounded-2xl p-5 min-h-[140px] hover:border-[#D4AF37]/30 transition-all duration-300 hover:shadow-xl hover:shadow-[#D4AF37]/10 cursor-pointer flex flex-col justify-between"
                                     onClick={() => {
                                         updateRecentAccess(project.id);
                                         navigate(`/editor/${project.id}`);
                                     }}
                                 >
-                                    <div className="relative z-10">
+                                    <div className="relative z-10 flex-1 flex flex-col">
                                         <div className="flex items-start justify-between mb-4">
                                             <div>
                                                 <h3 className="text-lg font-bold mb-1 group-hover:text-[#D4AF37] transition-colors font-serif italic">{project.name}</h3>
                                                 <span className="text-xs text-white/40 font-mono px-2 py-0.5 rounded bg-white/5">
                                                     {project.language}
                                                 </span>
-                                                {project.teamName && (
-                                                    <span className="text-xs text-[#D4AF37]/80 font-mono px-2 py-0.5 rounded bg-[#D4AF37]/10 border border-[#D4AF37]/20">
-                                                        <Users className="w-3 h-3 inline mr-1" />{project.teamName}
-                                                    </span>
-                                                )}
                                             </div>
                                             <div className="p-2 rounded-lg bg-white/5 group-hover:bg-[#D4AF37]/20 transition-colors">
                                                 <Code2 className="w-4 h-4 text-white/40 group-hover:text-[#D4AF37]" />
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center justify-between mt-6 text-xs text-white/40">
+                                        <div className="flex items-center justify-between mt-auto pt-4 text-xs text-white/40">
                                             <div className="flex items-center gap-1.5">
                                                 <History className="w-3 h-3" />
-                                                {formatDate(project.updatedAt)}
+                                                Created: {formatDate(project.createdAt)}
                                             </div>
-                                            <div className="font-mono opacity-50">
-                                                ID: {project.id.slice(0, 4)}
+                                            <div className={`font-mono opacity-80 px-2 py-0.5 rounded ${project.teamName ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-white/5 text-white/60'}`}>
+                                                {project.teamName ? 'Team' : 'Private'}
                                             </div>
                                         </div>
                                     </div>
@@ -678,7 +676,7 @@ export default function Dashboard() {
                         </div>
 
                         {loadingRooms ? (
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <RoomSkeleton />
                                 <RoomSkeleton />
                             </div>
@@ -687,7 +685,7 @@ export default function Dashboard() {
                                 No active rooms
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {rooms.slice(0, 2).map((room) => (
                                     <div
                                         key={room.id}
@@ -753,7 +751,7 @@ export default function Dashboard() {
                         </div>
 
                         {loadingTeams ? (
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <RoomSkeleton />
                                 <RoomSkeleton />
                             </div>
@@ -762,7 +760,7 @@ export default function Dashboard() {
                                 No teams created yet
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {teams.slice(0, 2).map((team) => (
                                     <div
                                         key={team.id}

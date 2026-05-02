@@ -14,7 +14,7 @@ import { projectChatWs } from "../services/wsChatClient";
 import { ActivityPanel } from "../components/workspace/ActivityPanel";
 import { versioningApi, ProjectBranch } from "../services/versioningApi";
 import { CosmicStars } from "../components/workspace/CosmicStars";
-import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X } from "lucide-react";
+import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X, Play } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
@@ -90,6 +90,13 @@ export default function Workspace() {
       setActiveTool(tool);
     }
   };
+
+  const templates = [
+    { value: 'javascript', label: 'JavaScript', color: '#F7DF1E' },
+    { value: 'c', label: 'C', color: '#A8B9CC' },
+    { value: 'cpp', label: 'C++', color: '#00599C' },
+    { value: 'none', label: 'Empty Project (No Template)', color: '#A1A1AA' },
+  ];
 
   /* Project Name Management */
   const location = useLocation();

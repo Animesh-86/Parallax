@@ -8,8 +8,10 @@ import com.parallax.backend.parallax.repository.project.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.parallax.backend.parallax.service.gamification.GamificationEvent;
 
 import java.time.Instant;
 import java.util.List;
@@ -26,6 +28,7 @@ public class VersioningService {
     private final ProjectCommitRepository commitRepository;
     private final MergeRequestRepository mergeRequestRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ========== BRANCH OPERATIONS ==========
 
@@ -80,7 +83,13 @@ public class VersioningService {
         branch.setUpdatedAt(Instant.now());
         branchRepository.save(branch);
 
-        return commitRepository.save(commit);
+        ProjectCommit savedCommit = commitRepository.save(commit);
+
+        eventPublisher.publishEvent(new GamificationEvent(
+                this, userId, GamificationEvent.EventType.COMMIT, "Committed to " + branch.getName() + " in project " + project.getName(), savedCommit.getId()
+        ));
+
+        return savedCommit;
     }
 
     @Transactional(readOnly = true)

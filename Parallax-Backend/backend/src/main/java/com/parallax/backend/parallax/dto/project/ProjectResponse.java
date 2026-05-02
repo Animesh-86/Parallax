@@ -23,6 +23,7 @@ public class ProjectResponse {
     private String activeSessionId; // nullable
     private UUID teamId;            // nullable
     private String teamName;        // nullable
+    private String createdAt;       // nullable
     private String description;     // nullable
     private String settingsJson;    // nullable
     private String enabledExtensionsJson; // nullable
@@ -44,6 +45,7 @@ public class ProjectResponse {
                 .activeSessionId(activeSessionId)
                 .teamId(project.getTeam() != null ? project.getTeam().getId() : null)
                 .teamName(project.getTeam() != null ? project.getTeam().getName() : null)
+                .createdAt(project.getCreatedAt() != null ? project.getCreatedAt().toString() : null)
                 .description(project.getDescription())
                 .settingsJson(project.getSettingsJson())
                 .enabledExtensionsJson(project.getEnabledExtensionsJson())

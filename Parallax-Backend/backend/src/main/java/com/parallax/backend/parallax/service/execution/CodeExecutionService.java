@@ -57,9 +57,18 @@ public class CodeExecutionService {
             return;
         }
 
+        String defaultFilename = switch (session.getLanguage().toLowerCase()) {
+            case "python" -> "main.py";
+            case "java" -> "Main.java";
+            case "javascript" -> "index.js";
+            case "c" -> "main.c";
+            case "cpp" -> "main.cpp";
+            default -> "main.py";
+        };
+
         String filename =
                 (msg.getFilename() == null || msg.getFilename().isBlank())
-                        ? "main.py"
+                        ? defaultFilename
                         : msg.getFilename();
 
         // 🔥 RUN STARTED (single authoritative signal)
@@ -73,7 +82,7 @@ public class CodeExecutionService {
 
         try {
             CommandResult result =
-                    runCodeService.runPythonInSession(
+                    runCodeService.runCodeInSession(
                             session.getSessionId(),
                             filename,
                             msg.getTimeoutSeconds(),

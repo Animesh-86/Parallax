@@ -49,11 +49,11 @@ public class SessionRegistry {
     @Getter
     @Setter
     public static class SessionInfo {
-
         private final String sessionId;
         private final String containerName;
         private final UUID projectId;
         private final UUID ownerUserId;
+        private final String language;
 
         private Instant createdAt;
         private Instant lastSeen;
@@ -62,12 +62,14 @@ public class SessionRegistry {
                 String sessionId,
                 String containerName,
                 UUID projectId,
-                UUID ownerUserId
+                UUID ownerUserId,
+                String language
         ) {
             this.sessionId = sessionId;
             this.containerName = containerName;
             this.projectId = projectId;
             this.ownerUserId = ownerUserId;
+            this.language = language;
             this.createdAt = Instant.now();
             this.lastSeen = Instant.now();
         }
@@ -85,10 +87,11 @@ public class SessionRegistry {
             UUID projectId,
             String sessionId,
             String containerName,
-            UUID ownerUserId
+            UUID ownerUserId,
+            String language
     ) {
         SessionInfo info =
-                new SessionInfo(sessionId, containerName, projectId, ownerUserId);
+                new SessionInfo(sessionId, containerName, projectId, ownerUserId, language);
 
         SessionInfo old = byProjectId.get(projectId);
         if (old != null && !old.getSessionId().equals(sessionId)) {
