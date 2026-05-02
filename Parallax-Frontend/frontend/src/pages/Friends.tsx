@@ -145,6 +145,10 @@ export default function Friends() {
 
     useEffect(() => {
         fetchFriends();
+        
+        // Poll for status updates every 30s to keep presence relatively fresh
+        const interval = setInterval(fetchFriends, 30000);
+        return () => clearInterval(interval);
     }, []);
 
     // Handle selection when location state changes

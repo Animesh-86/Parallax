@@ -2,6 +2,7 @@ package com.parallax.backend.parallax.websocket.chat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parallax.backend.parallax.service.chat.DirectMessageService;
+import com.parallax.backend.parallax.store.SessionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ public class DirectChatWebSocketHandler extends TextWebSocketHandler {
 
     private final DirectMessageService directMessageService;
     private final DirectChatRegistry registry;
+    private final SessionRegistry sessionRegistry;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -28,6 +30,7 @@ public class DirectChatWebSocketHandler extends TextWebSocketHandler {
         String username = getUsername(session);
 
         registry.join(userId, session);
+        sessionRegistry.registerWs(session.getId(), userId);
         log.info("用户 {} ({}) 连接了私信系统", username, userId);
     }
 
@@ -54,6 +57,7 @@ public class DirectChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         registry.leave(session);
+        sessionRegistry.wsUserLeft(session.getId());
     }
 
     private UUID getUserId(WebSocketSession session) {
