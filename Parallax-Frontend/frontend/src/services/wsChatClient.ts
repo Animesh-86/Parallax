@@ -9,6 +9,7 @@ export type GenericChatMessage = {
     createdAt?: string;
     projectId?: string; // Optional: Present if project chat
     teamId?: string;    // Optional: Present if team chat
+    receiverId?: string; // Optional: Present if direct message
 };
 
 type ChatHistoryPayload = {
@@ -19,7 +20,7 @@ type ChatHistoryPayload = {
 export class ChatWebSocketClient {
     private ws: WebSocket | null = null;
     private contextId: string | null = null;
-    private contextType: "PROJECT" | "TEAM" | null = null;
+    private contextType: "PROJECT" | "TEAM" | "DIRECT" | null = null;
     private onMessage: ((msg: GenericChatMessage) => void) | null = null;
     private onHistory: ((msgs: GenericChatMessage[]) => void) | null = null;
     private reconnectTimeout: NodeJS.Timeout | null = null;
@@ -27,7 +28,7 @@ export class ChatWebSocketClient {
 
     connect(
         contextId: string, 
-        contextType: "PROJECT" | "TEAM", 
+        contextType: "PROJECT" | "TEAM" | "DIRECT", 
         onMessage: (msg: GenericChatMessage) => void, 
         onHistory: (msgs: GenericChatMessage[]) => void
     ) {
@@ -51,8 +52,13 @@ export class ChatWebSocketClient {
         const token = localStorage.getItem("access_token");
         
         // Construct correct endpoint based on type
-        const endpoint = contextType === "PROJECT" ? "chat" : "team-chat";
-        const url = `${wsBaseUrl}/ws/${endpoint}/${contextId}?token=${token}`;
+        let endpoint = "chat";
+        if (contextType === "TEAM") endpoint = "team-chat";
+        else if (contextType === "DIRECT") endpoint = "direct-chat";
+        
+        const url = contextType === "DIRECT" 
+            ? `${wsBaseUrl}/ws/${endpoint}?token=${token}` 
+            : `${wsBaseUrl}/ws/${endpoint}/${contextId}?token=${token}`;
 
         this.ws = new WebSocket(url);
 
@@ -97,9 +103,13 @@ export class ChatWebSocketClient {
         };
     }
 
-    sendMessage(content: string) {
+    sendMessage(content: string, receiverId?: string) {
         if (this.ws?.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ content }));
+            if (this.contextType === "DIRECT" && receiverId) {
+                this.ws.send(JSON.stringify({ content, receiverId }));
+            } else {
+                this.ws.send(JSON.stringify({ content }));
+            }
         } else {
             console.warn(`⚠️ ${this.contextType} Chat WS not open, cannot send message`);
         }
@@ -125,3 +135,4 @@ export class ChatWebSocketClient {
 // Export singleton instances for backward compatibility or global usage if needed
 export const projectChatWs = new ChatWebSocketClient();
 export const teamChatWsClient = new ChatWebSocketClient();
+export const directChatWsClient = new ChatWebSocketClient();

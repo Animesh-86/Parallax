@@ -77,7 +77,7 @@ public class ProfileQueryService {
 
         // Fetch Gamification Data
         UserStats stats = userStatsRepository.findById(userId).orElse(new UserStats(userId));
-        int projectCount = projectRepository.findByOwner_IdOrderByCreatedAtDesc(userId).size(); // Approximate
+        int projectCount = projectRepository.findByOwner_Id(userId).size(); // Approximate
         
         GamificationDtos.ProfileStatsDto statsDto = new GamificationDtos.ProfileStatsDto(
                 projectCount,
@@ -108,7 +108,8 @@ public class ProfileQueryService {
         if (isPrivate) {
             response = new ProfileResponse(
                     user.getUsername(), user.getFullName(), user.getBio(),
-                    user.getLocation(), user.getAvatarUrl(), user.getCreatedAt(), user.getEmail()
+                    user.getLocation(), user.getAvatarUrl(), user.getCreatedAt(), user.getEmail(),
+                    statsDto, badges, activities, graph
             );
         } else {
             response = new PublicProfileResponse(

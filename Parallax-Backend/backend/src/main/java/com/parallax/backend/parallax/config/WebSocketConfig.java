@@ -61,15 +61,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         private final com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor;
         private final com.parallax.backend.parallax.websocket.chat.TeamChatWebSocketHandler teamChatHandler;
         private final com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor;
+        private final com.parallax.backend.parallax.websocket.chat.DirectChatWebSocketHandler directChatHandler;
+        private final com.parallax.backend.parallax.websocket.chat.DirectChatHandshakeInterceptor directChatInterceptor;
 
         RawWebSocketConfig(com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler,
                 com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor,
                 com.parallax.backend.parallax.websocket.chat.TeamChatWebSocketHandler teamChatHandler,
-                com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor) {
+                com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor,
+                com.parallax.backend.parallax.websocket.chat.DirectChatWebSocketHandler directChatHandler,
+                com.parallax.backend.parallax.websocket.chat.DirectChatHandshakeInterceptor directChatInterceptor) {
             this.chatHandler = chatHandler;
             this.chatInterceptor = chatInterceptor;
             this.teamChatHandler = teamChatHandler;
             this.teamChatInterceptor = teamChatInterceptor;
+            this.directChatHandler = directChatHandler;
+            this.directChatInterceptor = directChatInterceptor;
         }
 
         @Override
@@ -81,6 +87,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
             registry.addHandler(teamChatHandler, "/ws/team-chat/{teamId}")
                     .addInterceptors(teamChatInterceptor)
+                    .setAllowedOriginPatterns("*");
+                    
+            registry.addHandler(directChatHandler, "/ws/direct-chat")
+                    .addInterceptors(directChatInterceptor)
                     .setAllowedOriginPatterns("*");
         }
     }
