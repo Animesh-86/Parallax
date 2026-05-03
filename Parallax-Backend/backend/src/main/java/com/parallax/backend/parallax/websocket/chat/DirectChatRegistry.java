@@ -2,8 +2,8 @@ package com.parallax.backend.parallax.websocket.chat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parallax.backend.parallax.entity.chat.DirectMessage;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -15,12 +15,16 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class DirectChatRegistry {
 
+    private static final Logger log = LoggerFactory.getLogger(DirectChatRegistry.class);
+
     private final ObjectMapper objectMapper;
+
+    public DirectChatRegistry(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     // userId -> Set<Session> (A user might have multiple active tabs)
     private final Map<UUID, Set<WebSocketSession>> userSessions = new ConcurrentHashMap<>();

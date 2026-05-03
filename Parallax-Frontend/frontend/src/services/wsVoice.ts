@@ -22,11 +22,11 @@ class VoiceWebSocketService {
     private client: Client | null = null;
     private userId: string | null = null;
     private channelId: string | null = null;
-    private channelType: "project" | "room" = "project";
+    private channelType: "project" | "room" | "direct" = "project";
     private onSignal: ((signal: SignalMessage | CallParticipantsMessage) => void) | null = null;
     private verboseLogsEnabled = localStorage.getItem("voice_ws_debug") === "1";
 
-    connect(channelId: string, channelType: "project" | "room" = "project", onSignal: (signal: SignalMessage | CallParticipantsMessage) => void, onDisconnect?: () => void): Promise<void> {
+    connect(channelId: string, channelType: "project" | "room" | "direct" = "project", onSignal: (signal: SignalMessage | CallParticipantsMessage) => void, onDisconnect?: () => void): Promise<void> {
         this.channelId = channelId;
         this.channelType = channelType;
         this.onSignal = onSignal;
@@ -77,7 +77,10 @@ class VoiceWebSocketService {
                 resolve();
 
                 // Subscribe to dynamic CALL topic
-                const topicUrl = this.channelType === "room" ? `/topic/rooms/${channelId}/call` : `/topic/project/${channelId}/call`;
+                let topicUrl = `/topic/project/${channelId}/call`;
+                if (this.channelType === "room") topicUrl = `/topic/rooms/${channelId}/call`;
+                else if (this.channelType === "direct") topicUrl = `/topic/direct/${channelId}/call`;
+                
                 this.client?.subscribe(topicUrl, (message: IMessage) => {
                     if (this.onSignal) {
                         try {
@@ -118,7 +121,10 @@ class VoiceWebSocketService {
             return;
         }
 
-        const appUrl = this.channelType === "room" ? `/app/rooms/${this.channelId}/call` : `/app/project/${this.channelId}/call`;
+        let appUrl = `/app/project/${this.channelId}/call`;
+        if (this.channelType === "room") appUrl = `/app/rooms/${this.channelId}/call`;
+        else if (this.channelType === "direct") appUrl = `/app/direct/${this.channelId}/call`;
+        
         this.client.publish({
             destination: appUrl,
             body: JSON.stringify(signal),

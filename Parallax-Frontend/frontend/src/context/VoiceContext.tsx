@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode";
 
 interface VoiceContextType {
-    joinCall: (channelId: string, channelType?: "project" | "room", initialAudio?: boolean, initialVideo?: boolean) => Promise<void>;
+    joinCall: (channelId: string, channelType?: "project" | "room" | "direct", initialAudio?: boolean, initialVideo?: boolean) => Promise<void>;
     leaveCall: (manual?: boolean) => void;
     toggleMute: () => void;
     toggleVideo: () => void;
@@ -300,7 +300,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
     };
 
-    const joinCall = useCallback(async (channelId: string, channelType: "project" | "room" = "project", initialAudio: boolean = true, initialVideo: boolean = false) => {
+    const joinCall = useCallback(async (channelId: string, channelType: "project" | "room" | "direct" = "project", initialAudio: boolean = true, initialVideo: boolean = false) => {
         if (isConnected) return;
         projectIdRef.current = channelId;
         setIsMuted(!initialAudio);

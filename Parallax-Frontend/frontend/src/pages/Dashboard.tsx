@@ -10,6 +10,7 @@ import {
     History,
     MessageCircle,
     Play,
+    Phone,
     Plus,
     Trash2,
     UserPlus,
@@ -638,12 +639,26 @@ export default function Dashboard() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <button
-                                            className="opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-lg transition-all"
-                                            onClick={() => navigate('/friends', { state: { selectedFriendId: friend.userId } })}
-                                            title="Message">
-                                            <MessageCircle className="w-4 h-4 text-white/60" />
-                                        </button>
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                            <button
+                                                className="p-2 hover:bg-emerald-500/10 rounded-lg transition-all"
+                                                onClick={() => navigate('/friends', { state: { selectedFriendId: friend.userId, startCall: 'voice' } })}
+                                                title="Voice Call">
+                                                <Phone className="w-4 h-4 text-emerald-500" />
+                                            </button>
+                                            <button
+                                                className="p-2 hover:bg-indigo-500/10 rounded-lg transition-all"
+                                                onClick={() => navigate('/friends', { state: { selectedFriendId: friend.userId, startCall: 'video' } })}
+                                                title="Video Call">
+                                                <Video className="w-4 h-4 text-indigo-400" />
+                                            </button>
+                                            <button
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                                                onClick={() => navigate('/friends', { state: { selectedFriendId: friend.userId } })}
+                                                title="Message">
+                                                <MessageCircle className="w-4 h-4 text-white/60" />
+                                            </button>
+                                        </div>
                                     </div>
                                 )
                             })}

@@ -1,7 +1,5 @@
 package com.parallax.backend.parallax.store;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -20,34 +18,27 @@ public class SessionRegistry {
 
     // ================= SESSION STATE =================
 
-    // sessionId -> SessionInfo
     private final Map<String, SessionInfo> bySessionId =
             new ConcurrentHashMap<>();
 
-    // projectId -> SessionInfo
     private final Map<UUID, SessionInfo> byProjectId =
             new ConcurrentHashMap<>();
 
     // ================= WEBSOCKET MAPPINGS =================
 
-    // wsSessionId -> userId
     private final Map<String, UUID> wsToUser =
             new ConcurrentHashMap<>();
 
-    // wsSessionId -> projectId
     private final Map<String, UUID> wsToProject =
             new ConcurrentHashMap<>();
 
     // ================= PRESENCE =================
 
-    // projectId -> (userId -> presence)
     private final Map<UUID, Map<UUID, PresenceInfo>> presence =
             new ConcurrentHashMap<>();
 
     // ================= MODELS =================
 
-    @Getter
-    @Setter
     public static class SessionInfo {
         private final String sessionId;
         private final String containerName;
@@ -73,6 +64,16 @@ public class SessionRegistry {
             this.createdAt = Instant.now();
             this.lastSeen = Instant.now();
         }
+
+        public String getSessionId() { return sessionId; }
+        public String getContainerName() { return containerName; }
+        public UUID getProjectId() { return projectId; }
+        public UUID getOwnerUserId() { return ownerUserId; }
+        public String getLanguage() { return language; }
+        public Instant getCreatedAt() { return createdAt; }
+        public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+        public Instant getLastSeen() { return lastSeen; }
+        public void setLastSeen(Instant lastSeen) { this.lastSeen = lastSeen; }
     }
 
     public record PresenceInfo(
@@ -173,9 +174,6 @@ public class SessionRegistry {
 
     // ================= PRESENCE =================
 
-    /**
-     * @return true if this was a NEW join
-     */
     public boolean userJoined(UUID projectId, UUID userId) {
 
         presence.computeIfAbsent(
@@ -192,9 +190,6 @@ public class SessionRegistry {
         return isNew;
     }
 
-    /**
-     * @return true if user was present and removed
-     */
     public boolean userLeft(UUID projectId, UUID userId) {
 
         Map<UUID, PresenceInfo> users = presence.get(projectId);
@@ -209,9 +204,6 @@ public class SessionRegistry {
         return removed;
     }
 
-    /**
-     * @return true if active file changed
-     */
     public boolean updateFile(UUID projectId, UUID userId, UUID fileId) {
 
         presence.computeIfAbsent(
@@ -247,9 +239,6 @@ public class SessionRegistry {
                 .values();
     }
 
-    /**
-     * 🔥 HARD CLEANUP — user logs out / token revoked
-     */
     public void userLeftEverywhere(UUID userId) {
 
         for (UUID projectId : new HashSet<>(presence.keySet())) {

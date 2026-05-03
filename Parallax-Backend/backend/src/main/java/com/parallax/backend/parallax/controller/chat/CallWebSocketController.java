@@ -2,7 +2,6 @@ package com.parallax.backend.parallax.controller.chat;
 
 import com.parallax.backend.parallax.security.AuthUtil;
 import com.parallax.backend.parallax.service.chat.CallService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -14,11 +13,29 @@ import java.util.Map;
 import java.util.UUID;
 
 @Controller
-@RequiredArgsConstructor
 public class CallWebSocketController {
 
     private final CallService callService;
     private final SimpMessagingTemplate messagingTemplate;
+
+    public CallWebSocketController(CallService callService, SimpMessagingTemplate messagingTemplate) {
+        this.callService = callService;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    @MessageMapping("/direct/{channelId}/call")
+    public void handleDirect(
+            Map<String, Object> msg,
+            @DestinationVariable String channelId,
+            Principal principal
+    ) {
+        UUID userId = AuthUtil.requireUserId(principal);
+        Map<String, Object> normalized = new HashMap<>(msg);
+        normalized.put("senderId", userId.toString());
+        normalized.put("channelId", channelId);
+
+        messagingTemplate.convertAndSend("/topic/direct/" + channelId + "/call", (Object) normalized);
+    }
 
     @MessageMapping("/project/{projectId}/call")
     public void handle(
@@ -36,7 +53,7 @@ public class CallWebSocketController {
         switch (type) {
 
             case "CALL_JOIN" -> {
-                callService.joinCall(projectId, userId); // auth happens inside
+                callService.joinCall(projectId, userId);
                 messagingTemplate.convertAndSend(
                         "/topic/project/" + projectId + "/call",
                     (Object) normalized

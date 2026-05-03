@@ -6,6 +6,12 @@ import { useCollab } from '../context/CollaborationContext';
 import { apiBaseUrl } from '../services/env';
 import { useLocation } from 'react-router-dom';
 import { directChatWsClient, GenericChatMessage } from '../services/wsChatClient';
+import { Phone, Video, Smile, Paperclip, X, Download, ImageIcon, FileText } from 'lucide-react';
+import EmojiPicker, { Theme } from 'emoji-picker-react';
+import { useVoice } from '../context/VoiceContext';
+import IncomingCallModal from '../components/chat/IncomingCallModal';
+import CallOverlay from '../components/chat/CallOverlay';
+import { toast } from 'sonner';
 
 type Friend = {
     userId: string;
@@ -24,11 +30,20 @@ export default function Friends() {
     const [messages, setMessages] = useState<GenericChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
+    const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+    const [attachments, setAttachments] = useState<any[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+    
+    // Call States
+    const [incomingCall, setIncomingCall] = useState<{ senderId: string; senderName: string; isVideo: boolean; data: any } | null>(null);
+    const { joinCall, leaveCall, isConnected: isInVoiceCall } = useVoice();
     const [currentUserId, setCurrentUserId] = useState<string>("");
     const [currentUserName, setCurrentUserName] = useState<string>("");
     
     const location = useLocation();
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const currentCallRef = useRef<any>(null);
 
     // Helpers
     const getColor = (str: string) => {
@@ -153,11 +168,17 @@ export default function Friends() {
 
     // Handle selection when location state changes
     useEffect(() => {
-        const state = location.state as { selectedFriendId?: string };
+        const state = location.state as { selectedFriendId?: string, startCall?: 'voice' | 'video' };
         if (state?.selectedFriendId && friends.length > 0) {
             const friend = friends.find(f => f.userId === state.selectedFriendId);
             if (friend) {
                 setSelectedFriend(friend);
+                if (state.startCall) {
+                    // Slight delay to ensure everything is ready
+                    setTimeout(() => {
+                        startCall(state.startCall === 'video');
+                    }, 500);
+                }
             }
         }
     }, [location.state, friends]);
@@ -174,12 +195,34 @@ export default function Friends() {
                 (msg) => {
                     // Only add if it belongs to the current conversation
                     if (msg.senderId === selectedFriend.userId || msg.senderId === currentUserId) {
-                        setMessages(prev => [...prev, msg]);
+                        setMessages(prev => {
+                            // Update message if it already exists (for reactions)
+                            const idx = prev.findIndex(m => m.id === msg.id);
+                            if (idx !== -1) {
+                                const newMsgs = [...prev];
+                                newMsgs[idx] = msg;
+                                return newMsgs;
+                            }
+                            return [...prev, msg];
+                        });
                     }
                 },
                 (history) => {
                     // History is handled by REST call for initial load, 
                     // but we can use this if needed.
+                },
+                (signal) => {
+                    // Handle incoming calls
+                    if (signal.data?.type === "OFFER") {
+                        const caller = friends.find(f => f.userId === signal.senderId);
+                        setIncomingCall({
+                            senderId: signal.senderId,
+                            senderName: caller?.name || "Friend",
+                            isVideo: signal.data.isVideo,
+                            data: signal.data
+                        });
+                        currentCallRef.current = signal.data;
+                    }
                 }
             );
         }
@@ -193,10 +236,75 @@ export default function Friends() {
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedFriend) return;
+        if ((!newMessage.trim() && attachments.length === 0) || !selectedFriend) return;
 
-        directChatWsClient.sendMessage(newMessage, selectedFriend.userId);
+        directChatWsClient.sendMessage(newMessage, selectedFriend.userId, attachments);
         setNewMessage("");
+        setAttachments([]);
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedFriend) return;
+
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const token = localStorage.getItem("access_token");
+            const res = await fetch(`${apiBaseUrl}/api/chat/files/upload`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            if (res.ok) {
+                const attachment = await res.json();
+                setAttachments(prev => [...prev, attachment]);
+                toast.success("File uploaded");
+            }
+        } catch (error) {
+            console.error("Upload failed", error);
+            toast.error("Upload failed");
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
+    const startCall = async (isVideo: boolean) => {
+        if (!selectedFriend) return;
+        
+        const channelId = [currentUserId, selectedFriend.userId].sort().join("-");
+        
+        // 1. Join our own voice context
+        await joinCall(channelId, "direct", true, isVideo);
+        
+        // 2. Send signal to friend via Chat WS
+        directChatWsClient.sendSignal(selectedFriend.userId, {
+            type: "OFFER",
+            isVideo,
+            channelId
+        });
+        
+        toast.info(`Calling ${selectedFriend.name}...`);
+    };
+
+    const handleAcceptCall = async () => {
+        if (!incomingCall) return;
+        
+        await joinCall(incomingCall.data.channelId, "direct", true, incomingCall.isVideo);
+        setIncomingCall(null);
+    };
+
+    const handleRejectCall = () => {
+        setIncomingCall(null);
+        currentCallRef.current = null;
+    };
+
+    const toggleReaction = (messageId: string, emoji: string) => {
+        directChatWsClient.sendReaction(messageId, emoji);
     };
 
     const filteredFriends = friends.filter(f => 
@@ -205,7 +313,7 @@ export default function Friends() {
     );
 
     return (
-        <div className="flex h-[calc(100vh-64px)] bg-[#09090B] overflow-hidden">
+        <div className="flex h-screen bg-[#09090B] overflow-hidden pt-16">
             {/* Left Sidebar - Friends List */}
             <aside className="w-80 border-r border-white/5 flex flex-col bg-[#09090B] relative z-20">
                 <div className="p-4 border-b border-white/5 flex items-center justify-between">
@@ -299,7 +407,7 @@ export default function Friends() {
                 ) : (
                     <>
                         {/* Chat Header */}
-                        <header className="h-16 px-6 border-b border-white/5 flex items-center justify-between bg-[#09090B]/80 backdrop-blur-md sticky top-0 z-10">
+                        <header className="h-16 px-6 border-b border-white/10 flex items-center justify-between bg-[#09090B] sticky top-0 z-10 shadow-lg">
                             <div className="flex items-center gap-3">
                                 <AtSign className="w-5 h-5 text-white/30" />
                                 <div className="font-bold text-white/90">{selectedFriend.name}</div>
@@ -307,8 +415,20 @@ export default function Friends() {
                                 <span className="text-xs text-white/30 font-medium">Online</span>
                             </div>
                             <div className="flex items-center gap-4 text-white/40">
-                                <button className="hover:text-white transition-colors"><Users className="w-5 h-5" /></button>
-                                <button className="hover:text-white transition-colors"><Mail className="w-5 h-5" /></button>
+                                <button 
+                                    onClick={() => startCall(false)}
+                                    className="hover:text-emerald-500 transition-colors p-2 hover:bg-emerald-500/10 rounded-lg"
+                                    title="Voice Call"
+                                >
+                                    <Phone className="w-5 h-5" />
+                                </button>
+                                <button 
+                                    onClick={() => startCall(true)}
+                                    className="hover:text-indigo-400 transition-colors p-2 hover:bg-indigo-400/10 rounded-lg"
+                                    title="Video Call"
+                                >
+                                    <Video className="w-5 h-5" />
+                                </button>
                                 <div className="w-px h-6 bg-white/10 mx-2" />
                                 <button className="hover:text-white transition-colors"><MoreVertical className="w-5 h-5" /></button>
                             </div>
@@ -346,6 +466,64 @@ export default function Friends() {
                                             <div className="text-sm text-white/80 leading-relaxed break-words whitespace-pre-wrap">
                                                 {msg.content}
                                             </div>
+
+                                            {/* Attachments */}
+                                            {msg.attachments && msg.attachments.length > 0 && (
+                                                <div className="mt-3 flex flex-wrap gap-3">
+                                                    {msg.attachments.map((at, i) => {
+                                                        const isImage = at.fileType.startsWith('image/');
+                                                        return (
+                                                            <div key={i} className="bg-white/5 rounded-xl border border-white/10 overflow-hidden max-w-[300px]">
+                                                                {isImage ? (
+                                                                    <img src={`${apiBaseUrl}${at.fileUrl}`} alt={at.fileName} className="max-h-[200px] object-contain bg-black/40" />
+                                                                ) : (
+                                                                    <div className="p-4 flex items-center gap-3">
+                                                                        <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center">
+                                                                            <FileText className="w-5 h-5 text-white/40" />
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <div className="text-xs font-medium text-white/90 truncate">{at.fileName}</div>
+                                                                            <div className="text-[10px] text-white/30">{(at.fileSize / 1024).toFixed(1)} KB</div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                <a 
+                                                                    href={`${apiBaseUrl}${at.fileUrl}`} 
+                                                                    download 
+                                                                    className="flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-white/10 text-[10px] text-white/60 transition-colors border-t border-white/5"
+                                                                >
+                                                                    <Download className="w-3 h-3" />
+                                                                    Download
+                                                                </a>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {/* Reactions */}
+                                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                                {msg.id && ['👍', '❤️', '🔥', '😂', '😮'].map(emoji => {
+                                                    const reactions = msg.reactions?.filter(r => r.emojiCode === emoji) || [];
+                                                    const hasReacted = reactions.some(r => r.userId === currentUserId);
+                                                    if (reactions.length === 0 && !isMe) return null; // Show picker only for my messages or if exists
+                                                    
+                                                    return (
+                                                        <button
+                                                            key={emoji}
+                                                            onClick={() => toggleReaction(msg.id!, emoji)}
+                                                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs transition-all border ${
+                                                                hasReacted 
+                                                                ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400' 
+                                                                : 'bg-white/5 border-transparent text-white/40 hover:border-white/10'
+                                                            } ${reactions.length === 0 ? 'opacity-0 group-hover:opacity-100' : ''}`}
+                                                        >
+                                                            <span>{emoji}</span>
+                                                            {reactions.length > 0 && <span>{reactions.length}</span>}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -354,22 +532,87 @@ export default function Friends() {
                         </div>
 
                         {/* Chat Input */}
-                        <div className="p-6 pt-2">
+                        <div className="p-6 pt-2 border-t border-white/5">
+                            {/* Attachment Previews */}
+                            {attachments.length > 0 && (
+                                <div className="mb-4 flex flex-wrap gap-2">
+                                    {attachments.map((at, i) => (
+                                        <div key={i} className="bg-white/5 rounded-xl border border-white/10 p-2 flex items-center gap-3 pr-4 group relative">
+                                            <div className="w-8 h-8 bg-indigo-500/20 rounded flex items-center justify-center text-indigo-400">
+                                                {at.fileType.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                                            </div>
+                                            <span className="text-xs text-white/60 max-w-[150px] truncate">{at.fileName}</span>
+                                            <button 
+                                                onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                                                className="p-1 hover:bg-red-500/20 text-red-500 rounded-full"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             <form 
                                 onSubmit={handleSendMessage}
-                                className="relative flex items-center"
+                                className="relative flex items-center gap-3"
                             >
-                                <input 
-                                    type="text" 
-                                    placeholder={`Message @${selectedFriend.name}`}
-                                    className="w-full bg-[#121214] border border-white/5 rounded-2xl py-4 pl-6 pr-16 text-sm focus:outline-none focus:border-[#D4AF37]/30 transition-all text-white/90 placeholder:text-white/20 shadow-2xl"
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                />
+                                <div className="flex-1 relative flex items-center">
+                                    <button 
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="absolute left-4 p-1 hover:bg-white/10 text-white/40 rounded-lg transition-colors"
+                                    >
+                                        <Paperclip className="w-5 h-5" />
+                                    </button>
+                                    <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                    />
+                                    <input 
+                                        type="text" 
+                                        placeholder={`Message @${selectedFriend.name}`}
+                                        className="w-full bg-[#121214] border border-white/5 rounded-2xl py-4 pl-14 pr-16 text-sm focus:outline-none focus:border-[#D4AF37]/30 transition-all text-white/90 placeholder:text-white/20 shadow-2xl"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === '@') {
+                                                // TODO: Suggest dropdown
+                                            }
+                                        }}
+                                    />
+                                    <div className="absolute right-4 flex items-center gap-2">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                                            className="p-1 hover:bg-white/10 text-white/40 rounded-lg transition-colors"
+                                        >
+                                            <Smile className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    {isEmojiPickerOpen && (
+                                        <div className="absolute bottom-full right-0 mb-4 z-50">
+                                            <div className="fixed inset-0" onClick={() => setIsEmojiPickerOpen(false)} />
+                                            <div className="relative">
+                                                <EmojiPicker 
+                                                    onEmojiClick={(emojiData) => {
+                                                        setNewMessage(prev => prev + emojiData.emoji);
+                                                        setIsEmojiPickerOpen(false);
+                                                    }}
+                                                    theme={Theme.DARK}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                
                                 <button 
                                     type="submit"
-                                    disabled={!newMessage.trim()}
-                                    className="absolute right-4 p-2 bg-[#D4AF37] hover:bg-[#B8962E] disabled:bg-white/5 disabled:text-white/10 text-black rounded-xl transition-all shadow-lg"
+                                    disabled={(!newMessage.trim() && attachments.length === 0) || isUploading}
+                                    className="p-4 bg-[#D4AF37] hover:bg-[#B8962E] disabled:bg-white/5 disabled:text-white/10 text-black rounded-2xl transition-all shadow-lg"
                                 >
                                     <Send className="w-5 h-5" />
                                 </button>
@@ -382,6 +625,17 @@ export default function Friends() {
                     </>
                 )}
             </main>
+
+            {incomingCall && (
+                <IncomingCallModal 
+                    callerName={incomingCall.senderName}
+                    isVideo={incomingCall.isVideo}
+                    onAccept={handleAcceptCall}
+                    onReject={handleRejectCall}
+                />
+            )}
+
+            <CallOverlay />
 
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar {

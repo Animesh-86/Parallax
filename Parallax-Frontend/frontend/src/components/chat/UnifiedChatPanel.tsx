@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { MessageSquare, Smile, Send, Hash } from 'lucide-react';
+import { MessageSquare, Smile, Send, Hash, Phone, Video } from 'lucide-react';
 import { ChatWebSocketClient, GenericChatMessage } from '../../services/wsChatClient';
+import { useVoice } from '../../context/VoiceContext';
 
 interface UnifiedChatPanelProps {
     contextId: string;
@@ -10,6 +11,7 @@ interface UnifiedChatPanelProps {
 }
 
 export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient }: UnifiedChatPanelProps) {
+    const { joinCall } = useVoice();
     const [activeTab, setActiveTab] = useState('chat');
     const [messages, setMessages] = useState<GenericChatMessage[]>([]);
     const [input, setInput] = useState('');
@@ -72,25 +74,57 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
         <div className="flex-1 flex flex-col bg-[#09090B] h-full border border-white/5 rounded-2xl overflow-hidden">
             {/* Header */}
             {contextType === 'TEAM' ? (
-                <div className="px-5 py-4 border-b border-white/5 flex items-center gap-3 shrink-0">
-                    <div className="p-2 rounded-lg bg-[#D4AF37]/20">
-                        <Hash className="w-4 h-4 text-[#D4AF37]" />
+                <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-[#D4AF37]/20">
+                            <Hash className="w-4 h-4 text-[#D4AF37]" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-sm">{contextName || "Team"} — General</h3>
+                            <p className="text-xs text-white/40">
+                                {connected ? (
+                                    <span className="flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] inline-block" />
+                                        Connected
+                                    </span>
+                                ) : 'Connecting...'}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-sm">{contextName || "Team"} — General</h3>
-                        <p className="text-xs text-white/40">
-                            {connected ? (
-                                <span className="flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] inline-block" />
-                                    Connected
-                                </span>
-                            ) : 'Connecting...'}
-                        </p>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => joinCall(contextId, "team", true, false)}
+                            className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-emerald-500 transition-all"
+                            title="Voice Call"
+                        >
+                            <Phone className="w-4 h-4" />
+                        </button>
+                        <button 
+                            onClick={() => joinCall(contextId, "team", true, true)}
+                            className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-indigo-400 transition-all"
+                            title="Video Call"
+                        >
+                            <Video className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
             ) : (
                 <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 bg-[#09090B] shrink-0">
                     <span className="text-xs font-semibold tracking-wide text-white/60">PROJECT CHAT</span>
+                    <div className="flex items-center gap-1">
+                        <button 
+                            onClick={() => joinCall(contextId, "project", true, false)}
+                            className="p-1.5 hover:bg-white/5 rounded-lg text-white/30 hover:text-emerald-500 transition-all"
+                        >
+                            <Phone className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                            onClick={() => joinCall(contextId, "project", true, true)}
+                            className="p-1.5 hover:bg-white/5 rounded-lg text-white/30 hover:text-indigo-400 transition-all"
+                        >
+                            <Video className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
                 </div>
             )}
 

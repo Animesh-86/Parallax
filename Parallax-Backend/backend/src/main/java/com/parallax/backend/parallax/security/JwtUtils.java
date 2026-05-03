@@ -3,7 +3,6 @@ package com.parallax.backend.parallax.security;
 import com.parallax.backend.parallax.exception.UnauthorizedException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -23,8 +22,6 @@ public class JwtUtils {
 
     private final Key key;
     private final long accessExpiryMs;
-
-    @Getter
     private final long refreshExpiryMs;
 
     public JwtUtils(JwtProperties props) {
@@ -51,10 +48,6 @@ public class JwtUtils {
             throw new IllegalStateException("Unable to initialize JWT signing key", e);
         }
     }
-
-    // ==================================================
-    // TOKEN GENERATION
-    // ==================================================
 
     public String generateAccessToken(UUID userId, String username, String email) {
         Instant now = Instant.now();
@@ -83,10 +76,6 @@ public class JwtUtils {
                 .compact();
     }
 
-    // ==================================================
-    // INTERNAL PARSER (SINGLE SOURCE OF TRUTH)
-    // ==================================================
-
     private Claims parseClaims(String token) {
         try {
             return Jwts.parserBuilder()
@@ -98,10 +87,6 @@ public class JwtUtils {
             throw new UnauthorizedException("Invalid or expired JWT");
         }
     }
-
-    // ==================================================
-    // 🔐 VALIDATION
-    // ==================================================
 
     public boolean validate(String token) {
         try {
@@ -126,10 +111,6 @@ public class JwtUtils {
         }
     }
 
-    // ==================================================
-    // 👤 USER ID EXTRACTION
-    // ==================================================
-
     public UUID getUserId(String token) {
         return UUID.fromString(parseClaims(token).getSubject());
     }
@@ -138,17 +119,9 @@ public class JwtUtils {
         return getUserId(token);
     }
 
-    // ==================================================
-    // TOKEN TYPE HELPERS
-    // ==================================================
-
     public boolean isRefreshToken(String token) {
         return "refresh".equals(parseClaims(token).get("type", String.class));
     }
-
-    // ==================================================
-    // MISC
-    // ==================================================
 
     public String getSessionId(String refreshToken) {
         return parseClaims(refreshToken).get("sid", String.class);
@@ -158,8 +131,7 @@ public class JwtUtils {
         return parseClaims(token).getExpiration().toInstant();
     }
 
-    public long getRefreshExpirationMs() {
+    public long getRefreshExpiryMs() {
         return refreshExpiryMs;
     }
-
 }

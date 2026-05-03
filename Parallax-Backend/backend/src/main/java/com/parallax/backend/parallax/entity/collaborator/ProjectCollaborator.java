@@ -3,11 +3,6 @@ package com.parallax.backend.parallax.entity.collaborator;
 import com.parallax.backend.parallax.entity.project.Project;
 import com.parallax.backend.parallax.entity.auth.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
 import java.time.Instant;
 import java.util.UUID;
 
@@ -19,10 +14,6 @@ import java.util.UUID;
                 @Index(name = "idx_user_id", columnList = "user_id"),
                 @Index(name = "idx_status", columnList = "status")
         })
-@Getter
-@Setter
-@NoArgsConstructor
-@ToString
 public class ProjectCollaborator {
 
     @Id
@@ -51,6 +42,8 @@ public class ProjectCollaborator {
     @Column(name = "accepted_at")
     private Instant acceptedAt;
 
+    public ProjectCollaborator() {}
+
     public ProjectCollaborator(Project project, User user, CollaboratorRole role) {
         this.project = project;
         this.user = user;
@@ -59,4 +52,35 @@ public class ProjectCollaborator {
         this.invitedAt = Instant.now();
     }
 
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public Project getProject() { return project; }
+    public void setProject(Project project) { this.project = project; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
+    public CollaboratorRole getRole() { return role; }
+    public void setRole(CollaboratorRole role) { this.role = role; }
+
+    public CollaboratorStatus getStatus() { return status; }
+    public void setStatus(CollaboratorStatus status) { this.status = status; }
+
+    public Instant getInvitedAt() { return invitedAt; }
+    public void setInvitedAt(Instant invitedAt) { this.invitedAt = invitedAt; }
+
+    public Instant getAcceptedAt() { return acceptedAt; }
+    public void setAcceptedAt(Instant acceptedAt) { this.acceptedAt = acceptedAt; }
+
+    @Override
+    public String toString() {
+        return "ProjectCollaborator{" +
+                "id=" + id +
+                ", project=" + (project != null ? project.getId() : "null") +
+                ", user=" + (user != null ? user.getId() : "null") +
+                ", role=" + role +
+                ", status=" + status +
+                '}';
+    }
 }

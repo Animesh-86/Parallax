@@ -7,9 +7,11 @@ export type GenericChatMessage = {
     content: string;
     type: "USER" | "SYSTEM";
     createdAt?: string;
-    projectId?: string; // Optional: Present if project chat
-    teamId?: string;    // Optional: Present if team chat
-    receiverId?: string; // Optional: Present if direct message
+    projectId?: string; 
+    teamId?: string;    
+    receiverId?: string; 
+    reactions?: Array<{ id: string; userId: string; emojiCode: string }>;
+    attachments?: Array<{ fileName: string; fileType: string; fileUrl: string; fileSize: number }>;
 };
 
 type ChatHistoryPayload = {
@@ -23,6 +25,7 @@ export class ChatWebSocketClient {
     private contextType: "PROJECT" | "TEAM" | "DIRECT" | null = null;
     private onMessage: ((msg: GenericChatMessage) => void) | null = null;
     private onHistory: ((msgs: GenericChatMessage[]) => void) | null = null;
+    private onSignal: ((signal: { type: string; senderId: string; data: any }) => void) | null = null;
     private reconnectTimeout: NodeJS.Timeout | null = null;
     private isExplicitDisconnect = false;
 
@@ -30,7 +33,8 @@ export class ChatWebSocketClient {
         contextId: string, 
         contextType: "PROJECT" | "TEAM" | "DIRECT", 
         onMessage: (msg: GenericChatMessage) => void, 
-        onHistory: (msgs: GenericChatMessage[]) => void
+        onHistory: (msgs: GenericChatMessage[]) => void,
+        onSignal?: (signal: { type: string; senderId: string; data: any }) => void
     ) {
         if (this.ws?.readyState === WebSocket.OPEN && this.contextId === contextId && this.contextType === contextType) {
             console.log(`🟢 ${contextType} Chat WS already connected to ${contextId}`);
@@ -47,6 +51,7 @@ export class ChatWebSocketClient {
         this.contextType = contextType;
         this.onMessage = onMessage;
         this.onHistory = onHistory;
+        this.onSignal = onSignal || null;
         this.isExplicitDisconnect = false;
 
         const token = localStorage.getItem("access_token");
@@ -77,6 +82,8 @@ export class ChatWebSocketClient {
                 // Check if it's history payload or single message
                 if (data.type === "HISTORY" && Array.isArray(data.messages)) {
                     if (this.onHistory) this.onHistory(data.messages);
+                } else if (data.type === "CALL_SIGNAL") {
+                    if (this.onSignal) this.onSignal(data);
                 } else if (data.content && data.senderName) {
                     // It's a single chat message
                     if (this.onMessage) this.onMessage(data as GenericChatMessage);
@@ -103,15 +110,27 @@ export class ChatWebSocketClient {
         };
     }
 
-    sendMessage(content: string, receiverId?: string) {
+    sendMessage(content: string, receiverId?: string, attachments?: any[]) {
         if (this.ws?.readyState === WebSocket.OPEN) {
             if (this.contextType === "DIRECT" && receiverId) {
-                this.ws.send(JSON.stringify({ content, receiverId }));
+                this.ws.send(JSON.stringify({ content, receiverId, attachments }));
             } else {
-                this.ws.send(JSON.stringify({ content }));
+                this.ws.send(JSON.stringify({ content, attachments }));
             }
         } else {
             console.warn(`⚠️ ${this.contextType} Chat WS not open, cannot send message`);
+        }
+    }
+
+    sendReaction(messageId: string, emoji: string) {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ reaction: true, messageId, emoji }));
+        }
+    }
+
+    sendSignal(receiverId: string, data: any) {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ signal: true, receiverId, data }));
         }
     }
 

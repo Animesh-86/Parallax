@@ -1,16 +1,18 @@
 package com.parallax.backend.parallax.service.session;
 
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
 
-@Slf4j
 @Component
 public class SessionContainerCleanup {
+
+    private static final Logger log = LoggerFactory.getLogger(SessionContainerCleanup.class);
 
     @PostConstruct
     public void cleanupOrphanContainers() {

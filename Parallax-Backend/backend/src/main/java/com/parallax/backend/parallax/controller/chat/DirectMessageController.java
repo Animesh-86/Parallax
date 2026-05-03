@@ -18,11 +18,12 @@ public class DirectMessageController {
     private final DirectMessageService directMessageService;
 
     @GetMapping("/{friendId}")
-    public ResponseEntity<List<DirectMessage>> getChatHistory(
-            @PathVariable UUID friendId) {
+    public ResponseEntity<List<DirectMessage>> getDirectMessages(
+            @PathVariable UUID friendId,
+            Principal principal) {
         
-        UUID currentUserId = AuthUtil.getCurrentUserId();
-        List<DirectMessage> history = directMessageService.getChatHistory(currentUserId, friendId);
+        UUID userId = AuthUtil.requireUserId(principal);
+        List<DirectMessage> history = directMessageService.getChatHistory(userId, friendId);
         
         return ResponseEntity.ok(history);
     }

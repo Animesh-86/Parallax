@@ -7,11 +7,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 @EnableScheduling
 public class PresenceCleanupTask {
 
     private final SessionRegistry sessionRegistry;
+
+    public PresenceCleanupTask(SessionRegistry sessionRegistry) {
+        this.sessionRegistry = sessionRegistry;
+    }
 
     @Scheduled(fixedDelay = 10_000)
     public void cleanup() {

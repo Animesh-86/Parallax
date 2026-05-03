@@ -2,8 +2,8 @@ package com.parallax.backend.parallax.websocket.chat;
 
 import com.parallax.backend.parallax.entity.chat.TeamChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -15,15 +15,19 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class TeamChatRoomRegistry {
+
+    private static final Logger log = LoggerFactory.getLogger(TeamChatRoomRegistry.class);
 
     private final ObjectMapper objectMapper;
 
     private final Map<UUID, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
     private final Map<String, UUID> sessionTeamMap = new ConcurrentHashMap<>();
+
+    public TeamChatRoomRegistry(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public void join(UUID teamId, WebSocketSession session) {
         rooms.computeIfAbsent(teamId, k -> new CopyOnWriteArraySet<>()).add(session);

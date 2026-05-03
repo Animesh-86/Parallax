@@ -2,10 +2,6 @@ package com.parallax.backend.parallax.entity.project;
 
 import com.parallax.backend.parallax.entity.auth.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.time.Instant;
 import java.util.UUID;
 
@@ -15,9 +11,6 @@ import java.util.UUID;
         @Index(name = "idx_commit_branch", columnList = "branch_id"),
         @Index(name = "idx_commit_timestamp", columnList = "committed_at")
 })
-@Getter
-@Setter
-@NoArgsConstructor
 public class ProjectCommit {
 
     @Id
@@ -42,12 +35,10 @@ public class ProjectCommit {
     @Column(name = "committed_at", nullable = false)
     private Instant committedAt = Instant.now();
 
-    /**
-     * Stores a JSON snapshot of file paths and their content hashes at the time of commit.
-     * This allows us to reconstruct or diff project state without duplicating file storage.
-     */
     @Column(name = "snapshot_metadata", columnDefinition = "TEXT")
     private String snapshotMetadata;
+
+    public ProjectCommit() {}
 
     public ProjectCommit(Project project, ProjectBranch branch, User author, String message) {
         this.project = project;
@@ -56,4 +47,25 @@ public class ProjectCommit {
         this.message = message;
         this.committedAt = Instant.now();
     }
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public Project getProject() { return project; }
+    public void setProject(Project project) { this.project = project; }
+
+    public ProjectBranch getBranch() { return branch; }
+    public void setBranch(ProjectBranch branch) { this.branch = branch; }
+
+    public User getAuthor() { return author; }
+    public void setAuthor(User author) { this.author = author; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+
+    public Instant getCommittedAt() { return committedAt; }
+    public void setCommittedAt(Instant committedAt) { this.committedAt = committedAt; }
+
+    public String getSnapshotMetadata() { return snapshotMetadata; }
+    public void setSnapshotMetadata(String snapshotMetadata) { this.snapshotMetadata = snapshotMetadata; }
 }

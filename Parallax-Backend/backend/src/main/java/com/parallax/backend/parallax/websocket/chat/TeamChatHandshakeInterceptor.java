@@ -4,8 +4,8 @@ import com.parallax.backend.parallax.entity.team.TeamMemberStatus;
 import com.parallax.backend.parallax.repository.UserRepository;
 import com.parallax.backend.parallax.repository.team.TeamMemberRepository;
 import com.parallax.backend.parallax.security.JwtUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -16,14 +16,20 @@ import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
+
+    private static final Logger log = LoggerFactory.getLogger(TeamChatHandshakeInterceptor.class);
 
     private final JwtUtils jwtUtils;
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
+
+    public TeamChatHandshakeInterceptor(JwtUtils jwtUtils, TeamMemberRepository teamMemberRepository, UserRepository userRepository) {
+        this.jwtUtils = jwtUtils;
+        this.teamMemberRepository = teamMemberRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
