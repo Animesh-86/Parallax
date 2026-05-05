@@ -1,92 +1,128 @@
-# Parallax 
+# Parallax Frontend
 
-**Parallax** is a next-generation real-time collaborative coding platform designed to blend the best of IDE capability with seamless social communication. Think of it as "Google Docs for Code" meets "Discord".
+The Parallax frontend is a React and TypeScript application that delivers the collaborative coding interface, dashboards, rooms, social features, and workspace experiences for the Parallax platform.
 
-## Key Features
+## What This Module Provides
 
-### Real-time Collaborative Workspace
-- **Monaco Editor Integration**: Full-featured code editor experience (VS Code-like).
-- **Multi-file Support**: Create, edit, and reorganize files in a virtual file system.
-- **Terminal Integration**: Integrated terminal window for output and commands.
-
-### Voice & Video Collaboration ("Live Session")
-- **Crystal Clear Voice**: Low-latency voice chat powered by WebRTC.
-- **Live Video**: See your team members while you code.
-- **Active Speaker Detection**: Visual indicators (cyan borders, glow effects) for who is talking.
-- **Toolbar Controls**: Integrated mute, video toggle, and join/leave controls directly in the workspace side panel.
-- **Visual Feedback**: "Live Session" indicators and participant grids.
-
-### Social & Teams
-- **Friends System**: Add collaborative partners and see their online status.
-- **Teams & Rooms**: Organize projects into Teams and create persistent Rooms for sprints or casual coding.
-- **Dashboard**: Central hub for managing projects, viewing recent activity, and accessing teams.
+- Multi-page product UI (landing, auth, dashboard, profile, workspace, rooms)
+- Collaborative workspace experiences built around rich components
+- Monaco-based editor integration
+- API client integration with backend REST endpoints
+- WebSocket/SockJS client paths for real-time communication flows
+- OAuth success/failure callback pages coordinated with backend redirects
 
 ## Tech Stack
 
-### Frontend
-- **Framework**: [React 18](https://react.dev/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components**: [Radix UI](https://www.radix-ui.com/) / Shadcn-like primitives
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Editor**: [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+- React 18
+- TypeScript 5
+- Vite 6
+- Tailwind CSS 4
+- Radix UI component primitives
+- Monaco editor integration
+- SockJS and STOMP client dependencies
+- Framer Motion and animation utilities
 
-### Communication Infrastructure
-- **WebSocket**: STOMP / SockJS for real-time signaling.
-- **WebRTC**: Peer-to-Peer audio and video streaming.
-- **Signaling**: Custom backend signaling service (Spring Boot).
+## Directory Overview
 
-## Getting Started
+Primary application code is in `frontend/`.
 
-### Prerequisites
-- Node.js (v18 or higher recommended)
-- npm or yarn
+- `frontend/src/pages`: route-level pages
+- `frontend/src/components`: reusable UI and feature components
+- `frontend/src/context`: global state and providers
+- `frontend/src/services`: API and websocket-related services
+- `frontend/src/auth`: route guards and auth helpers
+- `frontend/public`: static assets
+- `frontend/vite.config.ts`: build/dev server configuration
 
-### Installation
+## Prerequisites
 
-1. **Clone the repository** (if applicable)
-   ```bash
-   git clone https://github.com/yourusername/Parallax-frontend.git
-   ```
+- Node.js 18+
+- npm 9+
+- Running backend service (recommended for full feature validation)
 
-2. **Navigate to the frontend directory**
-   ```bash
-   cd frontend
-   ```
+## Setup
 
-3. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+Run commands from `Parallax-Frontend/frontend`.
 
-### Running the Application
+### 1) Install dependencies
 
-Start the development server:
+```bash
+npm install
+```
+
+### 2) Configure environment variables
+
+Copy `.env.example` to `.env.local` and adjust values as needed.
+
+Expected variables:
+
+- `VITE_API_BASE_URL` (default local value: `http://localhost:8080`)
+- `VITE_WS_BASE_URL` (default local value: `ws://localhost:8080`)
+- `VITE_OAUTH_BASE_URL` (default local value: `http://localhost:8080`)
+
+### 3) Start development server
+
 ```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173` (or the port shown in your terminal).
+By configuration, local frontend starts at `http://localhost:3000`.
 
-## Project Structure
+## Scripts
 
+- `npm run dev`: start Vite development server
+- `npm run build`: build production assets into `frontend/build`
+
+## Backend Integration Defaults
+
+- HTTP API base URL defaults to `http://localhost:8080` when env var is not set
+- SockJS endpoint is expected at backend path `/ws`
+- OAuth callbacks are coordinated with backend redirect flows:
+  - success route: `/oauth-success`
+  - failure route: `/oauth-failure`
+
+## Development Workflow
+
+1. Start backend on `http://localhost:8080`.
+2. Start frontend on `http://localhost:3000`.
+3. Validate login flow and protected routes.
+4. Validate workspace pages that rely on websocket activity.
+5. Build before creating a pull request.
+
+## Production Build
+
+```bash
+npm run build
 ```
-frontend/
-├── src/
-│   ├── components/       # Reusable UI components
-│   │   ├── layouts/      # Dashboard and Workspace layouts
-│   │   ├── ui/           # Generic UI primitives (Buttons, Inputs, etc.)
-│   │   └── workspace/    # Workspace-specific components (Editor, Terminal, VoicePanel)
-│   ├── context/          # React Contexts (VoiceContext, AuthContext, CollabContext)
-│   ├── pages/            # Main application pages (Dashboard, Profile, Workspace)
-│   ├── services/         # API and WebSocket services (wsVoice.ts, api.ts)
-│   └── App.tsx           # Main application entry point and routing
-└── public/               # Static assets
-```
 
-## Authentication
-The application uses JWT-based authentication. Ensure you have a valid backend running or appropriate mock tokens for testing protected routes.
+Build output is generated under `frontend/build`.
 
----
-*Built by the Parallax Team*
+## Troubleshooting
+
+### UI loads but API requests fail
+
+- Check `VITE_API_BASE_URL` in `.env.local`.
+- Confirm backend server is reachable on the configured host and port.
+- Confirm backend CORS allows the frontend origin.
+
+### OAuth returns but user is not signed in
+
+- Confirm backend is configured with valid OAuth client credentials.
+- Confirm backend `app.frontend.url` matches frontend origin.
+- Confirm frontend callback routes (`/oauth-success`, `/oauth-failure`) are available in routing.
+
+### Realtime features fail to connect
+
+- Verify backend websocket endpoint `/ws` is reachable.
+- Verify `VITE_WS_BASE_URL` and API base host/port are aligned.
+
+## Notes for Contributors
+
+- Keep API contract updates synchronized with backend changes.
+- Prefer strongly typed service boundaries in `src/services` and `src/types`.
+- Validate both primary dashboards and workspace flows for UI regressions.
+- Include screenshots or short verification notes in pull requests for significant UI changes.
+
+## License
+
+Refer to repository-level licensing and policy documentation.
