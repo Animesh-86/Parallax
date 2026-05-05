@@ -1,93 +1,64 @@
 # Parallax Frontend
 
-The Parallax frontend is a React and TypeScript application that delivers the collaborative coding interface, dashboards, rooms, social features, and workspace experiences for the Parallax platform.
+The Parallax frontend is a high-performance React application that provides the immersive, real-time user interface for the platform. It's built for speed, responsiveness, and premium aesthetics.
 
-## What This Module Provides
+## Key Modules
 
-- Multi-page product UI (landing, auth, dashboard, profile, workspace, rooms)
-- Collaborative workspace experiences built around rich components
-- Monaco-based editor integration
-- API client integration with backend REST endpoints
-- WebSocket/SockJS client paths for real-time communication flows
-- OAuth success/failure callback pages coordinated with backend redirects
+- **🎨 Immersive Workspace**: Feature-rich IDE interface with Monaco editor integration and real-time collaboration.
+- **📈 Dynamic Dashboards**: Personalized views for projects, teams, and active meeting rooms.
+- **📞 Communication Center**: Integrated voice/video call overlays and unified chat panels.
+- **🏆 Gamification UI**: Leveling bars, XP notifications, and badge showcases.
+- **🔐 Secure Auth Flows**: Seamless onboarding with JWT persistence and OAuth2 redirects.
 
 ## Tech Stack
 
-- React 18
-- TypeScript 5
-- Vite 6
-- Tailwind CSS 4
-- Radix UI component primitives
-- Monaco editor integration
-- SockJS and STOMP client dependencies
-- Framer Motion and animation utilities
+- **Framework**: React 18 + TypeScript 5
+- **Build Tool**: Vite 6
+- **Styling**: Tailwind CSS 4 + Framer Motion (for micro-animations)
+- **Editor**: Monaco Editor (`@monaco-editor/react`)
+- **Real-time**: SockJS-client + STOMP.js + Native WebSockets
+- **UI Components**: Radix UI + Lucide Icons
 
-## Directory Overview
+## Directory Architecture
 
-Primary application code is in `frontend/`.
+- `src/components`: Atomized UI components, feature-specific modules (Chat, Workspace, Modals).
+- `src/context`: Global state management for Collaboration, Auth, and Theme.
+- `src/pages`: Route-level page components (Workspace, Dashboard, Teams).
+- `src/services`: API clients (Axios) and WebSocket client managers.
+- `src/styles`: Global CSS, Tailwind configurations, and design tokens.
 
-- `frontend/src/pages`: route-level pages
-- `frontend/src/components`: reusable UI and feature components
-- `frontend/src/context`: global state and providers
-- `frontend/src/services`: API and websocket-related services
-- `frontend/src/auth`: route guards and auth helpers
-- `frontend/public`: static assets
-- `frontend/vite.config.ts`: build/dev server configuration
+## Service Layer Details
 
-## Prerequisites
+The frontend communicates with the backend through three primary channels:
 
-- Node.js 18+
-- npm 9+
-- Running backend service (recommended for full feature validation)
+1.  **REST API (`src/services/api.ts`)**: Standard CRUD operations for projects, teams, and profiles.
+2.  **STOMP Client (`src/context/CollaborationContext.tsx`)**: Handles cursor tracking, code sync, and platform events.
+3.  **High-Performance Chat (`src/services/wsChatClient.ts`)**: Dedicated raw WebSocket connections for sub-millisecond chat latency.
 
-## Setup
-
-Run commands from `Parallax-Frontend/frontend`.
-
-### 1) Install dependencies
+## Local Development
 
 ```bash
+# Navigate to frontend module
+cd Parallax-Frontend/frontend
+
+# Install dependencies
 npm install
-```
 
-### 2) Configure environment variables
-
-Copy `.env.example` to `.env.local` and adjust values as needed.
-
-Expected variables:
-
-- `VITE_API_BASE_URL` (default local value: `http://localhost:8080`)
-- `VITE_WS_BASE_URL` (default local value: `ws://localhost:8080`)
-- `VITE_OAUTH_BASE_URL` (default local value: `http://localhost:8080`)
-
-### 3) Start development server
-
-```bash
+# Start development server
 npm run dev
 ```
 
-By configuration, local frontend starts at `http://localhost:3000`.
+The application will be available at `http://localhost:3000`.
 
-## Scripts
+## Environment Variables
 
-- `npm run dev`: start Vite development server
-- `npm run build`: build production assets into `frontend/build`
+Create a `.env.local` file in the `frontend/` directory:
 
-## Backend Integration Defaults
-
-- HTTP API base URL defaults to `http://localhost:8080` when env var is not set
-- SockJS endpoint is expected at backend path `/ws`
-- OAuth callbacks are coordinated with backend redirect flows:
-  - success route: `/oauth-success`
-  - failure route: `/oauth-failure`
-
-## Development Workflow
-
-1. Start backend on `http://localhost:8080`.
-2. Start frontend on `http://localhost:3000`.
-3. Validate login flow and protected routes.
-4. Validate workspace pages that rely on websocket activity.
-5. Build before creating a pull request.
+```env
+VITE_API_BASE_URL=http://localhost:8080
+VITE_WS_BASE_URL=ws://localhost:8080
+VITE_OAUTH_BASE_URL=http://localhost:8080
+```
 
 ## Production Build
 
@@ -95,33 +66,13 @@ By configuration, local frontend starts at `http://localhost:3000`.
 npm run build
 ```
 
-Build output is generated under `frontend/build`.
+The optimized assets will be generated in the `dist/` (or `build/`) folder.
 
-## Troubleshooting
+## UI/UX Standards
 
-### UI loads but API requests fail
-
-- Check `VITE_API_BASE_URL` in `.env.local`.
-- Confirm backend server is reachable on the configured host and port.
-- Confirm backend CORS allows the frontend origin.
-
-### OAuth returns but user is not signed in
-
-- Confirm backend is configured with valid OAuth client credentials.
-- Confirm backend `app.frontend.url` matches frontend origin.
-- Confirm frontend callback routes (`/oauth-success`, `/oauth-failure`) are available in routing.
-
-### Realtime features fail to connect
-
-- Verify backend websocket endpoint `/ws` is reachable.
-- Verify `VITE_WS_BASE_URL` and API base host/port are aligned.
-
-## Notes for Contributors
-
-- Keep API contract updates synchronized with backend changes.
-- Prefer strongly typed service boundaries in `src/services` and `src/types`.
-- Validate both primary dashboards and workspace flows for UI regressions.
-- Include screenshots or short verification notes in pull requests for significant UI changes.
+- **Responsive Design**: Fully functional across desktop and tablet breakpoints.
+- **Micro-animations**: Use Framer Motion for smooth transitions between states.
+- **Aesthetics**: Follow the "Cosmic Dark" design system (Dark mode by default with gold/silver accents).
 
 ## License
 
