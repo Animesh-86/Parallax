@@ -134,4 +134,8 @@ public class JwtUtils {
     public long getRefreshExpiryMs() {
         return refreshExpiryMs;
     }
+
+    public long getRefreshExpirationMs() {
+        return refreshExpiryMs;
+    }
 }

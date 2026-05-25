@@ -48,6 +48,7 @@ public class ProjectResponse {
     public String getSettingsJson() { return settingsJson; }
     public String getEnabledExtensionsJson() { return enabledExtensionsJson; }
     public String getRuntimeName() { return runtimeName; }
+    public void setRuntimeName(String runtimeName) { this.runtimeName = runtimeName; }
 
     public static class FileDto {
         private UUID id;

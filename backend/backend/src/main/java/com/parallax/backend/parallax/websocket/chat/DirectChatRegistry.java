@@ -66,7 +66,7 @@ public class DirectChatRegistry {
         }
     }
 
-    private void sendToUser(UUID userId, TextMessage message) {
+    public void sendToUser(UUID userId, TextMessage message) {
         Set<WebSocketSession> sessions = userSessions.get(userId);
         if (sessions == null || sessions.isEmpty()) return;
 

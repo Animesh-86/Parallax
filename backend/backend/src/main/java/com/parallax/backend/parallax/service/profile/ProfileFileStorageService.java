@@ -14,11 +14,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
-public class FileStorageService {
+public class ProfileFileStorageService {
 
     private final Path fileStorageLocation;
 
-    public FileStorageService(StorageProperties storageProperties) {
+    public ProfileFileStorageService(StorageProperties storageProperties) {
         this.fileStorageLocation = Paths.get(storageProperties.getAvatars()).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.fileStorageLocation);

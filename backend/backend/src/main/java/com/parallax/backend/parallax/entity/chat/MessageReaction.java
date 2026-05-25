@@ -5,7 +5,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "message_reactions", uniqueConstraints = {
-        @UniqueConstraint(columnList = "message_id, user_id, emoji_code")
+        @UniqueConstraint(columnNames = {"message_id", "user_id", "emoji_code"})
 })
 public class MessageReaction {
 

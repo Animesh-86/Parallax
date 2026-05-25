@@ -2,7 +2,7 @@ package com.parallax.backend.parallax.controller.profile;
 
 import com.parallax.backend.parallax.dto.profile.*;
 import com.parallax.backend.parallax.security.AuthUtil;
-import com.parallax.backend.parallax.service.profile.FileStorageService;
+import com.parallax.backend.parallax.service.profile.ProfileFileStorageService;
 import com.parallax.backend.parallax.service.profile.ProfileCommandService;
 import com.parallax.backend.parallax.service.profile.ProfileQueryService;
 import jakarta.validation.Valid;
@@ -18,16 +18,16 @@ public class ProfileController {
 
     private final ProfileQueryService profileQueryService;
     private final ProfileCommandService profileCommandService;
-    private final FileStorageService fileStorageService;
+    private final ProfileFileStorageService profileFileStorageService;
 
     public ProfileController(
             ProfileQueryService profileQueryService,
             ProfileCommandService profileCommandService,
-            FileStorageService fileStorageService
+            ProfileFileStorageService profileFileStorageService
     ) {
         this.profileQueryService = profileQueryService;
         this.profileCommandService = profileCommandService;
-        this.fileStorageService = fileStorageService;
+        this.profileFileStorageService = profileFileStorageService;
     }
 
     /**
@@ -99,7 +99,7 @@ public class ProfileController {
             @RequestParam("file") MultipartFile file
     ) {
         UUID userId = AuthUtil.getCurrentUserId();
-        String fileUrl = fileStorageService.storeFile(file);
+        String fileUrl = profileFileStorageService.storeFile(file);
         
         UpdateAvatarRequest request = new UpdateAvatarRequest();
         request.setAvatarUrl(fileUrl);

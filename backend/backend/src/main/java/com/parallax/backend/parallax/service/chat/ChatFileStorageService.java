@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 @Service
-public class FileStorageService {
+public class ChatFileStorageService {
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;

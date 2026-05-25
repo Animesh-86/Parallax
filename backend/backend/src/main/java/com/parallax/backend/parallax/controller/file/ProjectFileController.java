@@ -25,11 +25,11 @@ import com.parallax.backend.parallax.service.file.FileService;
 
 @RestController
 @RequestMapping("/api/projects")
-public class FileController {
+public class ProjectFileController {
 
     private final FileService fileService;
 
-    public FileController(FileService fileService) {
+    public ProjectFileController(FileService fileService) {
         this.fileService = fileService;
     }
 

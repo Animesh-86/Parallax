@@ -1,7 +1,7 @@
 package com.parallax.backend.parallax.controller.chat;
 
 import com.parallax.backend.parallax.entity.chat.MessageAttachment;
-import com.parallax.backend.parallax.service.chat.FileStorageService;
+import com.parallax.backend.parallax.service.chat.ChatFileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -16,13 +16,13 @@ import java.nio.file.Path;
 @RestController
 @RequestMapping("/api/chat/files")
 @RequiredArgsConstructor
-public class FileController {
+public class ChatFileController {
 
-    private final FileStorageService fileStorageService;
+    private final ChatFileStorageService chatFileStorageService;
 
     @PostMapping("/upload")
     public ResponseEntity<MessageAttachment> uploadFile(@RequestParam("file") MultipartFile file) {
-        String url = fileStorageService.storeFile(file);
+        String url = chatFileStorageService.storeFile(file);
         
         MessageAttachment attachment = MessageAttachment.builder()
                 .fileName(file.getOriginalFilename())
@@ -37,7 +37,7 @@ public class FileController {
     @GetMapping("/{fileName:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
         try {
-            Path filePath = fileStorageService.loadFile(fileName);
+            Path filePath = chatFileStorageService.loadFile(fileName);
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists()) {
