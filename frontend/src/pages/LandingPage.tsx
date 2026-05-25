@@ -125,6 +125,59 @@ export default function LandingPage() {
                 {/* Feature Tabs Section */}
                 <FeatureTabs />
 
+                {/* Final CTA Section */}
+                <section className="relative w-full py-24 overflow-hidden border-t border-white/5 bg-[#09090B]">
+                    <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                            
+                            {/* Left Text */}
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.8 }}
+                                className="text-left"
+                            >
+                                <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight text-white">
+                                    Ready to Launch Your Next <span className="text-[#D4AF37]">Project?</span>
+                                </h2>
+                                <p className="text-xl text-[#A1A1AA] mb-10 max-w-lg">
+                                    Join Parallax today and experience the future of collaborative engineering.
+                                </p>
+                                <button
+                                    onClick={() => navigate('/signup')}
+                                    className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-[#D4AF37] rounded-xl overflow-hidden transition-all hover:scale-105 shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)]"
+                                >
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        Initialize Workspace
+                                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                    </span>
+                                    <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                                </button>
+                            </motion.div>
+
+                            {/* Right 3D Visual */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 1 }}
+                                className="relative h-[400px] md:h-[500px] flex items-center justify-center"
+                            >
+                                {/* Subtle background glow */}
+                                <div className="absolute inset-0 bg-[#D4AF37]/5 blur-[100px] rounded-full" />
+                                
+                                {/* Scaled AstraCore to fit neatly */}
+                                <div className="scale-[0.5] md:scale-[0.65] origin-center absolute flex items-center justify-center">
+                                    <AstraCore />
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+                </section>
+
                 {/* Footer */}
                 <Footer />
             </div >

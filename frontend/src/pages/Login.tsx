@@ -153,7 +153,7 @@ export default function Login() {
                             <br />
                             {'>'} Loading real-time sync engine...
                             <br />
-                            <span className="text-[#D4AF37]">{'>'} Ready to build together! 🚀</span>
+                            <span className="text-[#D4AF37]">{'>'} Ready to build together!</span>
                         </div>
                     </div>
                 </div>

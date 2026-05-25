@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { GradientShineText } from "./effects/GradientShineText";
 import { Users, Video, Mic, Share2, Code2, Shield, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Tab {
     id: string;
@@ -59,6 +60,7 @@ const tabs: Tab[] = [
 ];
 
 export const FeatureTabs = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState(tabs[0]);
     const containerRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
@@ -172,6 +174,7 @@ export const FeatureTabs = () => {
                                     </ul>
 
                                     <motion.button
+                                        onClick={() => navigate('/features')}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className="px-8 py-3 bg-[#D4AF37] text-black font-bold rounded-lg hover:bg-[#F59E0B] transition-colors pointer-events-auto shadow-[0_4px_20px_rgba(212,175,55,0.4)]"

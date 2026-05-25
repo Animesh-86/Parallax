@@ -5,49 +5,49 @@ import { GradientShineText } from "./effects/GradientShineText";
 const features = [
     {
         title: "Cloud-Native IDE",
-        description: "Full-featured code editor with syntax highlighting, multi-language support, and file management – all in your browser.",
+        description: "A full-fledged development environment running entirely in your browser. No local setup, no dependency hell.",
         details: [
-            "Browser-accessible cloud editor",
-            "Multi-language support",
-            "File & project management",
+            "Instant-on workspaces",
             "Intelligent syntax highlighting",
-            "Low-latency real-time editing"
+            "Multi-language execution support",
+            "Integrated terminal & file explorer",
+            "VS Code compatible theme"
         ],
         color: "#D4AF37", // Champagne Gold
     },
     {
-        title: "Secure Runtimes",
-        description: "Execute code safely in isolated containers. Per-session environments with CPU/memory limits and zero host access.",
+        title: "Ephemeral Runtimes",
+        description: "Execute code safely in isolated Docker containers. Every session gets a pristine, sandboxed environment that wipes clean on exit.",
         details: [
-            "Isolated Docker containers",
-            "Language-specific runtimes",
-            "Execution time & resource limits",
-            "Real-time output streaming",
-            "Ephemeral environments"
+            "Zero-trust execution sandboxes",
+            "Per-session memory & CPU limits",
+            "Real-time stdout/stderr streaming",
+            "Isolated network namespaces",
+            "Auto-destruction on disconnect"
         ],
         color: "#F8FAFC", // Diamond White
     },
     {
-        title: "Enterprise Security",
-        description: "Bank-grade isolation with network restrictions, resource throttling, and ephemeral sessions that wipe clean.",
+        title: "Real-Time Sync Engine",
+        description: "Experience Google Docs-style collaboration for code. Sub-millisecond latency powered by advanced Operational Transformation (OT).",
         details: [
-            "Network isolation",
-            "Strict resource throttling",
-            "Automatic session expiration",
-            "No persistent host access",
-            "Controlled workspace access"
+            "Conflict-free concurrent editing",
+            "Live cursor & selection tracking",
+            "Event-driven WebSocket architecture",
+            "Optimistic UI updates",
+            "Persistent session state recovery"
         ],
         color: "#F59E0B", // Amber
     },
     {
-        title: "Modern Architecture",
-        description: "Built on a stateless backend with WebSocket real-time communication and scalable session handling.",
+        title: "Integrated Comms",
+        description: "Don't switch tabs to talk. Native voice, video, and chat built directly into the editor for seamless pair programming.",
         details: [
-            "Cloud-native stateless backend",
-            "WebSocket real-time sync",
-            "Scalable session handling",
-            "Modular microservices",
-            "Environment-based config"
+            "Peer-to-peer WebRTC streaming",
+            "Low-latency voice channels",
+            "In-editor text chat",
+            "Active speaker indicators",
+            "End-to-end encrypted media"
         ],
         color: "#71717A", // Muted Zinc
     },

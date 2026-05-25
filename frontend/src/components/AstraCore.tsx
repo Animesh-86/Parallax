@@ -337,11 +337,7 @@ export function AstraCore() {
                           </svg>
                         </div>
 
-                        <h2 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight relative z-10">
-                          <span className="relative">
-                            <GradientShineText text="The Core of Parallax" />
-                          </span>
-                        </h2>
+
                         {/* Subtle highlight on top */}
                         <div
                           className="absolute rounded-full pointer-events-none"
