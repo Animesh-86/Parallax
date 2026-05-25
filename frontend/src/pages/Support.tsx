@@ -36,7 +36,7 @@ export default function Support() {
                                 title: "GitHub Issues",
                                 desc: "Found a bug or have a feature request? Open an issue on GitHub. It's the fastest way to get things tracked and resolved.",
                                 cta: "Open an Issue",
-                                href: "#",
+                                href: "https://github.com/Animesh-86/Parallax/issues",
                             },
                             {
                                 icon: Mail,
@@ -66,9 +66,20 @@ export default function Support() {
                                 </div>
                                 <h3 className="text-lg font-medium text-white mb-2">{item.title}</h3>
                                 <p className="text-sm text-[#A1A1AA] leading-relaxed mb-4 flex-1">{item.desc}</p>
-                                <Link to={item.href} className="inline-flex items-center gap-1.5 text-sm text-[#D4AF37] hover:underline">
-                                    {item.cta} <ArrowRight className="w-3.5 h-3.5" />
-                                </Link>
+                                {item.href.startsWith("http") ? (
+                                    <a
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-sm text-[#D4AF37] hover:underline"
+                                    >
+                                        {item.cta} <ArrowRight className="w-3.5 h-3.5" />
+                                    </a>
+                                ) : (
+                                    <Link to={item.href} className="inline-flex items-center gap-1.5 text-sm text-[#D4AF37] hover:underline">
+                                        {item.cta} <ArrowRight className="w-3.5 h-3.5" />
+                                    </Link>
+                                )}
                             </motion.div>
                         ))}
                     </div>

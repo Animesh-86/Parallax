@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, Check, Chrome, Code2, Github, Sparkles, Zap } from 'lucide-react';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from "../services/api";
 import { apiBaseUrl } from "../services/env";
 
@@ -99,7 +99,7 @@ export default function Signup() {
             <div className="relative z-10 w-full max-w-7xl mx-auto px-8 flex items-center justify-between gap-16">
                 {/* Left Side - Visual Illustration */}
                 <div className="flex-1 space-y-8">
-                    <div className="relative w-full h-96 flex items-center justify-center">
+                    <div className="relative w-full h-96 flex items-center justify-start ml-4">
                         <div className="relative z-10">
                             <div
                                 className="w-48 h-48 rounded-full bg-[#D4AF37] flex items-center justify-center relative">
@@ -117,7 +117,7 @@ export default function Signup() {
                             </span>
                         </h1>
                         <p className="text-xl text-[#CBD5E1]">
-                            Start your journey with Parallax and collaborate with developers worldwide. 🚀
+                            Start your journey with Parallax and collaborate with developers worldwide.
                         </p>
                     </div>
 
@@ -225,20 +225,22 @@ export default function Signup() {
                                 </button>
                                 <label className="text-sm text-[#CBD5E1]">
                                     I accept the{' '}
-                                    <button
-                                        type="button"
+                                    <Link
+                                        to="/terms"
+                                        target="_blank"
                                         className="text-[#D4AF37] hover:text-[#D4AF37] transition-colors underline"
                                     >
                                         Terms of Service
-                                    </button>
+                                    </Link>
                                     {' '}
                                     and{' '}
-                                    <button
-                                        type="button"
+                                    <Link
+                                        to="/privacy"
+                                        target="_blank"
                                         className="text-[#D4AF37] hover:text-[#D4AF37] transition-colors underline"
                                     >
                                         Privacy Policy
-                                    </button>
+                                    </Link>
                                 </label>
                             </div>
 

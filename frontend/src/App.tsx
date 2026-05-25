@@ -17,6 +17,8 @@ import ApiDocs from "./pages/ApiDocs";
 import Support from "./pages/Support";
 import Status from "./pages/Status";
 import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import RequireAuth from "./auth/RequireAuth";
 import OAuthSuccessPage from "./pages/0AuthSuccessPage";
 import OAuthFailurePage from "./pages/OAuthFailurePage";
@@ -54,7 +56,8 @@ export default function App() {
         <Route path="/status" element={<Status />} />
 
         <Route path="/contact" element={<Contact />} />
-
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
 
         {/* Authenticated Routes with Collaboration Provider */}
 

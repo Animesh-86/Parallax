@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
-import { Mail, Github, Twitter, MessageSquare, Send, Radio, Link as LinkIcon } from "lucide-react";
+import { Mail, Github, Linkedin, MessageSquare, Send, Radio, Link as LinkIcon } from "lucide-react";
 import { useState } from "react";
 
 export default function Contact() {
@@ -68,6 +68,15 @@ export default function Contact() {
                             </div>
 
                             <form className="p-10 space-y-8" onSubmit={(e) => e.preventDefault()}>
+                                {/* System Status Notice */}
+                                <div className="p-5 rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 text-xs text-zinc-300 font-mono flex items-start gap-3">
+                                    <Radio className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5 animate-pulse" />
+                                    <div>
+                                        <span className="text-[#D4AF37] font-bold uppercase tracking-wider block mb-1">System Status: Inactive</span>
+                                        Form submission is offline as backend functionalities are still under development. Please reach out to us via direct email or social nodes on the right.
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
                                         <label htmlFor="name" className="text-[9px] font-mono text-[#D4AF37] tracking-[0.2em] uppercase">Name</label>
@@ -130,14 +139,16 @@ export default function Contact() {
                             transition={{ delay: 0.1 }}
                         >
                             {[
-                                { icon: Mail, title: "Email", value: "hello@parallax.dev", href: "mailto:hello@parallax.dev", tag: "Active" },
-                                { icon: Github, title: "GitHub", value: "github.com/parallax", href: "#", tag: "Public" },
-                                { icon: Twitter, title: "Twitter", value: "@parallaxdev", href: "#", tag: "Social" },
-                                { icon: MessageSquare, title: "Discord", value: "Discord Server", href: "#", tag: "Coming Soon" },
+                                { icon: Mail, title: "Email", value: "animesh8sharma@gmail.com", href: "mailto:animesh8sharma@gmail.com", tag: "Active" },
+                                { icon: Github, title: "GitHub", value: "github.com/Animesh-86/Parallax", href: "https://github.com/Animesh-86/Parallax.git", tag: "Public" },
+                                { icon: Linkedin, title: "LinkedIn", value: "linkedin.com/in/animesh-sharma-adev", href: "https://www.linkedin.com/in/animesh-sharma-adev", tag: "Professional" },
+                                { icon: MessageSquare, title: "Discord", value: "Coming Soon", href: "#", tag: "Coming Soon" },
                             ].map((item, index) => (
                                 <motion.a
                                     key={index}
                                     href={item.href}
+                                    target={item.href !== "#" ? "_blank" : undefined}
+                                    rel={item.href !== "#" ? "noopener noreferrer" : undefined}
                                     whileHover={{ x: 6 }}
                                     className="block p-6 rounded-[28px] bg-zinc-950/20 border border-white/5 hover:border-[#D4AF37]/30 transition-all group"
                                 >

@@ -1,14 +1,13 @@
 import { motion } from "motion/react";
-import { Github, Twitter, Linkedin, Mail } from "lucide-react";
+import { Github, Linkedin, Mail } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
 import { Link } from "react-router-dom";
 
 export function Footer() {
   const socialLinks = [
-    { Icon: Github, href: "#", label: "GitHub" },
-    { Icon: Twitter, href: "#", label: "Twitter" },
-    { Icon: Linkedin, href: "#", label: "LinkedIn" },
-    { Icon: Mail, href: "#", label: "Email" },
+    { Icon: Github, href: "https://github.com/Animesh-86/Parallax.git", label: "GitHub" },
+    { Icon: Linkedin, href: "https://www.linkedin.com/in/animesh-sharma-adev", label: "LinkedIn" },
+    { Icon: Mail, href: "mailto:animesh8sharma@gmail.com", label: "Email" },
   ];
 
   const footerLinks = [
@@ -25,7 +24,7 @@ export function Footer() {
       links: [
         { label: "Documentation", href: "/docs" },
         { label: "API", href: "/api" },
-        { label: "Support", href: "/support" },
+        { label: "Support", href: "https://github.com/Animesh-86/Parallax/issues" },
         { label: "Status", href: "/status" },
       ],
     },
@@ -68,6 +67,8 @@ export function Footer() {
                   <motion.a
                     key={index}
                     href={social.href}
+                    target={social.href !== "#" ? "_blank" : undefined}
+                    rel={social.href !== "#" ? "noopener noreferrer" : undefined}
                     className="w-10 h-10 rounded-xl bg-zinc-950 border border-white/5 hover:border-[#D4AF37]/40 flex items-center justify-center transition-all duration-500 group"
                     whileHover={{ y: -4 }}
                   >
@@ -88,12 +89,23 @@ export function Footer() {
                 <ul className="space-y-3">
                   {column.links.map((link, linkIdx) => (
                     <li key={linkIdx}>
-                      <Link
-                        to={link.href}
-                        className="text-xs text-zinc-600 hover:text-white uppercase tracking-widest transition-colors inline-block"
-                      >
-                        {link.label}
-                      </Link>
+                      {link.href.startsWith("http") || link.href.startsWith("mailto") ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-zinc-600 hover:text-white uppercase tracking-widest transition-colors inline-block"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          to={link.href}
+                          className="text-xs text-zinc-600 hover:text-white uppercase tracking-widest transition-colors inline-block"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
