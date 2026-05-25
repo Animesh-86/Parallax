@@ -424,7 +424,7 @@ export default function Friends() {
                                 </button>
                                 <button 
                                     onClick={() => startCall(true)}
-                                    className="hover:text-indigo-400 transition-colors p-2 hover:bg-indigo-400/10 rounded-lg"
+                                    className="hover:text-[#D4AF37] transition-colors p-2 hover:bg-white/10 rounded-lg"
                                     title="Video Call"
                                 >
                                     <Video className="w-5 h-5" />
@@ -514,7 +514,7 @@ export default function Friends() {
                                                             onClick={() => toggleReaction(msg.id!, emoji)}
                                                             className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs transition-all border ${
                                                                 hasReacted 
-                                                                ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400' 
+                                                                ? 'bg-[#D4AF37]/20 border-[#D4AF37]/40 text-[#D4AF37]' 
                                                                 : 'bg-white/5 border-transparent text-white/40 hover:border-white/10'
                                                             } ${reactions.length === 0 ? 'opacity-0 group-hover:opacity-100' : ''}`}
                                                         >
@@ -538,7 +538,7 @@ export default function Friends() {
                                 <div className="mb-4 flex flex-wrap gap-2">
                                     {attachments.map((at, i) => (
                                         <div key={i} className="bg-white/5 rounded-xl border border-white/10 p-2 flex items-center gap-3 pr-4 group relative">
-                                            <div className="w-8 h-8 bg-indigo-500/20 rounded flex items-center justify-center text-indigo-400">
+                                            <div className="w-8 h-8 bg-[#D4AF37]/20 rounded flex items-center justify-center text-[#D4AF37]">
                                                 {at.fileType.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                                             </div>
                                             <span className="text-xs text-white/60 max-w-[150px] truncate">{at.fileName}</span>

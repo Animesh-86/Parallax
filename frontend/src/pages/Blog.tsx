@@ -1,7 +1,6 @@
 import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { CosmicStars } from "../components/workspace/CosmicStars";
 import { PenLine, ArrowRight } from "lucide-react";
 
 const posts = [
@@ -38,7 +37,6 @@ const posts = [
 export default function Blog() {
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden">
-            <CosmicStars />
             <Header />
 
             <main className="relative z-10 pt-28 pb-20">

@@ -2,13 +2,11 @@ import { motion } from "motion/react";
 import { Link } from 'react-router-dom';
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { CosmicStars } from "../components/workspace/CosmicStars";
 import { Code2, GitPullRequest, Star, Heart } from "lucide-react";
 
 export default function Careers() {
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden">
-            <CosmicStars />
             <Header />
 
             <main className="relative z-10 pt-28 pb-20">

@@ -124,7 +124,7 @@ const RemoteStreamView: React.FC<{ stream: MediaStream, name: string, videoEnabl
                         className="w-full h-full object-cover"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-900/40 to-purple-900/40">
+                    <div className="w-full h-full flex items-center justify-center bg-[#09090B]/80 backdrop-blur-md">
                         <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-lg">
                             {name.substring(0, 1).toUpperCase()}
                         </div>

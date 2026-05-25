@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ArrowRight, Chrome, Code2, Github, Lock, Mail, Terminal } from "lucide-react";
-import { CosmicStars } from "../components/workspace/CosmicStars";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { apiBaseUrl } from "../services/env";
@@ -80,82 +79,27 @@ export default function Login() {
 
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden flex items-center justify-center">
-            {/* Cosmic Background */}
-            <CosmicStars />
 
             {/* Background Gradients */}
             <div className="fixed inset-0 pointer-events-none">
                 <div
-                    className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#D4AF37] rounded-full blur-[150px] opacity-10 animate-pulse" />
+                    className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#D4AF37] rounded-full blur-[150px] opacity-10" />
                 <div
                     className="absolute bottom-1/3 right-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px] opacity-15" />
                 <div
                     className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-[#F59E0B] rounded-full blur-[150px] opacity-10" />
             </div>
 
-            {/* Floating Particles */}
-            <div className="fixed inset-0 pointer-events-none">
-                {Array.from({ length: 50 }).map((_, i) => (
-                    <div
-                        key={i}
-                        className="absolute w-1 h-1 bg-white rounded-full opacity-30"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            animation: `float ${Math.random() * 10 + 10}s linear infinite`,
-                            animationDelay: `${Math.random() * 5}s`,
-                        }}
-                    />
-                ))}
-            </div>
-
-            <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
-          50% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
-        }
-        @keyframes glow-pulse {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.1); }
-        }
-        @keyframes rotate-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-
             {/* Main Content */}
             <div className="relative z-10 w-full max-w-7xl mx-auto px-8 flex items-center justify-between gap-16">
                 {/* Left Side - Visual Area */}
                 <div className="flex-1 space-y-8">
-                    {/* Logo with Glow */}
+                    {/* Logo */}
                     <div className="relative inline-block">
                         <div className="relative">
                             <div
-                                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] flex items-center justify-center relative z-10">
+                                className="w-20 h-20 rounded-2xl bg-[#D4AF37] flex items-center justify-center relative z-10">
                                 <Code2 className="w-12 h-12" />
-                            </div>
-                            <div
-                                className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] blur-3xl opacity-30"
-                                style={{ animation: 'glow-pulse 6s ease-in-out infinite' }} />
-                        </div>
-
-                        {/* Rotating Glyphs */}
-                        <div className="absolute -inset-4 pointer-events-none">
-                            <div className="relative w-full h-full"
-                                style={{ animation: 'rotate-slow 20s linear infinite' }}>
-                                {[0, 60, 120, 180, 240, 300].map((angle) => (
-                                    <div
-                                        key={angle}
-                                        className="absolute w-2 h-2 bg-[#D4AF37] rounded-full"
-                                        style={{
-                                            top: '50%',
-                                            left: '50%',
-                                            transform: `rotate(${angle}deg) translateY(-50px)`,
-                                            boxShadow: '0 0 10px #D4AF37',
-                                        }}
-                                    />
-                                ))}
                             </div>
                         </div>
                     </div>
@@ -165,8 +109,7 @@ export default function Login() {
                         <h1 className="text-6xl font-bold leading-tight">
                             Code Together.
                             <br />
-                            <span
-                                className="bg-gradient-to-r from-[#D4AF37] via-[#D4AF37] to-[#F59E0B] bg-clip-text text-transparent">
+                            <span className="text-[#D4AF37]">
                                 From Anywhere.
                             </span>
                         </h1>
@@ -239,14 +182,10 @@ export default function Login() {
                                         onBlur={() => setFocusedField(null)}
                                         placeholder="your.email@example.com"
                                         className={`w-full bg-white/5 border rounded-xl pl-12 pr-4 py-3 text-white placeholder-[#A1A1AA] focus:outline-none transition-all ${focusedField === 'email'
-                                                ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(107,84,255,0.3)]'
+                                                ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.2)]'
                                                 : 'border-white/10'
                                             }`}
                                     />
-                                    {focusedField === 'email' && (
-                                        <div
-                                            className="absolute inset-0 rounded-xl border-2 border-[#D4AF37]/50 pointer-events-none animate-pulse" />
-                                    )}
                                 </div>
                             </div>
 
@@ -263,14 +202,10 @@ export default function Login() {
                                         onBlur={() => setFocusedField(null)}
                                         placeholder="••••••••"
                                         className={`w-full bg-white/5 border rounded-xl pl-12 pr-4 py-3 text-white placeholder-[#A1A1AA] focus:outline-none transition-all ${focusedField === 'password'
-                                                ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(107,84,255,0.3)]'
+                                                ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.2)]'
                                                 : 'border-white/10'
                                             }`}
                                     />
-                                    {focusedField === 'password' && (
-                                        <div
-                                            className="absolute inset-0 rounded-xl border-2 border-[#D4AF37]/50 pointer-events-none animate-pulse" />
-                                    )}
                                 </div>
                             </div>
 
@@ -287,7 +222,7 @@ export default function Login() {
                             {/* Login Button */}
                             <button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] text-white font-semibold py-3 px-6 rounded-xl hover:shadow-[0_0_30px_rgba(107,84,255,0.5)] transition-all duration-300 flex items-center justify-center gap-2 group"
+                                className="w-full bg-[#D4AF37] text-black font-semibold py-3 px-6 rounded-xl hover:bg-[#F59E0B] transition-all duration-300 flex items-center justify-center gap-2 group"
                             >
                                 <span>Login</span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -308,7 +243,7 @@ export default function Login() {
                         <div className="space-y-3">
                             <button
                                 onClick={handleGoogleLogin}
-                                className="w-full bg:white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
+                                className="w-full bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
                             >
                                 <Chrome className="w-5 h-5" />
                                 <span>Continue with Google</span>
@@ -316,7 +251,7 @@ export default function Login() {
 
                             <button
                                 onClick={handleGitHubLogin}
-                                className="w-full bg:white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
+                                className="w-full bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 text-white py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 group"
                             >
                                 <Github className="w-5 h-5" />
                                 <span>Continue with GitHub</span>
@@ -338,10 +273,6 @@ export default function Login() {
                             </p>
                         </div>
                     </div>
-
-                    {/* Decorative Elements */}
-                    <div
-                        className="absolute -right-20 top-1/2 w-40 h-40 bg-[#D4AF37] rounded-full blur-[100px] opacity-20 pointer-events-none" />
                 </div>
             </div>
         </div>

@@ -3,24 +3,12 @@ import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { FluidFlowBackground } from '../components/effects/FluidFlowBackground';
-import { ParticlesWaves } from '../components/effects/ParticlesWaves';
-import { TextIlluminate } from '../components/effects/TextIlluminate';
 import { Code2, Zap, Target, Sparkles, Rocket, Terminal, Globe, Shield, ArrowRight, Cpu, Layers } from 'lucide-react';
 
 export default function About() {
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden font-sans">
-            {/* Synchronized Background System */}
-            <div className="fixed inset-0 z-0">
-                <ParticlesWaves
-                    particleCount={800}
-                    lineOpacity={0.15}
-                    particleOpacity={0.3}
-                    speed={0.015}
-                    lineDistance={130}
-                    color="#D4AF37"
-                />
-            </div>
+            {/* Background System */}
             <div className="fixed inset-0 z-0 opacity-40">
                 <FluidFlowBackground
                     colors={["#D4AF37", "#F59E0B", "#09090B", "#000000"]}
@@ -44,17 +32,11 @@ export default function About() {
                             transition={{ duration: 0.8 }}
                             className="space-y-4"
                         >
-                            <div className="flex items-center justify-center gap-3 mb-6">
-                                <span className="h-px w-12 bg-gradient-to-r from-transparent to-[#D4AF37]/50" />
-                                <span className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-mono">Registry_ID: PX-MSN-01</span>
-                                <span className="h-px w-12 bg-gradient-to-l from-transparent to-[#D4AF37]/50" />
-                            </div>
-                            <TextIlluminate 
-                                text="MISSION TRAJECTORY" 
-                                className="text-4xl md:text-6xl font-bold tracking-[0.3em] uppercase"
-                            />
+                            <h1 className="text-4xl md:text-6xl font-bold tracking-tight uppercase text-white">
+                                About Parallax
+                            </h1>
                             <p className="text-[#A1A1AA] max-w-2xl mx-auto text-sm md:text-base tracking-wide leading-relaxed pt-4">
-                                Re-engineering technical collaboration from the substrate up. 
+                                Building the future of technical collaboration.
                                 A precision instrument for the modern developer.
                             </p>
                         </motion.div>
@@ -76,8 +58,8 @@ export default function About() {
                             <div className="relative z-10 space-y-12">
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2 text-[10px] text-[#D4AF37] font-mono uppercase tracking-widest">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-                                        DEP_ORIGIN: THE_WHY
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+                                        Our Story
                                     </div>
                                     <h2 className="text-2xl font-bold tracking-widest uppercase">The Foundational Gap</h2>
                                     <div className="space-y-4 text-[#CBD5E1] text-sm leading-relaxed max-w-2xl">
@@ -93,7 +75,7 @@ export default function About() {
                                 <div className="space-y-4 pt-8 border-t border-white/5">
                                     <div className="flex items-center gap-2 text-[10px] text-[#D4AF37] font-mono uppercase tracking-widest">
                                         <div className="w-1.5 h-1.5 invisible" />
-                                        DEP_NATURE: THE_PLATFORM
+                                        The Platform
                                     </div>
                                     <h3 className="text-xl font-bold tracking-widest uppercase">Architectural Agency</h3>
                                     <p className="text-[#CBD5E1] text-sm leading-relaxed max-w-2xl">
@@ -112,14 +94,14 @@ export default function About() {
                             >
                                 <div className="flex items-center gap-3 mb-6">
                                     <Sparkles className="w-5 h-5 text-[#D4AF37]" />
-                                    <h4 className="text-sm font-bold tracking-[0.2em] uppercase">SOLO_CRAFTED</h4>
+                                    <h4 className="text-sm font-bold tracking-[0.2em] uppercase">Built Solo</h4>
                                 </div>
                                 <p className="text-xs text-[#CBD5E1] leading-relaxed mb-6">
                                     Every component of Parallax is meticulously developed by a single engineer. No templates, no agencies—just high-precision craft code designed to perform.
                                 </p>
                                 <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-2">
                                     <div className="flex justify-between text-[9px] font-mono text-[#71717A]">
-                                        <span>SYSTEM_STATUS</span>
+                                        <span>Status</span>
                                         <span className="text-[#D4AF37]">OPERATIONAL</span>
                                     </div>
                                     <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
@@ -139,14 +121,14 @@ export default function About() {
                                 transition={{ delay: 0.2 }}
                                 className="p-8 rounded-[32px] bg-zinc-950/60 border border-white/10"
                             >
-                                <h4 className="text-[10px] text-[#71717A] font-mono uppercase tracking-[0.2em] mb-4">Registry_Type</h4>
+                                <h4 className="text-[10px] text-[#71717A] font-mono uppercase tracking-[0.2em] mb-4">Platform Type</h4>
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
                                         <Layers className="w-6 h-6 text-[#D4AF37]" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold tracking-wider">COLLABORATIVE</p>
-                                        <p className="text-xs text-[#A1A1AA]">SUBSYSTEM_V3.8</p>
+                                        <p className="text-xs text-[#A1A1AA]">Development Platform</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -157,7 +139,7 @@ export default function About() {
                     <div className="mb-24">
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                             <div className="space-y-2">
-                                <p className="text-[10px] text-[#D4AF37] font-mono tracking-[0.4em] uppercase">Tech_Capabilities</p>
+                                <p className="text-[10px] text-[#D4AF37] font-mono tracking-[0.4em] uppercase">Core Technology</p>
                                 <h2 className="text-2xl font-bold tracking-[0.2em] uppercase">Under The Hood</h2>
                             </div>
                             <div className="h-px bg-white/5 flex-grow mx-8 hidden md:block" />
@@ -165,12 +147,12 @@ export default function About() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[
-                                { icon: Code2, title: "Registry: Editor", desc: "Monaco-driven collaborative environment with syntax-sync and low-latency cursor broadcasting." },
-                                { icon: Terminal, title: "Runner: Docker", desc: "Isolated per-language environments providing instantaneous code execution and output streaming." },
-                                { icon: Globe, title: "Comms: WebRTC", desc: "High-bandwidth voice and video synchronization for seamless technical discussion during sessions." },
-                                { icon: Zap, title: "Flow: Zero-Init", desc: "Instant-on collaboration rooms that require no complex environment setup or account hurdles." },
-                                { icon: Shield, title: "Protocol: Secure", desc: "Standardized OAuth 2.0 integration and encrypted session state management by design." },
-                                { icon: Rocket, title: "Arch: Spring-Go", desc: "A robust backend infrastructure built on Spring Boot for maximum concurrency and scale." },
+                                { icon: Code2, title: "Collaborative Editor", desc: "Monaco-driven collaborative environment with syntax-sync and low-latency cursor broadcasting." },
+                                { icon: Terminal, title: "Code Execution", desc: "Isolated per-language environments providing instantaneous code execution and output streaming." },
+                                { icon: Globe, title: "Voice & Video", desc: "High-bandwidth voice and video synchronization for seamless technical discussion during sessions." },
+                                { icon: Zap, title: "Instant Setup", desc: "Instant-on collaboration rooms that require no complex environment setup or account hurdles." },
+                                { icon: Shield, title: "Security", desc: "Standardized OAuth 2.0 integration and encrypted session state management by design." },
+                                { icon: Rocket, title: "Backend Infrastructure", desc: "A robust backend infrastructure built on Spring Boot for maximum concurrency and scale." },
                             ].map((item, index) => (
                                 <motion.div
                                     key={index}

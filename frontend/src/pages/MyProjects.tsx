@@ -8,7 +8,6 @@ import {
     Calendar,
     ArrowUpRight
 } from 'lucide-react';
-import { CosmicStars } from "../components/workspace/CosmicStars";
 import { QuickCreateModal } from "../components/modals/QuickCreateModal";
 import { NotificationBell } from "../components/NotificationBell";
 import { ProjectSkeleton } from '../components/DashboardSkeletons';
@@ -114,8 +113,6 @@ export default function MyProjects() {
 
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-x-hidden">
-            {/* Cosmic Background */}
-            <CosmicStars />
             <div className="fixed inset-0 pointer-events-none opacity-10">
                 <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px]" />
                 <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#A1A1AA] rounded-full blur-[150px]" />
@@ -130,14 +127,14 @@ export default function MyProjects() {
                                 <Code2 className="w-5 h-5" />
                             </div>
                         </div>
-                        <span className="text-xl font-semibold bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] bg-clip-text text-transparent">
+                        <span className="text-xl font-semibold text-white">
                             Parallax
                         </span>
                     </button>
 
                     <nav className="flex items-center gap-1">
                         <button onClick={() => navigate('/dashboard')} className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Home</button>
-                        <button className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-[#D4AF37]/20 to-[#A1A1AA]/20 text-white border border-[#D4AF37]/30 transition-all">My Projects</button>
+                        <button className="px-4 py-2 rounded-lg text-sm font-medium bg-white/5 text-white border border-white/10 transition-all">My Projects</button>
                         <button className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Rooms</button>
                         <button className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Teams</button>
                         <button className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all">Friends</button>
@@ -159,7 +156,7 @@ export default function MyProjects() {
                     </div>
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2"
+                        className="px-4 py-2 bg-[#D4AF37] text-black rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2 font-medium"
                     >
                         <Plus className="w-5 h-5" />
                         New Project
@@ -192,7 +189,7 @@ export default function MyProjects() {
                     </div>
                 ) : filteredProjects.length === 0 ? (
                     <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#09090B]/70">
-                        <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] bg-clip-text text-transparent">
+                        <div className="text-3xl md:text-4xl font-bold text-white">
                             No Projects Yet
                         </div>
                         <p className="text-white/45 text-lg max-w-md">
@@ -200,7 +197,7 @@ export default function MyProjects() {
                         </p>
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all text-white"
+                            className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all"
                         >
                             Create Project
                         </button>

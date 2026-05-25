@@ -260,11 +260,11 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
              <div className="space-y-3">
               <label className="text-[10px] uppercase tracking-wider font-bold text-white/30">Active Execution Layer</label>
-              <div className="p-4 bg-white/5 border border-white/10 rounded-lg space-y-4 border-l-4 border-l-blue-500">
+              <div className="p-4 bg-white/5 border border-white/10 rounded-lg space-y-4 border-l-4 border-l-[#D4AF37]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-blue-500/20 flex items-center justify-center">
-                      <Terminal className="w-5 h-5 text-blue-400" />
+                    <div className="w-10 h-10 rounded bg-[#D4AF37]/10 flex items-center justify-center">
+                      <Terminal className="w-5 h-5 text-[#D4AF37]" />
                     </div>
                     <div>
                       <div className="text-xs font-bold">{runtimeName}</div>
@@ -278,7 +278,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
                    <div className="p-2 bg-black/40 rounded border border-white/5">
                       <div className="text-[9px] text-white/20 uppercase font-bold mb-1">CPU Usage</div>
                       <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 w-[12%] animate-pulse" />
+                        <div className="h-full bg-[#D4AF37] w-[12%] animate-pulse" />
                       </div>
                    </div>
                    <div className="p-2 bg-black/40 rounded border border-white/5">
@@ -311,7 +311,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
               {collaborators.map((collab) => (
                 <div key={collab.userId} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-lg group hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#888] flex items-center justify-center text-[10px] font-bold text-black border border-white/10">
+                    <div className="w-8 h-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[10px] font-bold text-[#D4AF37] border border-white/10">
                       {collab.userName.charAt(0)}
                     </div>
                     <div>

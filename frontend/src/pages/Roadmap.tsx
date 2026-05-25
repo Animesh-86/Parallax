@@ -3,8 +3,6 @@ import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
-import { ParticlesWaves } from "../components/effects/ParticlesWaves";
-import { TextIlluminate } from "../components/effects/TextIlluminate";
 import { CheckCircle, Circle, Clock, Rocket, ChevronRight, Activity, Terminal as TerminalIcon } from "lucide-react";
 
 type PhaseStatus = "done" | "active" | "planned" | "future";
@@ -91,17 +89,7 @@ export default function Roadmap() {
 
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden font-sans">
-            {/* Synchronized Background System */}
-            <div className="fixed inset-0 z-0">
-                <ParticlesWaves
-                    particleCount={800}
-                    lineOpacity={0.15}
-                    particleOpacity={0.3}
-                    speed={0.015}
-                    lineDistance={130}
-                    color="#D4AF37"
-                />
-            </div>
+            {/* Background System */}
             <div className="fixed inset-0 z-0 opacity-40">
                 <FluidFlowBackground
                     colors={["#D4AF37", "#F59E0B", "#09090B", "#000000"]}
@@ -126,14 +114,9 @@ export default function Roadmap() {
                                 <span className="w-8 h-px bg-[#D4AF37]/30" />
                                 Project Trajectory
                             </div>
-                            <TextIlluminate
-                                text="PRODUCT ROADMAP"
-                                theme="stellar"
-                                fontSize="min(8vw, 64px)"
-                                textAlign="left"
-                                className="tracking-[0.3em] uppercase font-bold"
-                                fontWeight={700}
-                            />
+                            <h1 className="text-4xl md:text-6xl font-bold tracking-tight uppercase text-white">
+                                Roadmap
+                            </h1>
                         </motion.div>
                         <motion.p 
                             initial={{ opacity: 0 }}
@@ -182,7 +165,7 @@ export default function Roadmap() {
                                                 {phase.title}
                                             </h3>
                                             <div className="text-[10px] font-mono text-zinc-600 tracking-widest uppercase">
-                                                ET_WINDOW: {phase.window}
+                                                {phase.window}
                                             </div>
                                         </div>
 
@@ -227,16 +210,16 @@ export default function Roadmap() {
 
                                     <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
                                         <div className="flex items-center justify-between text-[10px] font-mono tracking-widest uppercase text-zinc-600">
-                                            <span>Registry_ID</span>
-                                            <span>PX-PH-{statusConfig[activePhase.status].id}</span>
+                                            <span>Phase</span>
+                                            <span>{statusConfig[activePhase.status].id}</span>
                                         </div>
                                         <div className="flex items-center justify-between text-[10px] font-mono tracking-widest uppercase text-zinc-600">
-                                            <span>Target_Window</span>
+                                            <span>Timeline</span>
                                             <span className="text-[#D4AF37]">{activePhase.window}</span>
                                         </div>
                                         <div className="flex items-center justify-between text-[10px] font-mono tracking-widest uppercase text-zinc-600">
-                                            <span>Priority_Level</span>
-                                            <span className="text-zinc-400">P01_CRITICAL</span>
+                                            <span>Priority</span>
+                                            <span className="text-zinc-400">High</span>
                                         </div>
                                     </div>
                                 </div>
@@ -244,7 +227,7 @@ export default function Roadmap() {
                                 <div className="lg:w-2/3">
                                     <div className="flex items-center gap-4 mb-8">
                                         <TerminalIcon className="w-5 h-5 text-[#D4AF37]" />
-                                        <span className="text-xs font-mono tracking-[0.2em] uppercase text-zinc-500 font-bold">Module Checkload</span>
+                                        <span className="text-xs font-mono tracking-[0.2em] uppercase text-zinc-500 font-bold">Features</span>
                                         <div className="h-px flex-1 bg-white/5" />
                                     </div>
 
