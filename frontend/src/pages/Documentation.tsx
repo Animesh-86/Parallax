@@ -2,25 +2,23 @@ import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
-import { ParticlesWaves } from "../components/effects/ParticlesWaves";
-import { TextIlluminate } from "../components/effects/TextIlluminate";
 import { BookOpen, Terminal, Users, Zap, Code2, Play, ChevronRight, Settings } from "lucide-react";
 
 const guides = [
     {
         icon: Play,
-        title: "SYSTEM_INIT",
+        title: "Getting Started",
         steps: [
-            "Authenticate via OAuth 2.0 (Google/GitHub)",
-            "Initialize new project registry from dashboard",
-            "Configure environment substrate via workspace",
-            "Deploy live session link to collaborators",
-            "Execute real-time collective sync",
+            "Sign in with Google or GitHub",
+            "Create a new project from the dashboard",
+            "Set up your workspace",
+            "Share the session link with collaborators",
+            "Start collaborating in real time",
         ],
     },
     {
         icon: Code2,
-        title: "CORE_EDITOR",
+        title: "Editor",
         steps: [
             "Monaco engine utilization for high-fidelity code",
             "Direct directory tree manipulation and registry",
@@ -31,7 +29,7 @@ const guides = [
     },
     {
         icon: Terminal,
-        title: "RUN_ENVIRONMENT",
+        title: "Code Execution",
         steps: [
             "Trigger containerized execution environments",
             "Dockerized isolation per execution request",
@@ -42,39 +40,29 @@ const guides = [
     },
     {
         icon: Users,
-        title: "SYNC_PROTOCOLS",
+        title: "Collaboration",
         steps: [
-            "Establish multi-node room registries",
-            "Guest-token access for immediate collaboration",
-            "Direct WebRTC voice/video synchronization",
-            "Atomic session state broadcasting",
-            "Real-time metadata propagation across all nodes",
+            "Create multi-user collaboration rooms",
+            "Guest access for immediate collaboration via link",
+            "Built-in voice and video calling (WebRTC)",
+            "Real-time session state broadcasting",
+            "Live metadata updates across all participants",
         ],
     },
 ];
 
 const faqs = [
-    { q: "Is local installation required?", a: "Negative. The entire architecture is cloud-resident and browser-native." },
-    { q: "Runtime language scope?", a: "Current support for Python, Java, JS, TS, C++, and Go. Expanding per roadmap." },
-    { q: "Data persistence limits?", a: "Individual source files up to 1MB. Projects are scaled per platform tier." },
-    { q: "Unauthenticated guest logic?", a: "Guests join via active link. Full repository control requires valid token." },
-    { q: "Substrate execution safety?", a: "All code runs in isolated, ephemeral Docker containers with no platform access." },
+    { q: "Is local installation required?", a: "No. The entire platform runs in your browser — nothing to install." },
+    { q: "What languages are supported?", a: "Currently Python, Java, JS, TS, C++, and Go. More coming per our roadmap." },
+    { q: "What are the file size limits?", a: "Individual source files up to 1MB. Projects are scaled per platform tier." },
+    { q: "Can guests join without an account?", a: "Yes, guests can join via an active link. Full project control requires an account." },
+    { q: "Is code execution safe?", a: "All code runs in isolated, ephemeral Docker containers with no platform access." },
 ];
 
 export default function Documentation() {
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden font-sans">
-            {/* Synchronized Background System */}
-            <div className="fixed inset-0 z-0">
-                <ParticlesWaves
-                    particleCount={800}
-                    lineOpacity={0.15}
-                    particleOpacity={0.3}
-                    speed={0.015}
-                    lineDistance={130}
-                    color="#D4AF37"
-                />
-            </div>
+            {/* Background System */}
             <div className="fixed inset-0 z-0 opacity-40">
                 <FluidFlowBackground
                     colors={["#D4AF37", "#F59E0B", "#09090B", "#000000"]}
@@ -98,18 +86,11 @@ export default function Documentation() {
                             transition={{ duration: 0.8 }}
                             className="space-y-4"
                         >
-                            <div className="flex items-center justify-center gap-3 mb-6">
-                                <span className="h-0.5 w-6 bg-[#D4AF37]/50" />
-                                <span className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-mono">Registry: PX-DOC-00</span>
-                                <span className="h-0.5 w-6 bg-[#D4AF37]/50" />
-                            </div>
-                            <TextIlluminate 
-                                text="SYSTEM BLUEPRINT" 
-                                className="text-4xl md:text-5xl font-bold tracking-[0.3em] uppercase"
-                            />
+                            <h1 className="text-4xl md:text-5xl font-bold tracking-tight uppercase text-white">
+                                Documentation
+                            </h1>
                             <p className="text-[#A1A1AA] max-w-xl mx-auto text-sm tracking-wide pt-2">
-                                Navigational schematics for the Parallax collaborative engine. 
-                                Optimized for high-efficiency technical onboarding.
+                                Everything you need to get started with Parallax.
                             </p>
                         </motion.div>
                     </div>
@@ -155,7 +136,7 @@ export default function Documentation() {
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-center gap-4 mb-12">
                             <Settings className="w-5 h-5 text-[#D4AF37]" />
-                            <h2 className="text-xl font-bold tracking-[0.2em] uppercase">Operational_FAQ</h2>
+                            <h2 className="text-xl font-bold tracking-[0.2em] uppercase">FAQ</h2>
                             <div className="h-px bg-white/5 flex-grow" />
                         </div>
 
@@ -184,7 +165,7 @@ export default function Documentation() {
 
                     {/* Footer Anchor */}
                     <div className="mt-24 pt-12 border-t border-white/5 flex flex-col items-center gap-6">
-                        <p className="text-[10px] font-mono text-[#71717A] uppercase tracking-[0.4em]">End_Of_Transmission</p>
+                        <p className="text-[10px] font-mono text-[#71717A] uppercase tracking-[0.4em]">Back to top</p>
                         <motion.button 
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                             whileHover={{ y: -5 }}

@@ -2,8 +2,6 @@ import { motion } from "motion/react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { FluidFlowBackground } from "../components/effects/FluidFlowBackground";
-import { ParticlesWaves } from "../components/effects/ParticlesWaves";
-import { TextIlluminate } from "../components/effects/TextIlluminate";
 import { 
     Code2, Terminal, Globe, Zap, Shield, Users, Cpu, 
     GitBranch, MessageSquare, Play, Layers, Lock, 
@@ -210,17 +208,7 @@ function FeatureCard({ feature, index }: { feature: any; index: number }) {
 export default function Features() {
     return (
         <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden font-sans">
-            {/* Synchronized Background System */}
-            <div className="fixed inset-0 z-0">
-                <ParticlesWaves
-                    particleCount={800}
-                    lineOpacity={0.15}
-                    particleOpacity={0.3}
-                    speed={0.015}
-                    lineDistance={130}
-                    color="#D4AF37"
-                />
-            </div>
+            {/* Background System */}
             <div className="fixed inset-0 z-0 opacity-40">
                 <FluidFlowBackground
                     colors={["#D4AF37", "#F59E0B", "#09090B", "#000000"]}
@@ -247,16 +235,9 @@ export default function Features() {
                                 <span className="w-8 h-px bg-[#D4AF37]/30" />
                                 Engineering Excellence
                             </div>
-                            <TextIlluminate
-                                text="SYSTEM FEATURES"
-                                theme="stellar"
-                                fontSize="min(10vw, 72px)"
-                                textAlign="left"
-                                fontFamily="var(--font-sans)"
-                                fontWeight={700}
-                                className="tracking-[0.3em] uppercase leading-none"
-                                glow={{ enabled: true, intensity: 20 }}
-                            />
+                            <h1 className="text-5xl md:text-7xl font-bold tracking-tight uppercase leading-none text-white">
+                                Features
+                            </h1>
                             <p className="text-xl text-zinc-400 max-w-2xl leading-relaxed">
                                 A high-performance collaborative architecture engineered for deep technical workflows. 
                                 Standardized compute, native communication, and real-time state synchronization.

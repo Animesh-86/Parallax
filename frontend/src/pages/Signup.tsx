@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ArrowRight, Check, Chrome, Code2, Github, Sparkles, Zap } from 'lucide-react';
-import { CosmicStars } from "../components/workspace/CosmicStars";
 
 import { useNavigate } from 'react-router-dom';
 import api from "../services/api";
@@ -85,99 +84,26 @@ export default function Signup() {
     return (
         <div
             className="min-h-screen bg-[#09090B] text-white relative overflow-hidden flex items-center justify-center py-12">
-            {/* Cosmic Background */}
-            <CosmicStars />
 
             {/* Background Gradients */}
             <div className="fixed inset-0 pointer-events-none">
                 <div
                     className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-[#D4AF37] rounded-full blur-[150px] opacity-20" />
                 <div
-                    className="absolute bottom-1/3 left-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px] opacity-10 animate-pulse" />
+                    className="absolute bottom-1/3 left-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px] opacity-10" />
                 <div
                     className="absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-[#F59E0B] rounded-full blur-[150px] opacity-10" />
             </div>
-
-            {/* Floating Particles */}
-            <div className="fixed inset-0 pointer-events-none">
-                {Array.from({ length: 60 }).map((_, i) => (
-                    <div
-                        key={i}
-                        className="absolute bg-white rounded-full"
-                        style={{
-                            width: `${Math.random() * 3 + 1}px`,
-                            height: `${Math.random() * 3 + 1}px`,
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            animation: `float-particle ${Math.random() * 15 + 10}s linear infinite`,
-                            animationDelay: `${Math.random() * 5}s`,
-                            opacity: Math.random() * 0.5 + 0.2,
-                        }}
-                    />
-                ))}
-            </div>
-
-            <style>{`
-        @keyframes float-particle {
-          0%, 100% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.2; }
-          50% { transform: translateY(-150px) translateX(80px) scale(1.2); opacity: 0.6; }
-        }
-        @keyframes galaxy-swirl {
-          0% { transform: rotate(0deg) scale(1); }
-          50% { transform: rotate(180deg) scale(1.1); }
-          100% { transform: rotate(360deg) scale(1); }
-        }
-        @keyframes glow-pulse {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.1); }
-        }
-      `}</style>
 
             {/* Main Content */}
             <div className="relative z-10 w-full max-w-7xl mx-auto px-8 flex items-center justify-between gap-16">
                 {/* Left Side - Visual Illustration */}
                 <div className="flex-1 space-y-8">
                     <div className="relative w-full h-96 flex items-center justify-center">
-                        <div className="absolute inset-0 opacity-30"
-                            style={{ animation: 'galaxy-swirl 30s linear infinite' }}>
-                            <div
-                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-gradient-to-br from-[#D4AF37]/30 via-[#D4AF37]/20 to-transparent blur-2xl" />
-                        </div>
-
                         <div className="relative z-10">
                             <div
-                                className="w-48 h-48 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] flex items-center justify-center relative">
+                                className="w-48 h-48 rounded-full bg-[#D4AF37] flex items-center justify-center relative">
                                 <Code2 className="w-24 h-24" />
-                                <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#D4AF37] blur-3xl opacity-25" 
-                                    style={{ animation: 'glow-pulse 6s ease-in-out infinite' }} />
-                            </div>
-
-                            <div className="absolute inset-0 pointer-events-none">
-                                <div className="relative w-full h-full"
-                                    style={{ animation: 'galaxy-swirl 20s linear infinite' }}>
-                                    {[
-                                        { icon: Sparkles, color: '#D4AF37', angle: 0 },
-                                        { icon: Zap, color: '#D4AF37', angle: 120 },
-                                        { icon: Code2, color: '#F59E0B', angle: 240 },
-                                    ].map((item, idx) => {
-                                        const Icon = item.icon;
-                                        return (
-                                            <div
-                                                key={idx}
-                                                className="absolute top-1/2 left-1/2 w-12 h-12 rounded-xl flex items-center justify-center"
-                                                style={{
-                                                    transform: `rotate(${item.angle}deg) translateY(-120px) rotate(-${item.angle}deg)`,
-                                                    backgroundColor: `${item.color}20`,
-                                                    border: `2px solid ${item.color}`,
-                                                    boxShadow: `0 0 20px ${item.color}60`,
-                                                }}
-                                            >
-                                                <Icon className="w-6 h-6" style={{ color: item.color }} />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -186,8 +112,7 @@ export default function Signup() {
                         <h1 className="text-6xl font-bold leading-tight">
                             Welcome to Your
                             <br />
-                            <span
-                                className="bg-gradient-to-r from-[#D4AF37] via-[#D4AF37] to-[#F59E0B] bg-clip-text text-transparent">
+                            <span className="text-[#D4AF37]">
                                 Coding Universe
                             </span>
                         </h1>
@@ -292,7 +217,7 @@ export default function Signup() {
                                     type="button"
                                     onClick={() => handleChange('acceptTerms', !formData.acceptTerms)}
                                     className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all mt-0.5 ${formData.acceptTerms
-                                            ? 'bg-[#D4AF37] border-[#D4AF37] shadow-[0_0_10px_rgba(107,84,255,0.5)]'
+                                            ? 'bg-[#D4AF37] border-[#D4AF37]'
                                             : 'border-white/30'
                                         }`}
                                 >
@@ -319,7 +244,7 @@ export default function Signup() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-[#D4AF37] to-[#D4AF37] text-white font-semibold py-3 px-6 rounded-xl hover:shadow-[0_0_30px_rgba(107,84,255,0.5)] transition-all duration-300 flex items-center justify-center gap-2 group"
+                                className="w-full bg-[#D4AF37] text-black font-semibold py-3 px-6 rounded-xl hover:bg-[#F59E0B] transition-all duration-300 flex items-center justify-center gap-2 group"
                             >
                                 <span>Create Account</span>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
