@@ -2,10 +2,7 @@
 
 A full-stack collaborative engineering environment that merges real-time code editing, secure peer-to-peer communication, and isolated code execution into a single unified workspace.
 
----
-
-> **Note:** To see the UI in action, place a `screenshot.png` file in an `assets/` folder, or replace this placeholder with a GitHub hosted image link.
-> 
+--- 
 > ![Parallax Screenshot](assets/screenshot.png)
 
 ---
@@ -192,10 +189,6 @@ Caller Browser → Generates SDP Offer → STOMP (/app/call.offer)
 ---
 
 ## Architecture
-
-> **Note:** Place an `architecture.png` diagram in the `assets/` folder, or replace this placeholder with a URL.
-> 
-> ![System Architecture](assets/architecture.png)
 
 ```mermaid
 graph TD

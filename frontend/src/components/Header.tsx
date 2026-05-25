@@ -178,7 +178,7 @@ export function Header() {
                   onClick={() => navigate('/signup')}
                   className="px-6 py-2.5 bg-[#D4AF37] text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#F59E0B] transition-colors"
                 >
-                  Initialize
+                  Sign_Up
                 </motion.button>
               </div>
             )}
