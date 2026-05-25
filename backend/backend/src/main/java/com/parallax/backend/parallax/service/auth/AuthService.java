@@ -8,7 +8,7 @@ import com.parallax.backend.parallax.repository.auth.RefreshTokenRepository;
 import com.parallax.backend.parallax.repository.UserRepository;
 import com.parallax.backend.parallax.security.JwtUtils;
 import com.parallax.backend.parallax.service.UsernameGenerationService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -79,6 +79,7 @@ public class AuthService {
     // ==================================================
     // LOGIN
     // ==================================================
+    @Transactional(readOnly = true)
     public String login(LoginRequest req) {
 
         User user = userRepo.findByEmail(req.getEmail().toLowerCase(Locale.ROOT))
