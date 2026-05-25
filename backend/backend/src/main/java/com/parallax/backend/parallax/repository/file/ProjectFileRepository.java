@@ -18,8 +18,8 @@ public interface ProjectFileRepository extends JpaRepository<ProjectFile, UUID> 
     ProjectFile findByProjectIdAndPath(UUID projectId, String path);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE ProjectFile f SET f.content = :content, f.updatedAt = CURRENT_TIMESTAMP WHERE f.projectId = :projectId AND f.path = :path")
-    void updateContent(@Param("projectId") UUID projectId, @Param("path") String path, @Param("content") String content);
+    @Query("UPDATE ProjectFile f SET f.content = :content, f.updatedAt = :updatedAt WHERE f.projectId = :projectId AND f.path = :path")
+    void updateContent(@Param("projectId") UUID projectId, @Param("path") String path, @Param("content") String content, @Param("updatedAt") java.time.Instant updatedAt);
 
     boolean existsByProjectIdAndPath(UUID projectId, String path);
 }

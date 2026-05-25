@@ -1,38 +1,201 @@
-# Parallax
+# Parallax — Premium Collaborative Development Platform
 
-Parallax is a premium, full-stack collaborative development platform designed for modern engineering teams. It integrates shared coding sessions, real-time communication, project coordination, and instant code execution into a single, cohesive experience.
+A full-stack collaborative engineering environment that merges real-time code editing, secure peer-to-peer communication, and isolated code execution into a single unified workspace.
 
-## Key Features
+---
 
-### Real-time Collaborative Coding
-*   **Shared Workspace**: Multi-file editing powered by Monaco Editor (the engine behind VS Code).
-*   **Conflict Resolution**: Operational Transformation (OT) inspired synchronization logic ensures code consistency across all participants.
-*   **Live Cursors**: Track teammates' movements and selections in real-time with zero-latency visual feedback.
+> **Note:** To see the UI in action, place a `screenshot.png` file in an `assets/` folder, or replace this placeholder with a GitHub hosted image link.
+> 
+> ![Parallax Screenshot](assets/screenshot.png)
 
-### Unified Chat System
-*   **Project Chat**: Persistent, high-performance WebSocket channels dedicated to specific coding projects.
-*   **Team Chat**: Workspace-wide communication for coordination across multiple projects.
-*   **Direct Messaging**: Secure, peer-to-peer messaging for private collaboration.
+---
 
-### Voice and Video Calling
-*   **WebRTC Integration**: Low-latency, peer-to-peer media streams for voice and video communication.
-*   **Signaling Engine**: Custom signaling implementation using STOMP/WebSockets to coordinate call offers, answers, and ICE candidates.
-*   **In-IDE Presence**: Start and join calls directly within the coding environment.
+## Table of Contents
 
-### Gamification and Productivity Tracking
-*   **XP and Leveling**: Earn experience points for code commits, project creations, and collaboration milestones.
-*   **Achievement System**: Unlock badges (e.g., "Century Club", "Streak Master") based on contribution streaks and platform activity.
-*   **Contribution Heatmap**: Visual activity tracking inspired by GitHub's contribution graph.
+- [Problem Statement](#problem-statement)
+- [Problem Solution](#problem-solution)
+- [Project Description](#project-description)
+- [Project Scope](#project-scope)
+- [How to Start on Your Local PC](#how-to-start-on-your-local-pc)
+- [System Design](#system-design)
+- [Architecture](#architecture)
+- [Contribution Guidelines](#contribution-guidelines)
 
-### Isolated Code Execution
-*   **Docker Orchestration**: Pluggable runner architecture that spawns isolated containers for Python, Java, C++, and JavaScript.
-*   **Streaming Logs**: Standard output and error streams are captured and pushed to the frontend terminal in real-time.
+---
 
-### Advanced Team Management
-*   **Hierarchical Permissions**: Manage roles across Teams, Projects, and individual files.
-*   **Versioning Support**: Full branch management, commit history, and Merge Request (MR) workflows.
+## Problem Statement
 
-## Architecture Overview
+Modern software engineering teams are increasingly distributed, yet the tools they use remain deeply fragmented. Developers often struggle with:
+
+- **Context Switching** — Constantly jumping between code editors (VS Code), communication tools (Slack/Discord), and video conferencing (Zoom/Google Meet) breaks focus.
+- **Friction in Pair Programming** — Screen sharing is non-interactive. Setting up live-share extensions often requires everyone to have the exact same IDE and environment configurations.
+- **Environment Discrepancies** — "It works on my machine" remains a persistent issue during collaborative debugging. 
+- **Disconnected Workflows** — Chatting about a specific line of code or running a quick script requires copying, pasting, and manually syncing environments across team members.
+
+There is a critical need for a unified platform that natively combines the code, the execution environment, and the team communication into one seamless browser-based experience.
+
+---
+
+## Problem Solution
+
+We built **Parallax** to be the ultimate virtual workspace for engineering teams:
+
+| Problem | Our Solution |
+|---------|-------------|
+| Context Switching | A **Unified Interface** that places your IDE, project file tree, chat, and voice/video calling in a single browser tab. |
+| Friction in Pair Programming | A **Shared Workspace** powered by Monaco Editor (the engine behind VS Code) with real-time Operational Transformation (OT) sync, allowing multiple developers to type simultaneously with live cursor tracking. |
+| Environment Discrepancies | **Isolated Code Execution** powered by pluggable Docker containers. Code is executed server-side in identical, ephemeral sandboxes (Python, Java, C++, JS) ensuring consistent results for everyone. |
+| Disconnected Workflows | **Integrated Communication** featuring persistent Project Chat, Workspace Team Chat, Direct Messaging, and WebRTC-powered voice/video calls built directly into the IDE. |
+
+---
+
+## Project Description
+
+Parallax is a modern, premium web application built on a robust Java Spring Boot backend and a high-performance React frontend. It leverages WebSockets for sub-millisecond collaboration sync and WebRTC for peer-to-peer media.
+
+### Key Features
+
+- **Real-time Collaborative Coding:** Multi-file editing, OT-based conflict resolution, and zero-latency live cursors.
+- **Isolated Code Execution:** Run Python, Java, C++, and JavaScript code directly in the browser. Output and errors are streamed in real-time from secure Docker containers.
+- **Unified Chat System:** Persistent WebSockets for Project Chat, Team Chat, and secure peer-to-peer Direct Messaging with emoji reactions and attachments.
+- **Voice & Video Calling:** Native WebRTC integration for low-latency peer-to-peer media streams, coordinated via a custom STOMP signaling engine.
+- **Advanced Team Management:** Hierarchical RBAC (Role-Based Access Control) across Teams, Projects, and individual files.
+- **Gamification & Productivity:** Earn XP for commits, unlock badges ("Streak Master"), and visualize activity via a GitHub-style contribution heatmap.
+- **Authentication:** Secure JWT persistence with Google and GitHub OAuth2 integration.
+
+### Tech Stack
+
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 18, TypeScript 5, Vite, Tailwind CSS 4, Framer Motion, Monaco Editor |
+| **Backend** | Java 17, Spring Boot 3.2.x, Spring Security (OAuth2/JWT), Hibernate/JPA |
+| **Real-time Engine** | STOMP over SockJS, Raw WebSockets, WebRTC |
+| **Database** | PostgreSQL (Production) / H2 (Local Development) |
+| **Infrastructure** | Docker Engine, Java ProcessBuilder |
+
+---
+
+## Project Scope
+
+### In Scope
+
+- Real-time multi-user code editing with conflict resolution.
+- Secure, sandboxed code execution for 4 major languages.
+- Comprehensive chat system (Project, Team, DM).
+- Peer-to-peer WebRTC video and audio calling.
+- Team and project lifecycle management with strict access controls.
+- OAuth2 authentication and user profile gamification.
+
+### Out of Scope (Future Work)
+
+- Advanced Git version control integration (Branching, Merge Requests).
+- Kubernetes-based horizontal scaling for the code runners.
+- End-to-end encryption for stored chat messages.
+- Mobile-native applications (iOS/Android).
+
+---
+
+## How to Start on Your Local PC
+
+### Prerequisites
+
+- **Java**: 17+
+- **Node.js**: 18+ (npm 9+)
+- **Docker**: Required and must be running for local code runner execution.
+
+### Quick Start 
+
+**1. Create environment files**
+
+`backend/backend/.env` (Copy from `.env.example`):
+```env
+JWT_SECRET=your_super_secret_jwt_key_here
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+```
+
+`frontend/.env.local` (Copy from `.env.example`):
+```env
+VITE_API_BASE_URL=http://localhost:8080
+VITE_WS_BASE_URL=ws://localhost:8080
+VITE_OAUTH_BASE_URL=http://localhost:8080
+```
+
+**2. Start the Backend**
+
+Open a terminal and navigate to the backend directory:
+```bash
+cd backend/backend
+
+# macOS/Linux
+./mvnw spring-boot:run
+
+# Windows
+.\mvnw.cmd spring-boot:run
+```
+*The backend will be available at http://localhost:8080*
+
+**3. Start the Frontend**
+
+Open a second terminal and navigate to the frontend directory:
+```bash
+cd frontend
+
+npm install
+npm run dev
+```
+*The frontend will be available at http://localhost:3000*
+
+---
+
+## System Design
+
+Parallax follows a robust client-server architecture. The Spring Boot backend acts as the central authority for authentication, persistence, and real-time event broadcasting, while Docker handles untrusted code execution.
+
+### Services and Responsibilities
+
+| Service | Responsibility |
+|---------|---------------|
+| **Frontend UI** | Renders the IDE, manages local Monaco state, handles WebRTC peer connections. |
+| **Auth/API Service** | Manages JWT lifecycles, OAuth callbacks, and REST API validations for entities. |
+| **WebSocket Manager** | Routes STOMP messages for presence, chat, and signaling, while maintaining raw WebSocket pipes for high-frequency cursor/code sync. |
+| **Execution Service** | Receives code payloads, maps them to the correct Docker image, spawns isolated containers, and streams `stdout`/`stderr` back to the client. |
+
+### Data Flow Examples
+
+**Collaborative Typing:**
+```
+Browser 1 (Monaco) → Computes OT Delta → Frontend WebSocket
+→ Backend WebSocket Manager (/ws/project/{id})
+→ Broadcast to all active sessions → Browser 2 applies Delta
+```
+
+**Code Execution:**
+```
+Browser → POST /api/execute-code (Language, Code, SessionID)
+→ Backend Execution Service → Rate limit & Lock check
+→ Java ProcessBuilder (`docker run --rm parallax-python-runner ...`)
+→ Standard Output streamed → WebSocket Broadcast (/topic/run-output)
+→ Terminal UI updates in real-time
+```
+
+**WebRTC Calling:**
+```
+Caller Browser → Generates SDP Offer → STOMP (/app/call.offer)
+→ Backend Signaling Engine → STOMP (/topic/user/{receiverId}/call)
+→ Receiver Browser → Generates SDP Answer → Backend → Caller Browser
+→ Direct Peer-to-Peer WebRTC Media Stream Established
+```
+
+---
+
+## Architecture
+
+> **Note:** Place an `architecture.png` diagram in the `assets/` folder, or replace this placeholder with a URL.
+> 
+> ![System Architecture](assets/architecture.png)
 
 ```mermaid
 graph TD
@@ -68,62 +231,30 @@ graph TD
     Docker --> Runners
 ```
 
-## Repository Structure
+---
 
-- `frontend/`: React + TypeScript + Vite web application using Tailwind CSS 4.
-- `backend/backend`: Spring Boot backend service handling auth, persistence, and real-time channels.
-- `backend/parallax-python-runner`: Isolated runner infrastructure for code execution.
-- `Design/`: UI/UX design artifacts and platform assets.
+## Contribution Guidelines
 
-## Technical Implementation Details
+We welcome contributions to make Parallax even better! 
 
-### Backend
-- **Framework**: Spring Boot 3.2.x (Java 17)
-- **Security**: JWT-based authentication with Google and GitHub OAuth2 providers.
-- **WebSocket Architecture**: Hybrid STOMP Over SockJS (`/ws`) for structured events and Raw WebSockets (`/ws/chat/*`) for high-performance messaging.
-- **Execution Pipeline**: Spawns isolated Docker containers via ProcessBuilder to capture standard streams.
+### Development Workflow
 
-### Frontend
-- **Framework**: React 18 + TypeScript 5
-- **Styling**: Tailwind CSS 4 + Framer Motion for micro-animations.
-- **Service Layer**: Dedicated API clients for REST and multiple WebSocket handlers for collaboration and chat.
+1. **Fork & Clone**: Fork the repository and clone it locally.
+2. **Branch**: Create a feature branch (`git checkout -b feature/amazing-feature`).
+3. **Commit**: Write descriptive commit messages.
+4. **Test**: Ensure your code passes all backend tests by running `mvn test` in the `backend/backend` directory. We currently have a robust suite of unit tests verifying core business logic.
+5. **Push & Pull Request**: Push your branch and open a PR against `main`.
 
-## Prerequisites
+### Code Style
 
-- **Java**: 17+
-- **Node.js**: 18+ (npm 9+)
-- **Docker**: Required for local code runner workflows
-- **Environment**: Local .env files for both frontend and backend
+- **Frontend**: Follow functional React patterns, strict TypeScript typing, and Tailwind utility class conventions.
+- **Backend**: Adhere to standard Java naming conventions, utilize Lombok to reduce boilerplate, and keep business logic isolated within `@Service` classes.
+- **Testing**: Use JUnit 5 and Mockito. All new services must include unit tests for primary happy and unhappy paths.
 
-## Quick Start (Local Development)
+### Reporting Issues
 
-### 1) Start Backend
-Navigate to `backend/backend`:
-```bash
-# macOS/Linux
-./mvnw spring-boot:run
+Use GitHub Issues to report bugs or request features. Please include environment details, steps to reproduce, and any relevant error logs or screenshots.
 
-# Windows
-.\mvnw.cmd spring-boot:run
-```
-Default backend URL: `http://localhost:8080`
+---
 
-### 2) Start Frontend
-Navigate to `frontend`:
-```bash
-npm install
-npm run dev
-```
-Default frontend URL: `http://localhost:3000`
-
-## Suggested Development Workflow
-
-1. Start backend and verify health at `http://localhost:8080/api/health`.
-2. Start frontend and verify landing page load.
-3. Test OAuth login (Google/GitHub) and JWT persistence.
-4. Validate real-time features (Workspace sync, Chat, Calls).
-5. Build both modules before submitting pull requests.
-
-## License
-
-Refer to repository-level licensing and module notices for policy details.
+*Refer to the repository-level licensing notices for policy details.*
