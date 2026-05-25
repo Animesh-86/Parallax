@@ -18,7 +18,6 @@ import {
     Video,
     Zap
 } from 'lucide-react';
-import { CosmicStars } from "../components/workspace/CosmicStars";
 import { QuickCreateModal } from "../components/modals/QuickCreateModal";
 import { NotificationBell } from "../components/NotificationBell";
 import { collabApi, Collaborator, MeetingRoom } from '../services/collabApi';
@@ -647,10 +646,10 @@ export default function Dashboard() {
                                                 <Phone className="w-4 h-4 text-emerald-500" />
                                             </button>
                                             <button
-                                                className="p-2 hover:bg-indigo-500/10 rounded-lg transition-all"
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-all"
                                                 onClick={() => navigate('/friends', { state: { selectedFriendId: friend.userId, startCall: 'video' } })}
                                                 title="Video Call">
-                                                <Video className="w-4 h-4 text-indigo-400" />
+                                                <Video className="w-4 h-4 text-white/60" />
                                             </button>
                                             <button
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-all"
@@ -729,7 +728,7 @@ export default function Dashboard() {
                                         <div className="flex gap-2 mt-4">
                                             <button
                                                 onClick={() => navigate(`/room/${room.roomCode}`)}
-                                                className="flex-1 px-4 py-2 bg-gradient-to-r from-[#A1A1AA]/20 to-[#A1A1AA]/20 border border-[#A1A1AA]/30 rounded-xl text-sm font-medium hover:from-[#A1A1AA]/30 hover:to-[#A1A1AA]/30 transition-all"
+                                                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-medium hover:bg-white/10 transition-all"
                                             >
                                                 Join Room
                                             </button>

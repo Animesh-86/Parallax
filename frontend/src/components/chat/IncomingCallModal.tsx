@@ -12,7 +12,7 @@ const IncomingCallModal: React.FC<IncomingCallModalProps> = ({ callerName, isVid
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] animate-in fade-in duration-300">
             <div className="bg-[#1e1f22] w-80 p-6 rounded-2xl shadow-2xl border border-white/10 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg animate-pulse">
+                <div className="w-20 h-20 bg-[#D4AF37]/20 border border-[#D4AF37]/40 rounded-full flex items-center justify-center mb-4 shadow-lg animate-pulse">
                     {isVideo ? <Video className="w-10 h-10 text-white" /> : <Phone className="w-10 h-10 text-white" />}
                 </div>
                 

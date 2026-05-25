@@ -10,16 +10,16 @@
 
 @layer utilities {
   .glass-panel {
-    background: linear-gradient(135deg, rgba(12, 18, 32, 0.78), rgba(6, 9, 16, 0.72));
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(17, 17, 19, 0.78), rgba(9, 9, 11, 0.72));
+    border: 1px solid rgba(255, 255, 255, 0.07);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .glass-panel-soft {
-    background: linear-gradient(135deg, rgba(12, 18, 32, 0.58), rgba(6, 9, 16, 0.5));
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, rgba(17, 17, 19, 0.58), rgba(9, 9, 11, 0.5));
+    border: 1px solid rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }

@@ -101,7 +101,7 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                         </button>
                         <button 
                             onClick={() => joinCall(contextId, "team", true, true)}
-                            className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-indigo-400 transition-all"
+                            className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-[#D4AF37] transition-all"
                             title="Video Call"
                         >
                             <Video className="w-4 h-4" />
@@ -120,7 +120,7 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                         </button>
                         <button 
                             onClick={() => joinCall(contextId, "project", true, true)}
-                            className="p-1.5 hover:bg-white/5 rounded-lg text-white/30 hover:text-indigo-400 transition-all"
+                            className="p-1.5 hover:bg-white/5 rounded-lg text-white/30 hover:text-[#D4AF37] transition-all"
                         >
                             <Video className="w-3.5 h-3.5" />
                         </button>
