@@ -429,31 +429,35 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void deleteProject(UUID projectId, UUID requesterId) {
+        accessManager.require(projectId, requesterId, ProjectPermission.OWNER_ONLY);
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
 
-        if (!project.getOwner().getId().equals(requesterId)) {
-            throw new SecurityException("Only the project owner can delete the project");
-        }
-
-        collaboratorRepo.deleteAll(collaboratorRepo.findAllByProjectId(projectId));
-        projectFileRepository.deleteAll(projectFileRepository.findByProjectId(projectId));
+        // Delete from database (cascade should handle related entities if configured properly, but let's be explicit)
+        projectFileRepository.deleteByProjectId(projectId);
+        
+        // Also remove team relationship if exists? Not strictly necessary since project is being deleted.
         projectRepository.delete(project);
-    }
 
-    @Override
-    @Transactional
-    public ProjectResponse archiveProject(UUID projectId, UUID requesterId, boolean archive) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
-
-        if (!project.getOwner().getId().equals(requesterId)) {
-            throw new SecurityException("Only the project owner can archive the project");
+        // Delete from disk
+        Path projectRoot = Paths.get(storageProperties.getProjects()).resolve(projectId.toString());
+        try {
+            if (Files.exists(projectRoot)) {
+                // Delete directory recursively
+                Files.walk(projectRoot)
+                    .sorted((p1, p2) -> -p1.compareTo(p2))
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                        } catch (Exception e) {
+                            // Ignore failure to delete individual files during cleanup
+                        }
+                    });
+            }
+        } catch (Exception e) {
+            // Log but don't fail the transaction if disk delete fails
+            System.err.println("Failed to delete project directory from disk: " + e.getMessage());
         }
-
-        project.setArchived(archive);
-        project.setUpdatedAt(Instant.now());
-        project = projectRepository.save(project);
-        return toResponse(project);
     }
 }

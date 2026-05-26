@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { getAvatarInitials } from '../services/userUtils';
 import {
     BarChart3,
     Bell,
@@ -26,7 +25,7 @@ import { teamApi, Team } from '../services/teamApi';
 import { useCollab } from '../context/CollaborationContext';
 import { DashboardHeader } from '../components/DashboardHeader';
 import { CreateRoomModal } from '../components/modals/CreateRoomModal';
-import { ConfirmDeleteModal } from '../components/modals/ConfirmDeleteModal';
+import { ConfirmModal } from '../components/modals/ConfirmModal';
 import { ProjectSkeleton, FriendSkeleton, RoomSkeleton } from '../components/DashboardSkeletons';
 import { toast } from "sonner";
 import { apiBaseUrl } from '../services/env';
@@ -58,6 +57,7 @@ export default function Dashboard() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('home');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
 
     const [projects, setProjects] = useState<DashboardProject[]>([]);
     const [loadingProjects, setLoadingProjects] = useState(false);
@@ -68,7 +68,6 @@ export default function Dashboard() {
     const [rooms, setRooms] = useState<MeetingRoom[]>([]);
     const [loadingRooms, setLoadingRooms] = useState(false);
     const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
-    const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
 
     // Dynamic Teams State
     const [teams, setTeams] = useState<Team[]>([]);
@@ -86,7 +85,7 @@ export default function Dashboard() {
         return colors[hash % colors.length];
     };
 
-    const getAvatar = (name: string) => getAvatarInitials(name);
+    const getAvatar = (email: string) => email.substring(0, 2).toUpperCase();
 
     // --- RECENT ACCESS TRACKING ---
     const updateRecentAccess = (projectId: string) => {
@@ -359,21 +358,15 @@ export default function Dashboard() {
         return { roomCode: newRoom.roomCode, name: newRoom.name };
     };
 
-    const confirmDeleteRoom = (e: React.MouseEvent, roomId: string) => {
-        e.stopPropagation();
-        setDeleteRoomId(roomId);
-    };
-
     const handleDeleteRoom = async () => {
-        if (!deleteRoomId) return;
+        if (!roomToDelete) return;
         try {
-            await collabApi.deleteRoom(deleteRoomId);
+            await collabApi.deleteRoom(roomToDelete);
             fetchRooms();
+            setRoomToDelete(null);
         } catch (err) {
             console.error('Delete room error:', err);
             toast.error('Failed to delete room');
-        } finally {
-            setDeleteRoomId(null);
         }
     };
 
@@ -743,7 +736,10 @@ export default function Dashboard() {
                                                 Join Room
                                             </button>
                                             <button
-                                                onClick={(e) => confirmDeleteRoom(e, room.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setRoomToDelete(room.id);
+                                                }}
                                                 className="p-2 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
                                                 title="Delete room"
                                             >
@@ -837,13 +833,15 @@ export default function Dashboard() {
                 onCreateRoom={handleCreateRoom}
                 onJoinRoom={(code) => navigate(`/room/${code}`)}
             />
-
-            <ConfirmDeleteModal
-                isOpen={!!deleteRoomId}
-                onClose={() => setDeleteRoomId(null)}
+            <ConfirmModal
+                isOpen={!!roomToDelete}
+                onClose={() => setRoomToDelete(null)}
                 onConfirm={handleDeleteRoom}
                 title="Delete Room"
-                message="Are you sure you want to delete this room? This action cannot be undone and will kick all active participants."
+                message="Are you absolutely sure you want to delete this room? This cannot be undone."
+                confirmText="Delete Room"
+                cancelText="Cancel"
+                isDanger={true}
             />
         </>
     );

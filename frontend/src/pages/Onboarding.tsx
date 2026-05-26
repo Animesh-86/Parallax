@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 import { User, Sparkles, Check, X, Loader2 } from 'lucide-react';
 import { CosmicStars } from '../components/workspace/CosmicStars';
 import { apiBaseUrl } from '../services/env';
@@ -19,8 +20,8 @@ export default function Onboarding() {
     const token = localStorage.getItem('access_token');
     if (!token) { navigate('/login', { replace: true }); return; }
     try {
-      const decoded: any = JSON.parse(atob(token.split('.')[1]));
-      if (decoded.onboardingComplete === true) {
+      const decoded: any = jwtDecode(token);
+      if (decoded.onboardingComplete === true || decoded.onboardingComplete === "true") {
         navigate('/dashboard', { replace: true });
         return;
       }

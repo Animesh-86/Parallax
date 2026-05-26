@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const OAuthSuccessPage = () => {
   const location = useLocation();
@@ -20,8 +21,8 @@ const OAuthSuccessPage = () => {
         console.log("Access token saved to localStorage.");
 
         // Check if user needs onboarding
-        const decoded: any = JSON.parse(atob(accessToken.split('.')[1]));
-        if (decoded.onboardingComplete === false) {
+        const decoded: any = jwtDecode(accessToken);
+        if (decoded.onboardingComplete === false || decoded.onboardingComplete === "false") {
           navigate("/onboarding", { replace: true });
         } else {
           navigate("/dashboard", { replace: true });

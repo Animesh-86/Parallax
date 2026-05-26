@@ -1,20 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { Users, Plus, Trash2 } from 'lucide-react';
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { RoomSkeleton } from "../components/DashboardSkeletons";
 import { collabApi, MeetingRoom } from "../services/collabApi";
 import { CreateRoomModal } from "../components/modals/CreateRoomModal";
-import { ConfirmDeleteModal } from "../components/modals/ConfirmDeleteModal";
-import { getUserId } from "../services/userUtils";
+import { ConfirmModal } from "../components/modals/ConfirmModal";
 
 export default function Rooms() {
     const navigate = useNavigate();
-    const currentUserId = useMemo(() => getUserId(), []);
     const [loading, setLoading] = useState(false);
     const [rooms, setRooms] = useState<MeetingRoom[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
-    const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
+    const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
 
     const fetchRooms = async () => {
         try {
@@ -36,21 +34,15 @@ export default function Rooms() {
         return { roomCode: newRoom.roomCode, name: newRoom.name };
     };
 
-    const confirmDeleteRoom = (e: React.MouseEvent, roomId: string) => {
-        e.stopPropagation();
-        setDeleteRoomId(roomId);
-    };
-
     const handleDeleteRoom = async () => {
-        if (!deleteRoomId) return;
+        if (!roomToDelete) return;
         try {
-            await collabApi.deleteRoom(deleteRoomId);
+            await collabApi.deleteRoom(roomToDelete);
             await fetchRooms();
+            setRoomToDelete(null);
         } catch (err) {
             console.error('Failed to delete room', err);
             setError('Failed to delete room. Please try again.');
-        } finally {
-            setDeleteRoomId(null);
         }
     };
 
@@ -127,20 +119,21 @@ export default function Rooms() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {room.active && (
-                                            <div className="flex items-center gap-1.5 px-2 py-1 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-full">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-                                                <span className="text-xs text-[#D4AF37]">Live</span>
+                                            <div className="flex items-center gap-1.5 px-2 py-1 bg-[#4ADE80]/20 border border-[#4ADE80]/30 rounded-full">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
+                                                <span className="text-xs text-[#4ADE80]">Live</span>
                                             </div>
                                         )}
-                                        {room.createdBy === currentUserId && (
-                                            <button
-                                                onClick={(e) => confirmDeleteRoom(e, room.id)}
-                                                className="p-1.5 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
-                                                title="Delete room"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setRoomToDelete(room.id);
+                                            }}
+                                            className="p-1.5 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
+                                            title="Delete room"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
                                     </div>
                                 </div>
 
@@ -156,19 +149,21 @@ export default function Rooms() {
                 )}
             </main>
 
+            <ConfirmModal
+                isOpen={!!roomToDelete}
+                onClose={() => setRoomToDelete(null)}
+                onConfirm={handleDeleteRoom}
+                title="Delete Room"
+                message="Are you absolutely sure you want to delete this room? This cannot be undone."
+                confirmText="Delete Room"
+                cancelText="Cancel"
+                isDanger={true}
+            />
             <CreateRoomModal
                 isOpen={isCreateRoomModalOpen}
                 onClose={() => setIsCreateRoomModalOpen(false)}
                 onCreateRoom={handleCreateRoom}
                 onJoinRoom={(code) => navigate(`/room/${code}`)}
-            />
-
-            <ConfirmDeleteModal
-                isOpen={!!deleteRoomId}
-                onClose={() => setDeleteRoomId(null)}
-                onConfirm={handleDeleteRoom}
-                title="Delete Room"
-                message="Are you sure you want to delete this room? This action cannot be undone and will kick all active participants."
             />
         </>
     );

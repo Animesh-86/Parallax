@@ -1,5 +1,4 @@
 import { UserPlus, Crown, Code, Eye, MoreVertical, Trash2, ChevronDown, X } from 'lucide-react';
-import { getAvatarInitials } from '../../services/userUtils';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCollab } from '../../context/CollaborationContext';
@@ -12,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { ConfirmModal } from '../modals/ConfirmModal';
 
 export function ParticipantsList() {
   const { projectId } = useParams();
@@ -23,6 +23,7 @@ export function ParticipantsList() {
   const [isInviting, setInviting] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [collaboratorNames, setCollaboratorNames] = useState<Record<string, string>>({});
+  const [userToRemove, setUserToRemove] = useState<string | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -69,8 +70,8 @@ export function ParticipantsList() {
   }, [currentCollaborators]); // Removed dependency on collaboratorNames to avoid loop, simple check inside
 
   // Helper to generate avatar from email/name
-  const getAvatar = (name: string) => {
-    return getAvatarInitials(name);
+  const getAvatar = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
   };
 
   // Helper to generate color (simple hash)
@@ -219,22 +220,12 @@ export function ParticipantsList() {
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 bg-[#09090B] border-white/10 text-white">
+                    <DropdownMenuContent align="end" className="w-40 bg-[#162032] border-white/10 text-white">
                       <DropdownMenuItem
                         className="text-[#9A3412] focus:text-[#9A3412] focus:bg-[#EF6461]/10 cursor-pointer text-xs"
                         onClick={async (e) => {
                           e.stopPropagation(); // prevent row click if needed
-                          if (!confirm("Remove this user?")) return;
-                          try {
-                            await collabApi.removeCollaborator(projectId!, realId);
-                            toast.success("User removed");
-                            // Small delay to ensure DB commit propagates before refetching
-                            setTimeout(() => {
-                              refreshCollaborators(projectId!);
-                            }, 100);
-                          } catch (err: any) {
-                            toast.error(err.response?.data?.message || err.message || "Failed");
-                          }
+                          setUserToRemove(realId);
                         }}
                       >
                         <Trash2 className="w-3.5 h-3.5 mr-2" />
@@ -253,7 +244,7 @@ export function ParticipantsList() {
 
       {showInvite && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowInvite(false)}>
-          <div className="bg-[#09090B]/90 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 p-8 w-[600px] relative" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#162032] rounded-xl shadow-2xl border border-white/10 p-8 w-[600px] relative" onClick={e => e.stopPropagation()}>
 
             {/* Header with Flexbox to prevent overlap */}
             <div className="flex justify-between items-start mb-6">
@@ -273,7 +264,7 @@ export function ParticipantsList() {
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-white/40 uppercase tracking-wider ml-1">Email Address</label>
                 <input
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-white/5 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all placeholder:text-white/20"
+                  className="w-full px-4 py-3 rounded-lg bg-[#162032] text-white border border-white/5 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all placeholder:text-white/20"
                   placeholder="name@example.com"
                   value={inviteInput}
                   onChange={e => setInviteInput(e.target.value)}
@@ -287,7 +278,7 @@ export function ParticipantsList() {
                   <button
                     className={`relative p-3 rounded-xl border transition-all duration-200 text-left group overflow-hidden ${inviteRole === 'COLLABORATOR'
                       ? 'bg-[#D4AF37]/10 border-[#D4AF37] ring-1 ring-[#D4AF37] shadow-[0_0_20px_rgba(212, 175, 55,0.15)]'
-                      : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10'
+                      : 'bg-[#162032] border-white/5 hover:border-white/10 hover:bg-[#162032]'
                       }`}
                     onClick={() => setInviteRole('COLLABORATOR')}
                   >
@@ -306,7 +297,7 @@ export function ParticipantsList() {
                   <button
                     className={`relative p-3 rounded-xl border transition-all duration-200 text-left group overflow-hidden ${inviteRole === 'VIEWER'
                       ? 'bg-[#D4AF37]/10 border-[#D4AF37] ring-1 ring-[#D4AF37] shadow-[0_0_20px_rgba(212, 175, 55,0.15)]'
-                      : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10'
+                      : 'bg-[#162032] border-white/5 hover:border-white/10 hover:bg-[#162032]'
                       }`}
                     onClick={() => setInviteRole('VIEWER')}
                   >
@@ -327,7 +318,7 @@ export function ParticipantsList() {
               <div className="pt-2 relative z-10">
                 <button
                   disabled={isInviting}
-                  className="w-full py-3.5 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl hover:opacity-90 transition-all duration-300 text-sm font-bold text-black shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50 disabled:shadow-none"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl hover:opacity-90 transition-all duration-300 text-sm font-bold text-white shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50 disabled:shadow-none"
                   onClick={handleInvite}
                 >
                   {isInviting ? "Sending Invitation..." : "Send Invite"}
@@ -337,6 +328,29 @@ export function ParticipantsList() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!userToRemove}
+        onClose={() => setUserToRemove(null)}
+        onConfirm={async () => {
+          if (!userToRemove) return;
+          try {
+            await collabApi.removeCollaborator(projectId!, userToRemove);
+            toast.success("User removed");
+            setTimeout(() => {
+              refreshCollaborators(projectId!);
+            }, 100);
+          } catch (err: any) {
+            toast.error(err.response?.data?.message || err.message || "Failed");
+          }
+          setUserToRemove(null);
+        }}
+        title="Remove User"
+        message="Are you sure you want to remove this user from the project? They will lose access to the code and chat."
+        confirmText="Remove"
+        cancelText="Cancel"
+        isDanger={true}
+      />
     </div>
   );
 }

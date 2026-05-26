@@ -19,7 +19,7 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
         }
 
         // Redirect to onboarding if user hasn't completed setup
-        if (decoded.onboardingComplete === false) {
+        if (decoded.onboardingComplete === false || decoded.onboardingComplete === "false") {
             return <Navigate to="/onboarding" replace />;
         }
     } catch (error) {

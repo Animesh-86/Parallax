@@ -11,6 +11,7 @@ import { CreateRoomModal } from '../components/modals/CreateRoomModal';
 import { UnifiedChatPanel } from '../components/chat/UnifiedChatPanel';
 import { teamChatWsClient } from '../services/wsChatClient';
 import { LinkProjectModal } from '../components/modals/LinkProjectModal';
+import { ConfirmModal } from '../components/modals/ConfirmModal';
 import { apiBaseUrl } from '../services/env';
 
 type TabView = 'overview' | 'projects' | 'members' | 'chat' | 'tasks' | 'docs' | 'settings';
@@ -27,36 +28,49 @@ export default function TeamWorkspace() {
   const [inviting, setInviting] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isDeleteTeamModalOpen, setIsDeleteTeamModalOpen] = useState(false);
+  const [projectToUnlink, setProjectToUnlink] = useState<TeamProject | null>(null);
   const [teamProjects, setTeamProjects] = useState<TeamProject[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [isLinkProjectModalOpen, setIsLinkProjectModalOpen] = useState(false);
 
-  useEffect(() => {
+  const loadTeamData = async () => {
     if (!teamId) {
       setError('No team selected');
       return;
     }
+    
+    try {
+      setLoading(true);
+      const [teamData, membersData] = await Promise.all([
+        teamApi.getTeam(teamId),
+        teamApi.getTeamMembers(teamId),
+      ]);
+      setTeam(teamData);
+      setMembers(membersData);
+      fetchTeamProjects();
+    } catch (err) {
+      console.error('Failed to load team:', err);
+      setError('Failed to load team data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchTeamData = async () => {
-      try {
-        setLoading(true);
-        const [teamData, membersData] = await Promise.all([
-          teamApi.getTeam(teamId),
-          teamApi.getTeamMembers(teamId),
-        ]);
-        setTeam(teamData);
-        setMembers(membersData);
-        fetchTeamProjects();
-      } catch (err) {
-        console.error('Failed to load team:', err);
-        setError('Failed to load team data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeamData();
+  useEffect(() => {
+    loadTeamData();
   }, [teamId]);
+
+  const handleDeleteTeam = async () => {
+    if (!team) return;
+    try {
+      await teamApi.deleteTeam(team.id);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Failed to delete team:', err);
+    }
+  };
 
   const fetchTeamProjects = async () => {
     if (!teamId) return;
@@ -112,19 +126,6 @@ export default function TeamWorkspace() {
     }
   };
 
-  const handleDeleteTeam = async () => {
-    if (!window.confirm('Are you absolutely sure you want to delete this team? This action cannot be undone and will affect all members.')) {
-      return;
-    }
-    try {
-      await teamApi.deleteTeam(teamId!);
-      navigate('/teams');
-    } catch (err) {
-      console.error('Failed to delete team:', err);
-      setError('Failed to delete team');
-    }
-  };
-
   const handleCreateRoom = async (name: string, collaborationMode: 'INTERVIEW' | 'TEAM') => {
     try {
       const newRoom = await collabApi.createRoom(name, collaborationMode);
@@ -159,7 +160,7 @@ export default function TeamWorkspace() {
         <div className="text-center z-10">
           <AlertCircle className="w-12 h-12 text-[#EF6461] mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2">{error || 'Team not found'}</h2>
-          <button onClick={() => navigate('/teams')} className="mt-4 px-4 py-2 bg-[#D4AF37] text-black rounded-lg">
+          <button onClick={() => navigate('/teams')} className="mt-4 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg">
             Back to Teams
           </button>
         </div>
@@ -179,15 +180,11 @@ export default function TeamWorkspace() {
         <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#A1A1AA] rounded-full blur-[150px]" />
       </div>
 
-      {/* Main Content */}
       <main className="pt-20 pb-16 px-6 max-w-[1400px] mx-auto relative z-10">
-
-        {/* Team Sub-Nav — sticky below app navbar */}
         <div className="sticky top-16 z-40 -mx-6 px-6 py-3 bg-[#09090B]/95 backdrop-blur-md border-b border-white/5 mb-6">
           <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4 flex-wrap">
-            {/* Left — Team identity */}
             <button onClick={() => navigate('/teams')} className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0">
-              <div className="w-9 h-9 rounded-lg bg-[#D4AF37] text-black flex items-center justify-center font-semibold text-sm">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] flex items-center justify-center font-semibold text-sm">
                 {teamInitials}
               </div>
               <div>
@@ -196,7 +193,6 @@ export default function TeamWorkspace() {
               </div>
             </button>
 
-            {/* Center — Tabs */}
             <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1 overflow-x-auto">
               {[
                 { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
@@ -223,7 +219,6 @@ export default function TeamWorkspace() {
               })}
             </nav>
 
-            {/* Right — Quick actions */}
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsCreateProjectModalOpen(true)}
@@ -234,7 +229,7 @@ export default function TeamWorkspace() {
               </button>
               <button
                 onClick={() => setIsCreateRoomModalOpen(true)}
-                className="px-3 py-1.5 bg-[#D4AF37] text-black rounded-lg hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all text-xs flex items-center gap-2"
+                className="px-3 py-1.5 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all text-xs flex items-center gap-2"
               >
                 <Video className="w-3.5 h-3.5" />
                 Room
@@ -243,10 +238,8 @@ export default function TeamWorkspace() {
           </div>
         </div>
 
-        {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-12 gap-6">
-            {/* Left - Team Info */}
             <motion.div className="col-span-12 lg:col-span-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="bg-[#09090B] border border-white/5 rounded-2xl p-6">
                 <h2 className="text-lg font-semibold mb-4">Team Info</h2>
@@ -268,7 +261,7 @@ export default function TeamWorkspace() {
                     <div className="flex justify-between"><span className="text-white/60">Pending</span><span>{pendingMembers.length}</span></div>
                     <div className="flex justify-between"><span className="text-white/60">Online</span><span className="text-[#4ADE80]">{activeMembers.filter(m => m.isOnline).length}</span></div>
                   </div>
-                  <button onClick={() => setActiveTab('members')} className="w-full mt-4 px-4 py-2 bg-[#D4AF37] text-black rounded-lg text-sm font-medium">
+                  <button onClick={() => setActiveTab('members')} className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg text-sm font-medium">
                     <UserPlus className="w-4 h-4 inline mr-2" />
                     Invite Member
                   </button>
@@ -276,7 +269,6 @@ export default function TeamWorkspace() {
               </div>
             </motion.div>
 
-            {/* Center - Stats */}
             <motion.div className="col-span-12 lg:col-span-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="bg-[#09090B] border border-white/5 rounded-2xl p-6">
                 <h2 className="text-xl font-semibold mb-6 flex items-center gap-3"><Activity className="w-5 h-5 text-[#D4AF37]" />Activity Feed</h2>
@@ -301,7 +293,6 @@ export default function TeamWorkspace() {
               </div>
             </motion.div>
 
-            {/* Right - Members Preview */}
             <motion.div className="col-span-12 lg:col-span-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="bg-[#09090B] border border-white/5 rounded-2xl p-6">
                 <h3 className="text-lg font-semibold mb-4">Members</h3>
@@ -321,7 +312,6 @@ export default function TeamWorkspace() {
           </div>
         )}
 
-        {/* PROJECTS TAB */}
         {activeTab === 'projects' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex items-center justify-between mb-6">
@@ -404,11 +394,7 @@ export default function TeamWorkspace() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm(`Unlink "${project.name}" from this team? Members will retain access.`)) {
-                            teamApi.unlinkProjectFromTeam(team.id, project.id)
-                              .then(() => fetchTeamProjects())
-                              .catch(err => console.error('Failed to unlink:', err));
-                          }
+                          setProjectToUnlink(project);
                         }}
                         className="w-full mt-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] text-white/40 hover:text-white/70 hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-1.5"
                       >
@@ -423,7 +409,6 @@ export default function TeamWorkspace() {
           </motion.div>
         )}
 
-        {/* MEMBERS TAB */}
         {activeTab === 'members' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2 className="text-2xl font-semibold mb-6">Team Members</h2>
@@ -443,7 +428,7 @@ export default function TeamWorkspace() {
                   <button
                     onClick={handleInviteMember}
                     disabled={!inviteEmail.trim() || inviting}
-                    className="px-4 py-2 bg-[#D4AF37] text-black rounded-lg text-sm font-medium disabled:opacity-50"
+                    className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     {inviting ? 'Inviting...' : 'Invite'}
                   </button>
@@ -513,7 +498,6 @@ export default function TeamWorkspace() {
           </motion.div>
         )}
 
-        {/* TASKS TAB */}
         {activeTab === 'tasks' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2 className="text-2xl font-semibold mb-6">Tasks</h2>
@@ -523,7 +507,6 @@ export default function TeamWorkspace() {
           </motion.div>
         )}
 
-        {/* DOCS TAB */}
         {activeTab === 'docs' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2 className="text-2xl font-semibold mb-6">Documentation</h2>
@@ -535,7 +518,6 @@ export default function TeamWorkspace() {
           </motion.div>
         )}
 
-        {/* SETTINGS TAB */}
         {activeTab === 'settings' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
             <h2 className="text-2xl font-semibold mb-6">Team Settings</h2>
@@ -580,8 +562,9 @@ export default function TeamWorkspace() {
                   <h3 className="font-semibold mb-2 text-[#9A3412]">Danger Zone</h3>
                   <p className="text-sm text-white/60 mb-4">Deleting is permanent.</p>
                   <button 
-                    onClick={handleDeleteTeam}
-                    className="px-4 py-2 bg-[#EF6461]/10 border border-[#EF6461]/30 rounded-lg text-sm text-[#9A3412] hover:bg-[#EF6461]/20 transition-all">
+                    onClick={() => setIsDeleteTeamModalOpen(true)}
+                    className="px-4 py-2 bg-[#EF6461]/10 border border-[#EF6461]/30 rounded-lg text-sm text-[#9A3412] hover:bg-[#EF6461]/20"
+                  >
                     Delete Team
                   </button>
                 </div>
@@ -614,7 +597,41 @@ export default function TeamWorkspace() {
         teamId={team.id}
         teamName={team.name}
         existingProjectIds={teamProjects.map(p => p.id)}
-        onLinked={() => fetchTeamProjects()}
+        onLinked={() => {
+          setIsLinkProjectModalOpen(false);
+          loadTeamData();
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteTeamModalOpen}
+        onClose={() => setIsDeleteTeamModalOpen(false)}
+        onConfirm={handleDeleteTeam}
+        title="Delete Team"
+        message={`Are you absolutely sure you want to delete the team "${team?.name}"? All team settings and chat history will be permanently removed. (Projects will NOT be deleted, but they will be unlinked). This action cannot be undone.`}
+        confirmText="Delete Team"
+        cancelText="Cancel"
+        isDanger={true}
+      />
+
+      <ConfirmModal
+        isOpen={!!projectToUnlink}
+        onClose={() => setProjectToUnlink(null)}
+        onConfirm={async () => {
+          if (!team || !projectToUnlink) return;
+          try {
+            await teamApi.unlinkProjectFromTeam(team.id, projectToUnlink.id);
+            loadTeamData();
+            setProjectToUnlink(null);
+          } catch (e) {
+            console.error('Failed to unlink project', e);
+          }
+        }}
+        title="Unlink Project"
+        message={`Are you sure you want to unlink "${projectToUnlink?.name}" from this team? Team members will retain their current access level to the project, but new members will not be automatically added.`}
+        confirmText="Unlink"
+        cancelText="Cancel"
+        isDanger={true}
       />
     </div>
   );

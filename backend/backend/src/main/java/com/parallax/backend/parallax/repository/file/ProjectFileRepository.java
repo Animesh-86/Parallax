@@ -22,4 +22,6 @@ public interface ProjectFileRepository extends JpaRepository<ProjectFile, UUID> 
     void updateContent(@Param("projectId") UUID projectId, @Param("path") String path, @Param("content") String content, @Param("updatedAt") java.time.Instant updatedAt);
 
     boolean existsByProjectIdAndPath(UUID projectId, String path);
+
+    void deleteByProjectId(UUID projectId);
 }

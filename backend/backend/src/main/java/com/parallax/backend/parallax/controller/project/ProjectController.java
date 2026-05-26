@@ -107,26 +107,6 @@ public class ProjectController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         projectService.deleteProject(projectId, userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{projectId}/archive")
-    public ResponseEntity<ProjectResponse> archiveProject(
-            @PathVariable UUID projectId,
-            Authentication authentication
-    ) {
-        UUID userId = AuthUtil.requireUserId(authentication);
-        ProjectResponse response = projectService.archiveProject(projectId, userId, true);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/{projectId}/unarchive")
-    public ResponseEntity<ProjectResponse> unarchiveProject(
-            @PathVariable UUID projectId,
-            Authentication authentication
-    ) {
-        UUID userId = AuthUtil.requireUserId(authentication);
-        ProjectResponse response = projectService.archiveProject(projectId, userId, false);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 }

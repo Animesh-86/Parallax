@@ -3,6 +3,7 @@ import { Settings, Save, Shield, Terminal, Sparkles, Trash2, Users, Info, Chevro
 import { useNavigate } from 'react-router-dom';
 import { projectSettingsApi } from '../../services/projectSettingsApi';
 import { collabApi, Collaborator } from '../../services/collabApi';
+import { ConfirmModal } from '../modals/ConfirmModal';
 
 interface ProjectSettingsPanelProps {
   projectId: string;
@@ -19,6 +20,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [settings, setSettings] = useState<any>({
     tabSize: 2,
     fontSize: 14,
@@ -32,7 +34,6 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [teamInfo, setTeamInfo] = useState<{ id?: string; name?: string }>({});
   const [runtimeName, setRuntimeName] = useState('Standard Sandbox');
-  const [isArchived, setIsArchived] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -48,7 +49,6 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
       setSettings((prev: any) => ({ ...prev, ...parsedSettings }));
       setTeamInfo({ id: details.teamId, name: details.teamName });
       setRuntimeName(details.runtimeName || 'Standard Sandbox');
-      setIsArchived((details as any).archived || false);
 
       if (details.teamId) {
         const collabs = await collabApi.getProjectCollaborators(projectId);
@@ -82,38 +82,13 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you absolutely sure you want to delete this project? This action cannot be undone.')) {
-      return;
-    }
     setSaving(true);
     setError(null);
     try {
       await projectSettingsApi.deleteProject(projectId);
       navigate('/dashboard');
     } catch (err) {
-      setSaving(false);
-    }
-  };
-
-  const handleArchive = async () => {
-    if (!window.confirm(`Are you sure you want to ${isArchived ? 'unarchive' : 'archive'} this project?`)) {
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      if (isArchived) {
-        await projectSettingsApi.unarchiveProject(projectId);
-        setIsArchived(false);
-      } else {
-        await projectSettingsApi.archiveProject(projectId);
-        setIsArchived(true);
-      }
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(`Failed to ${isArchived ? 'unarchive' : 'archive'} project`);
+      setError('Failed to delete project');
       setSaving(false);
     }
   };
@@ -363,17 +338,13 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
               
               <div className="space-y-2">
                  <button 
-                    onClick={handleDelete}
-                    disabled={saving}
-                    className={`w-full py-2.5 bg-red-500/10 border border-red-500/20 rounded-md text-[11px] font-bold text-red-500 transition-all flex items-center justify-center gap-2 ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500 hover:text-white'}`}>
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="w-full py-3 bg-[#EF6461]/10 hover:bg-[#EF6461]/20 border border-[#EF6461]/30 rounded-xl text-[#EF6461] font-medium transition-colors flex items-center justify-center gap-2 group">
                     <Trash2 className="w-3 h-3" />
                     {saving ? 'DELETING...' : 'DELETE THIS PROJECT'}
                  </button>
-                 <button 
-                    onClick={handleArchive}
-                    disabled={saving}
-                    className="w-full py-2.5 bg-white/5 border border-white/10 rounded-md text-[11px] font-bold text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2">
-                    {saving ? 'PROCESSING...' : isArchived ? 'UNARCHIVE PROJECT' : 'ARCHIVE PROJECT'}
+                 <button className="w-full py-2.5 bg-white/5 border border-white/10 rounded-md text-[11px] font-bold text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2">
+                    ARCHIVE PROJECT
                  </button>
               </div>
             </div>
@@ -412,6 +383,17 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Project"
+        message="Are you absolutely sure you want to delete this project? All files, code history, and collaborations will be permanently removed. This action cannot be undone."
+        confirmText="Delete Project"
+        cancelText="Cancel"
+        isDanger={true}
+      />
     </div>
   );
 }
