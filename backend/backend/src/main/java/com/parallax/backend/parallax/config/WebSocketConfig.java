@@ -13,6 +13,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketPermissionInterceptor permissionInterceptor;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
+
     public WebSocketConfig(WebSocketPermissionInterceptor permissionInterceptor) {
         this.permissionInterceptor = permissionInterceptor;
     }
@@ -39,9 +42,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
 
         registry.addEndpoint("/ws")
-                // 🔐 Restrict origins (match your frontend)
-                .setAllowedOriginPatterns(
-                        "http://localhost:3000")
+                // 🔐 Restrict origins (configurable via app.frontend.url)
+                .setAllowedOriginPatterns(frontendUrl)
                 // Enable SockJS fallback
                 .withSockJS();
     }
@@ -56,6 +58,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @org.springframework.web.socket.config.annotation.EnableWebSocket
     @Configuration
     static class RawWebSocketConfig implements org.springframework.web.socket.config.annotation.WebSocketConfigurer {
+
+        @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:3000}")
+        private String frontendUrl;
 
         private final com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler;
         private final com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor;
@@ -83,15 +88,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry registry) {
             registry.addHandler(chatHandler, "/ws/chat/{projectId}")
                     .addInterceptors(chatInterceptor)
-                    .setAllowedOriginPatterns("*");
+                    .setAllowedOriginPatterns(frontendUrl);
 
             registry.addHandler(teamChatHandler, "/ws/team-chat/{teamId}")
                     .addInterceptors(teamChatInterceptor)
-                    .setAllowedOriginPatterns("*");
+                    .setAllowedOriginPatterns(frontendUrl);
                     
             registry.addHandler(directChatHandler, "/ws/direct-chat")
                     .addInterceptors(directChatInterceptor)
-                    .setAllowedOriginPatterns("*");
+                    .setAllowedOriginPatterns(frontendUrl);
         }
     }
 }

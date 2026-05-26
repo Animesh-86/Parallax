@@ -48,3 +48,9 @@ mvnw.cmd
 **/*.key
 **/*.pem
 **/secrets/
+
+# H2 file-based database
+**/data/*.db
+**/data/*.mv.db
+**/data/*.trace.db
+**/data/*.lock.db

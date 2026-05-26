@@ -95,11 +95,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return header;
         }
 
-        // Optional legacy support (NOT recommended for prod)
-        String param = request.getParameter("access_token");
-        if (param != null && !param.isBlank()) {
-            return "Bearer " + param;
-        }
+        // 🔒 SECURITY: URL parameter tokens removed — they leak into logs,
+        // browser history, referrer headers, and proxy caches.
+        // WebSocket auth uses STOMP CONNECT headers instead.
 
         return null;
     }

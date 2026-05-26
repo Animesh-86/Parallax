@@ -33,6 +33,11 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
                         .orElseThrow(() ->
                                 new ForbiddenException("No access to project"));
 
+        // Check status first (cheaper, short-circuits for pending collaborators)
+        if (collaborator.getStatus() != CollaboratorStatus.ACCEPTED) {
+            throw new ForbiddenException("Collaborator not accepted");
+        }
+
         Set<ProjectPermission> allowed =
                 permissionsForRole(collaborator.getRole());
 
@@ -40,10 +45,6 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
             throw new ForbiddenException(
                     "Permission denied: " + permission
             );
-        }
-
-        if (collaborator.getStatus() != CollaboratorStatus.ACCEPTED) {
-            throw new ForbiddenException("Collaborator not accepted");
         }
 
     }
@@ -58,12 +59,13 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
                         .orElseThrow(() ->
                                 new ForbiddenException("No access to project"));
 
-        if (collaborator.getRole() != CollaboratorRole.OWNER) {
-            throw new ForbiddenException("Owner permission required");
-        }
-
+        // Check status first (cheaper, short-circuits for pending collaborators)
         if (collaborator.getStatus() != CollaboratorStatus.ACCEPTED) {
             throw new ForbiddenException("Collaborator not accepted");
+        }
+
+        if (collaborator.getRole() != CollaboratorRole.OWNER) {
+            throw new ForbiddenException("Owner permission required");
         }
 
     }
