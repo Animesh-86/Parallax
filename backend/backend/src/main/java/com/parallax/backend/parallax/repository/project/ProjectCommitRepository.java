@@ -17,4 +17,6 @@ public interface ProjectCommitRepository extends JpaRepository<ProjectCommit, UU
     long countByProject_Id(UUID projectId);
 
     long countByBranch_Id(UUID branchId);
+
+    void deleteByProject_Id(UUID projectId);
 }

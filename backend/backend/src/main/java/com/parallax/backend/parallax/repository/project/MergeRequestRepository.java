@@ -18,4 +18,6 @@ public interface MergeRequestRepository extends JpaRepository<MergeRequest, UUID
     List<MergeRequest> findByAuthor_IdOrderByCreatedAtDesc(UUID authorId);
 
     long countByProject_IdAndStatus(UUID projectId, MergeRequestStatus status);
+
+    void deleteByProject_Id(UUID projectId);
 }

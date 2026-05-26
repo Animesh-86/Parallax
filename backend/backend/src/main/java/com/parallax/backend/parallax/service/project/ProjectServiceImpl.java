@@ -51,6 +51,11 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectAccessManager accessManager;
     private final TeamRepository teamRepository;
     private final TeamServiceImpl teamService;
+    private final com.parallax.backend.parallax.repository.project.ProjectBranchRepository projectBranchRepository;
+    private final com.parallax.backend.parallax.repository.project.ProjectCommitRepository projectCommitRepository;
+    private final com.parallax.backend.parallax.repository.project.MergeRequestRepository mergeRequestRepository;
+    private final com.parallax.backend.parallax.repository.chat.ChatRepository chatRepository;
+    private final com.parallax.backend.parallax.repository.collaborator.ProjectInvitationRepository projectInvitationRepository;
 
     // CREATE PROJECT
     @Override
@@ -434,10 +439,15 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
 
-        // Delete from database (cascade should handle related entities if configured properly, but let's be explicit)
+        // Delete child entities to prevent foreign key constraint violations
         projectFileRepository.deleteByProjectId(projectId);
+        chatRepository.deleteByProjectId(projectId);
+        mergeRequestRepository.deleteByProject_Id(projectId);
+        projectCommitRepository.deleteByProject_Id(projectId);
+        projectBranchRepository.deleteByProject_Id(projectId);
+        projectInvitationRepository.deleteByProjectId(projectId);
+        collaboratorRepo.deleteByProjectId(projectId);
         
-        // Also remove team relationship if exists? Not strictly necessary since project is being deleted.
         projectRepository.delete(project);
 
         // Delete from disk

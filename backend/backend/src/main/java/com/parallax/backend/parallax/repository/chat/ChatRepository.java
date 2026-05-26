@@ -13,4 +13,6 @@ public interface ChatRepository extends JpaRepository<ChatMessage, UUID> {
 
     @Query("SELECT m FROM ChatMessage m WHERE m.projectId = :projectId ORDER BY m.createdAt DESC")
     List<ChatMessage> findLatestByProject(@Param("projectId") UUID projectId, Pageable pageable);
+
+    void deleteByProjectId(UUID projectId);
 }

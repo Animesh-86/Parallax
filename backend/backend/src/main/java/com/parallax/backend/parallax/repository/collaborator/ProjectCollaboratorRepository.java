@@ -19,5 +19,5 @@ public interface ProjectCollaboratorRepository extends JpaRepository<ProjectColl
     List<ProjectCollaborator> findAllByProjectId(UUID projectId);
     List<ProjectCollaborator> findAllByUserId(UUID userId);
     long countByProjectIdAndRole(UUID projectId, CollaboratorRole role);
-
+    void deleteByProjectId(UUID projectId);
 }

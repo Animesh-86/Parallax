@@ -15,4 +15,6 @@ public interface ProjectInvitationRepository extends JpaRepository<ProjectInvita
     List<ProjectInvitation> findAllByInviteeIdAndStatus(UUID inviteeId, InvitationStatus status);
 
     List<ProjectInvitation> findAllByProjectIdAndStatus(UUID projectId, InvitationStatus status);
+
+    void deleteByProjectId(UUID projectId);
 }

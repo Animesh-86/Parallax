@@ -18,4 +18,6 @@ public interface ProjectBranchRepository extends JpaRepository<ProjectBranch, UU
     Optional<ProjectBranch> findByProject_IdAndName(UUID projectId, String name);
 
     boolean existsByProject_IdAndName(UUID projectId, String name);
+
+    void deleteByProject_Id(UUID projectId);
 }
