@@ -159,7 +159,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
             {/* Active Speaker / Main Card */}
             <div
               className={cn(
-                "relative w-full bg-[#162032] rounded-2xl overflow-hidden shadow-2xl transition-all duration-300",
+                "relative w-full bg-[#0D0D0F] rounded-2xl overflow-hidden shadow-2xl transition-all duration-300",
                 activeSpeakers.includes(mainSpeaker.id)
                   ? "border-[2px] border-[#A1A1AA] shadow-[0_0_15px_rgba(6,182,212,0.15)]"
                   : "border border-white/5"
@@ -171,7 +171,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
               {mainSpeaker.stream && mainSpeaker.stream.getVideoTracks().some(t => t.enabled && t.readyState === 'live') ? (
                 <VideoPlayer stream={mainSpeaker.stream} isMe={mainSpeaker.isMe} />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#162032]">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0D0D0F]">
                   <div className={cn(
                     "w-28 h-28 rounded-full border-[2px] flex items-center justify-center text-4xl font-light tracking-wider bg-[#0D0D0F] shadow-xl",
                     activeSpeakers.includes(mainSpeaker.id) ? "border-[#A1A1AA] text-[#D4AF37]" : "border-white/10 text-white/40"
@@ -205,7 +205,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
                 <div
                   key={p.id}
                   className={cn(
-                    "relative w-full bg-[#162032] rounded-xl overflow-hidden transition-all duration-300",
+                    "relative w-full bg-[#0D0D0F] rounded-xl overflow-hidden transition-all duration-300",
                     activeSpeakers.includes(p.id)
                       ? "border-[2px] border-[#A1A1AA] shadow-[0_0_10px_rgba(6,182,212,0.1)]"
                       : "border border-white/5 hover:border-white/10"
@@ -215,7 +215,7 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
                   {p.stream && p.stream.getVideoTracks().some(t => t.enabled && t.readyState === 'live') ? (
                     <VideoPlayer stream={p.stream} isMe={p.isMe} />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#162032]">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#0D0D0F]">
                       <div
                         className={cn(
                           "w-12 h-12 rounded-full border-2 flex items-center justify-center text-sm font-medium bg-[#0D0D0F]",

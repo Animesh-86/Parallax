@@ -95,7 +95,7 @@ export function FileExplorer({
         )}
         <input
           autoFocus
-          className="bg-[#162032] text-white text-xs border border-[#71717A]/50 rounded px-1.5 py-0.5 outline-none min-w-[120px] shadow-lg shadow-[#71717A]/10"
+          className="bg-white/5 text-white text-xs border border-[#D4AF37]/50 rounded px-1.5 py-0.5 outline-none min-w-[120px] shadow-lg shadow-[#D4AF37]/10"
           value={newItemName}
           onChange={(e) => setNewItemName(e.target.value)}
           onKeyDown={handleKeyDown}

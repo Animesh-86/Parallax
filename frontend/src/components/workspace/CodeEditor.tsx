@@ -303,8 +303,8 @@ export default function CodeEditor({
       )}
 
       <div className="flex-1 p-4">
-        <div className="flex flex-col h-full rounded-xl overflow-hidden border border-[#162032] bg-[#162032]">
-          <div className="px-4 py-2 text-xs text-[#A1A1AA] border-b border-[#162032]">
+        <div className="flex flex-col h-full rounded-xl overflow-hidden border border-white/10 bg-[#09090B]">
+          <div className="px-4 py-2 text-xs text-[#A1A1AA] border-b border-white/10">
             Editing: {filePath} <span className="ml-2 opacity-50">({getLanguageFromPath(filePath)})</span>
           </div>
 
