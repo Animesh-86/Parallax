@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { jwtDecode } from "jwt-decode";
+import { getAvatarInitials } from '../services/userUtils';
 import { Users, UserPlus, MessageCircle, Mail, Search, Send, MoreVertical, Hash, AtSign } from 'lucide-react';
 import { collabApi } from '../services/collabApi';
 import { useCollab } from '../context/CollaborationContext';
@@ -52,7 +53,7 @@ export default function Friends() {
         for (let i = 0; i < str.length; i++) hash += str.charCodeAt(i);
         return colors[hash % colors.length];
     };
-    const getAvatar = (email: string) => email.substring(0, 2).toUpperCase();
+    const getAvatar = (name: string) => getAvatarInitials(name);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -385,7 +386,7 @@ export default function Friends() {
                 {/* Current User Bar (Discord-like) */}
                 <div className="p-3 bg-[#0c0c0e] border-t border-white/5 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-xs uppercase">
-                        {currentUserName.substring(0, 2)}
+                        {getAvatarInitials(currentUserName)}
                     </div>
                     <div className="flex-1 truncate">
                         <div className="text-sm font-semibold text-white/90 truncate">{currentUserName}</div>
@@ -452,7 +453,7 @@ export default function Friends() {
                                         <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-sm ${
                                             isMe ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-white/10 text-white/60'
                                         }`}>
-                                            {msg.senderName.substring(0, 2).toUpperCase()}
+                                            {getAvatarInitials(msg.senderName)}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">

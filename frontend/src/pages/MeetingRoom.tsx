@@ -52,6 +52,7 @@ import { collabApi, MeetingRoom as RoomData, RoomSettingsUpdatePayload } from '.
 import { voiceWs } from '../services/wsVoice';
 import Whiteboard from '../components/workspace/Whiteboard';
 import { StompSubscription } from '@stomp/stompjs';
+import { getAvatarInitials, getDisplayName, getUserId } from '../services/userUtils';
 
 // ─── TYPES ───────────────────────────────────────────────
 
@@ -110,23 +111,7 @@ function getColor(str: string) {
   return colors[hash % colors.length];
 }
 
-function getDisplayName(): string {
-  const token = localStorage.getItem("access_token");
-  if (!token) return "You";
-  try {
-    const decoded: any = JSON.parse(atob(token.split('.')[1]));
-    return decoded.displayName || decoded.fullName || decoded.username || decoded.sub?.substring(0, 6) || "You";
-  } catch { return "You"; }
-}
-
-function getUserId(): string {
-  const token = localStorage.getItem("access_token");
-  if (!token) return '';
-  try {
-    const decoded: any = JSON.parse(atob(token.split('.')[1]));
-    return decoded.userId || decoded.sub || '';
-  } catch { return ''; }
-}
+// getDisplayName and getUserId are now imported from userUtils
 
 // ─── VIDEO TILE COMPONENT ────────────────────────────────
 
@@ -214,7 +199,7 @@ function VideoTile({
               border: `1px solid ${color}30`
             }}
           >
-            {label.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?'}
+            {getAvatarInitials(label)}
           </div>
         </div>
       )}
@@ -335,7 +320,7 @@ function PreJoinLobby({
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-4">
               <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/30 flex items-center justify-center text-4xl font-bold text-white/80">
-                {displayName.substring(0, 2).toUpperCase()}
+                {getAvatarInitials(displayName)}
               </div>
               <span className="text-white/50 text-sm">Camera is off</span>
             </div>
@@ -709,7 +694,7 @@ export default function MeetingRoom() {
       id: ++chatIdRef.current, senderId: 'local', displayName: name,
       message: chatMessage.trim(),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      color: '#D4AF37', avatar: name.substring(0, 2).toUpperCase(),
+      color: '#D4AF37', avatar: getAvatarInitials(name),
     }]);
     setChatMessage('');
   }, [chatMessage, isChatDisabled]);
@@ -1776,7 +1761,7 @@ export default function MeetingRoom() {
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold flex-shrink-0 relative"
                           style={{ backgroundColor: `${getColor(p.label)}25`, color: getColor(p.label) }}
                         >
-                          {p.label.substring(0, 2).toUpperCase()}
+                          {getAvatarInitials(p.label)}
                           {p.isAdmin && (
                             <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#F59E0B] rounded-full flex items-center justify-center">
                               <Crown className="w-2 h-2 text-black" />

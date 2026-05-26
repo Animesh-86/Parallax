@@ -7,7 +7,6 @@ const OAuthSuccessPage = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    // Try multiple possible param names
     const accessToken =
       params.get("access") ||
       params.get("access_token") ||
@@ -17,13 +16,16 @@ const OAuthSuccessPage = () => {
 
     if (accessToken) {
       try {
-        // SAME KEY as in Login.tsx
         localStorage.setItem("access_token", accessToken);
         console.log("Access token saved to localStorage.");
 
-        // Optional: Validate token with backend before navigating
-        // Example: fetch('/api/validate-token', { headers: { Authorization: `Bearer ${accessToken}` } })
-        navigate("/dashboard", { replace: true });
+        // Check if user needs onboarding
+        const decoded: any = JSON.parse(atob(accessToken.split('.')[1]));
+        if (decoded.onboardingComplete === false) {
+          navigate("/onboarding", { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
       } catch (error) {
         console.error("Error saving access token or navigating:", error);
         navigate("/login", { replace: true });

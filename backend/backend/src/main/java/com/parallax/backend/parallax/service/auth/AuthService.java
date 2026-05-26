@@ -72,7 +72,9 @@ public class AuthService {
         return jwt.generateAccessToken(
                 user.getId(),
                 user.getUsername(),
-                user.getEmail()
+                user.getEmail(),
+                user.getFullName(),
+                user.isOnboardingComplete()
         );
     }
 
@@ -92,7 +94,9 @@ public class AuthService {
         return jwt.generateAccessToken(
                 user.getId(),
                 user.getUsername(),
-                user.getEmail()
+                user.getEmail(),
+                user.getFullName(),
+                user.isOnboardingComplete()
         );
     }
 
@@ -164,7 +168,9 @@ public class AuthService {
                 jwt.generateAccessToken(
                         user.getId(),
                         user.getUsername(),
-                        user.getEmail()
+                        user.getEmail(),
+                        user.getFullName(),
+                        user.isOnboardingComplete()
                 );
 
         return new RotatedTokens(newAccess, gen.refreshJwt());

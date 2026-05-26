@@ -5,6 +5,7 @@ import { useCollab } from '../../context/CollaborationContext';
 import { cn } from '../../components/ui/utils';
 import { jwtDecode } from "jwt-decode";
 import { useParams } from 'react-router-dom';
+import { getAvatarInitials, getDisplayName } from '../../services/userUtils';
 
 interface VideoPanelProps {
   mode: 'video' | 'audio';
@@ -85,8 +86,8 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
 
     const myProfile = {
       id: myId,
-      name: meCollaborator.email.split('@')[0],
-      avatar: meCollaborator.email.substring(0, 2).toUpperCase(),
+      name: getDisplayName(),
+      avatar: getAvatarInitials(getDisplayName()),
       color: '#A1A1AA',
       isMe: true,
       stream: localStream
@@ -97,10 +98,11 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
 
     const otherProfiles = activePeers.map(peerId => {
       const collaborator = safeCollaborators.find(c => c?.userId === peerId);
+      const peerName = collaborator ? (collaborator.email.split('@')[0]) : `User ${peerId.substring(0, 4)}`;
       return {
         id: peerId,
-        name: collaborator ? collaborator.email.split('@')[0] : `User ${peerId.substring(0, 4)}`,
-        avatar: collaborator ? collaborator.email.substring(0, 2).toUpperCase() : '??',
+        name: peerName,
+        avatar: getAvatarInitials(peerName),
         color: '#F59E0B',
         isMe: false,
         stream: remoteStreams.get(peerId)

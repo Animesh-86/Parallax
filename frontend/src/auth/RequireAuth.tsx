@@ -17,6 +17,11 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
             localStorage.removeItem("access_token");
             return <Navigate to="/login" replace />;
         }
+
+        // Redirect to onboarding if user hasn't completed setup
+        if (decoded.onboardingComplete === false) {
+            return <Navigate to="/onboarding" replace />;
+        }
     } catch (error) {
         localStorage.removeItem("access_token");
         return <Navigate to="/login" replace />;

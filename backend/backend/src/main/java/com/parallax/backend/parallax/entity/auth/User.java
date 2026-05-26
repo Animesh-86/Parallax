@@ -61,6 +61,9 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Column(name = "onboarding_complete", nullable = false)
+    private boolean onboardingComplete = true;
+
     // Constructors
     protected User() {
         // JPA only
@@ -144,6 +147,14 @@ public class User {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public boolean isOnboardingComplete() {
+        return onboardingComplete;
+    }
+
+    public void setOnboardingComplete(boolean onboardingComplete) {
+        this.onboardingComplete = onboardingComplete;
     }
 
     // --------------------

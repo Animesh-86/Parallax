@@ -1,4 +1,5 @@
 import { UserPlus, Crown, Code, Eye, MoreVertical, Trash2, ChevronDown, X } from 'lucide-react';
+import { getAvatarInitials } from '../../services/userUtils';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCollab } from '../../context/CollaborationContext';
@@ -68,8 +69,8 @@ export function ParticipantsList() {
   }, [currentCollaborators]); // Removed dependency on collaboratorNames to avoid loop, simple check inside
 
   // Helper to generate avatar from email/name
-  const getAvatar = (email: string) => {
-    return email.substring(0, 2).toUpperCase();
+  const getAvatar = (name: string) => {
+    return getAvatarInitials(name);
   };
 
   // Helper to generate color (simple hash)

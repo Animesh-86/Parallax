@@ -92,6 +92,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                     hashed,
                     oauth.getAuthorizedClientRegistrationId().toUpperCase()
             );
+            u.setOnboardingComplete(false);
             return userRepo.save(u);
 
         });
@@ -105,7 +106,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String refreshJwt = gen.refreshJwt();
 
         // ---- Access Token ----
-        String access = jwt.generateAccessToken(user.getId(), user.getUsername(), user.getEmail());
+        String access = jwt.generateAccessToken(user.getId(), user.getUsername(), user.getEmail(),
+                user.getFullName(), user.isOnboardingComplete());
 
         // ---- Cookie ----
         ResponseCookie cookie = CookieFactory.refreshToken(refreshJwt, jwt.getRefreshExpirationMs());

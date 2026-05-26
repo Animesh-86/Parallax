@@ -49,13 +49,16 @@ public class JwtUtils {
         }
     }
 
-    public String generateAccessToken(UUID userId, String username, String email) {
+    public String generateAccessToken(UUID userId, String username, String email,
+                                       String fullName, boolean onboardingComplete) {
         Instant now = Instant.now();
 
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .claim("username", username)
                 .claim("email", email)
+                .claim("fullName", fullName)
+                .claim("onboardingComplete", onboardingComplete)
                 .claim("type", "access")
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plusMillis(accessExpiryMs)))

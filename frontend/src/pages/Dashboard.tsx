@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { getAvatarInitials } from '../services/userUtils';
 import {
     BarChart3,
     Bell,
@@ -85,7 +86,7 @@ export default function Dashboard() {
         return colors[hash % colors.length];
     };
 
-    const getAvatar = (email: string) => email.substring(0, 2).toUpperCase();
+    const getAvatar = (name: string) => getAvatarInitials(name);
 
     // --- RECENT ACCESS TRACKING ---
     const updateRecentAccess = (projectId: string) => {

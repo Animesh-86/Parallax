@@ -22,6 +22,7 @@ import Terms from "./pages/Terms";
 import RequireAuth from "./auth/RequireAuth";
 import OAuthSuccessPage from "./pages/0AuthSuccessPage";
 import OAuthFailurePage from "./pages/OAuthFailurePage";
+import Onboarding from "./pages/Onboarding";
 import CodeEditor from "./components/workspace/CodeEditor";
 import { Outlet } from "react-router-dom";
 import { CollaborationProvider } from "./context/CollaborationContext";
@@ -97,6 +98,7 @@ export default function App() {
         {/* OAuth callback (public) */}
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
         <Route path="/oauth-failure" element={<OAuthFailurePage />} />
+        <Route path="/onboarding" element={<Onboarding />} />
       </Routes>
     </BrowserRouter>
   );

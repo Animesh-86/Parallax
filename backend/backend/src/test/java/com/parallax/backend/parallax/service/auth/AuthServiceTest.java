@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +65,7 @@ class AuthServiceTest {
         when(usernameService.generateAvailableUsername(any())).thenReturn("testuser");
         when(passwordEncoder.encode("password123")).thenReturn("hashedPassword");
         when(userRepo.save(any(User.class))).thenReturn(testUser);
-        when(jwt.generateAccessToken(testUser.getId(), testUser.getUsername(), testUser.getEmail())).thenReturn("mockedAccessToken");
+        when(jwt.generateAccessToken(any(UUID.class), anyString(), anyString(), anyString(), anyBoolean())).thenReturn("mockedAccessToken");
 
         String token = authService.signup(req);
 
@@ -92,7 +92,7 @@ class AuthServiceTest {
 
         when(userRepo.findByEmail("test@test.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", testUser.getPasswordHash())).thenReturn(true);
-        when(jwt.generateAccessToken(testUser.getId(), testUser.getUsername(), testUser.getEmail())).thenReturn("mockedAccessToken");
+        when(jwt.generateAccessToken(any(UUID.class), anyString(), anyString(), anyString(), anyBoolean())).thenReturn("mockedAccessToken");
 
         String token = authService.login(req);
 
@@ -123,7 +123,7 @@ class AuthServiceTest {
         when(refreshTokenRepo.findBySessionIdAndRevokedFalse(oldSession)).thenReturn(Optional.of(rt));
         when(userRepo.findById(testUser.getId())).thenReturn(Optional.of(testUser));
         when(jwt.generateRefreshToken(eq(testUser.getId()), anyString())).thenReturn("newRefreshJwt");
-        when(jwt.generateAccessToken(testUser.getId(), testUser.getUsername(), testUser.getEmail())).thenReturn("newAccessJwt");
+        when(jwt.generateAccessToken(any(UUID.class), anyString(), anyString(), anyString(), anyBoolean())).thenReturn("newAccessJwt");
 
         AuthService.RotatedTokens tokens = authService.rotateRefresh(oldSession, "agent", "127.0.0.1");
 

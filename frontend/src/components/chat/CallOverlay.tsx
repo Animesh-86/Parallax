@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Maximize2, Minimize2 } from "lucide-react";
 import { useVoice } from "../../context/VoiceContext";
+import { getAvatarInitials, getDisplayName } from '../../services/userUtils';
 
 const CallOverlay: React.FC = () => {
     const { 
@@ -54,7 +55,7 @@ const CallOverlay: React.FC = () => {
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
                             <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/40 font-bold">
-                                ME
+                                {getAvatarInitials(getDisplayName())}
                             </div>
                         </div>
                     )}
@@ -126,7 +127,7 @@ const RemoteStreamView: React.FC<{ stream: MediaStream, name: string, videoEnabl
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#09090B]/80 backdrop-blur-md">
                         <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-lg">
-                            {name.substring(0, 1).toUpperCase()}
+                            {getAvatarInitials(name)}
                         </div>
                     </div>
                 )}

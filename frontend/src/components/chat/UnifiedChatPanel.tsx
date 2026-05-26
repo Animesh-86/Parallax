@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { MessageSquare, Smile, Send, Hash, Phone, Video } from 'lucide-react';
 import { ChatWebSocketClient, GenericChatMessage } from '../../services/wsChatClient';
 import { useVoice } from '../../context/VoiceContext';
+import { getAvatarInitials } from '../../services/userUtils';
 
 interface UnifiedChatPanelProps {
     contextId: string;
@@ -178,7 +179,7 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                             const colorHash = msg.senderName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
                             const colors = ['#D4AF37', '#D4AF37', '#D4AF37', '#EF6461', '#4ADE80'];
                             const userColor = colors[colorHash % colors.length];
-                            const avatar = msg.senderName.substring(0, 2).toUpperCase();
+                            const avatar = getAvatarInitials(msg.senderName);
 
                             return (
                                 <div key={msg.id || idx} className="group">
