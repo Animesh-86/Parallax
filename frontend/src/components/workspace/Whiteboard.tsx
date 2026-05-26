@@ -6,6 +6,12 @@ import { voiceWs } from '../../services/wsVoice';
 function WhiteboardSync({ canEdit }: { canEdit: boolean }) {
     const editor = useEditor();
 
+    // When not editable, set editor to read-only mode which allows
+    // panning and zooming but blocks shape creation and editing
+    useEffect(() => {
+        editor.updateInstanceState({ isReadonly: !canEdit });
+    }, [editor, canEdit]);
+
     useEffect(() => {
         // Subscribe to incoming edits
         const subscription = voiceWs.subscribeWhiteboard((payload) => {
@@ -53,10 +59,11 @@ function WhiteboardSync({ canEdit }: { canEdit: boolean }) {
 
 export default function Whiteboard({ canEdit = true }: { canEdit?: boolean }) {
     return (
-        <div style={{ width: '100%', height: '100%' }} className={canEdit ? '' : 'pointer-events-none'}>
+        <div style={{ width: '100%', height: '100%' }}>
             <Tldraw>
                 <WhiteboardSync canEdit={canEdit} />
             </Tldraw>
         </div>
     );
 }
+

@@ -414,7 +414,7 @@ export default function Teams() {
                             <button
                                 onClick={handleCreateTeam}
                                 disabled={!createTeamName.trim() || creatingTeam}
-                                className="flex-1 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all"
+                                className="flex-1 px-4 py-2 bg-[#D4AF37] text-black rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all"
                             >
                                 {creatingTeam ? 'Creating...' : 'Create Team'}
                             </button>

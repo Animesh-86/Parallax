@@ -42,6 +42,8 @@ import {
   FileText,
   MousePointer2,
   Camera,
+  PhoneOff,
+  Power,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CosmicStars } from "../components/workspace/CosmicStars";
@@ -413,8 +415,10 @@ export default function MeetingRoom() {
   const [isInviting, setIsInviting] = useState(false);
   const [inviteInput, setInviteInput] = useState('');
   const [inviteStatus, setInviteStatus] = useState<string | null>(null);
-  const [inviteCopied, setInviteCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedRoomCode, setCopiedRoomCode] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -1511,8 +1515,8 @@ export default function MeetingRoom() {
             <div className="flex items-center justify-between p-3 border-b border-white/5 flex-shrink-0">
               <h3 className="text-sm font-semibold text-white/80 capitalize flex items-center gap-2">
                 {activePanel === 'chat' && <><MessageCircle className="w-4 h-4" /> Chat</>}
-                {activePanel === 'code' && <><Code2 className="w-4 h-4" /> Code</>}
-                {activePanel === 'whiteboard' && <><PenTool className="w-4 h-4" /> Whiteboard</>}
+                {(activePanel as string) === 'code' && <><Code2 className="w-4 h-4" /> Code</>}
+                {(activePanel as string) === 'whiteboard' && <><PenTool className="w-4 h-4" /> Whiteboard</>}
                 {activePanel === 'tasks' && <><ListTodo className="w-4 h-4" /> Tasks</>}
                 {activePanel === 'people' && <><Users className="w-4 h-4" /> People</>}
                 {activePanel === 'notes' && <><FileText className="w-4 h-4" /> Notes</>}
@@ -1601,7 +1605,7 @@ export default function MeetingRoom() {
               )}
 
               {/* CODE PANEL */}
-              {activePanel === 'code' && (
+              {(activePanel as string) === 'code' && (
                 canViewCode ? (
                 <div className="flex-1 flex flex-col">
                   <div className="flex items-center gap-2 px-3 py-2 border-b border-white/5 flex-shrink-0">
@@ -1630,7 +1634,7 @@ export default function MeetingRoom() {
               )}
 
               {/* WHITEBOARD PANEL */}
-              {activePanel === 'whiteboard' && (
+              {(activePanel as string) === 'whiteboard' && (
                 roomData?.whiteboardEnabled ? (
                   canViewWhiteboard ? (
                     <div className="flex-1 bg-white relative"><Whiteboard canEdit={canEditWhiteboard} /></div>

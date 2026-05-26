@@ -112,6 +112,19 @@ export default function TeamWorkspace() {
     }
   };
 
+  const handleDeleteTeam = async () => {
+    if (!window.confirm('Are you absolutely sure you want to delete this team? This action cannot be undone and will affect all members.')) {
+      return;
+    }
+    try {
+      await teamApi.deleteTeam(teamId!);
+      navigate('/teams');
+    } catch (err) {
+      console.error('Failed to delete team:', err);
+      setError('Failed to delete team');
+    }
+  };
+
   const handleCreateRoom = async (name: string, collaborationMode: 'INTERVIEW' | 'TEAM') => {
     try {
       const newRoom = await collabApi.createRoom(name, collaborationMode);
@@ -146,7 +159,7 @@ export default function TeamWorkspace() {
         <div className="text-center z-10">
           <AlertCircle className="w-12 h-12 text-[#EF6461] mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2">{error || 'Team not found'}</h2>
-          <button onClick={() => navigate('/teams')} className="mt-4 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg">
+          <button onClick={() => navigate('/teams')} className="mt-4 px-4 py-2 bg-[#D4AF37] text-black rounded-lg">
             Back to Teams
           </button>
         </div>
@@ -174,7 +187,7 @@ export default function TeamWorkspace() {
           <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4 flex-wrap">
             {/* Left — Team identity */}
             <button onClick={() => navigate('/teams')} className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] flex items-center justify-center font-semibold text-sm">
+              <div className="w-9 h-9 rounded-lg bg-[#D4AF37] text-black flex items-center justify-center font-semibold text-sm">
                 {teamInitials}
               </div>
               <div>
@@ -221,7 +234,7 @@ export default function TeamWorkspace() {
               </button>
               <button
                 onClick={() => setIsCreateRoomModalOpen(true)}
-                className="px-3 py-1.5 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all text-xs flex items-center gap-2"
+                className="px-3 py-1.5 bg-[#D4AF37] text-black rounded-lg hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all text-xs flex items-center gap-2"
               >
                 <Video className="w-3.5 h-3.5" />
                 Room
@@ -255,7 +268,7 @@ export default function TeamWorkspace() {
                     <div className="flex justify-between"><span className="text-white/60">Pending</span><span>{pendingMembers.length}</span></div>
                     <div className="flex justify-between"><span className="text-white/60">Online</span><span className="text-[#4ADE80]">{activeMembers.filter(m => m.isOnline).length}</span></div>
                   </div>
-                  <button onClick={() => setActiveTab('members')} className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg text-sm font-medium">
+                  <button onClick={() => setActiveTab('members')} className="w-full mt-4 px-4 py-2 bg-[#D4AF37] text-black rounded-lg text-sm font-medium">
                     <UserPlus className="w-4 h-4 inline mr-2" />
                     Invite Member
                   </button>
@@ -430,7 +443,7 @@ export default function TeamWorkspace() {
                   <button
                     onClick={handleInviteMember}
                     disabled={!inviteEmail.trim() || inviting}
-                    className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg text-sm font-medium disabled:opacity-50"
+                    className="px-4 py-2 bg-[#D4AF37] text-black rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     {inviting ? 'Inviting...' : 'Invite'}
                   </button>
@@ -566,7 +579,9 @@ export default function TeamWorkspace() {
                 <div className="bg-[#09090B] border border-[#EF6461]/20 rounded-2xl p-6">
                   <h3 className="font-semibold mb-2 text-[#9A3412]">Danger Zone</h3>
                   <p className="text-sm text-white/60 mb-4">Deleting is permanent.</p>
-                  <button className="px-4 py-2 bg-[#EF6461]/10 border border-[#EF6461]/30 rounded-lg text-sm text-[#9A3412] hover:bg-[#EF6461]/20">
+                  <button 
+                    onClick={handleDeleteTeam}
+                    className="px-4 py-2 bg-[#EF6461]/10 border border-[#EF6461]/30 rounded-lg text-sm text-[#9A3412] hover:bg-[#EF6461]/20 transition-all">
                     Delete Team
                   </button>
                 </div>

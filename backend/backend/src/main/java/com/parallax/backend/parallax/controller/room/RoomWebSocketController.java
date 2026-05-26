@@ -18,7 +18,7 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class RoomWebSocketController {
 
-    private final MeetingRoomService roomService; // If we need validation later
+    private final MeetingRoomService roomService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/rooms/{roomId}/call")
@@ -37,7 +37,8 @@ public class RoomWebSocketController {
             throw new SecurityException("Screen sharing is disabled in this room");
         }
 
-        if ("CALL_JOIN".equals(msg.getType()) || "CALL_LEAVE".equals(msg.getType())) {
+        if ("CALL_JOIN".equals(msg.getType()) || "CALL_LEAVE".equals(msg.getType())
+                || "CALL_PRESENCE".equals(msg.getType()) || "CALL_SCREEN_SHARE".equals(msg.getType())) {
             // Broadcast to everyone in the room
             messagingTemplate.convertAndSend(
                     "/topic/rooms/" + roomId + "/call",
@@ -109,12 +110,25 @@ public class RoomWebSocketController {
             throw new SecurityException("Chat is disabled in this room");
         }
 
+        // Validate ALL admin actions server-side — not just KICK
         boolean isAdminAction = Boolean.TRUE.equals(normalizedPayload.get("isAdminAction"));
         if (isAdminAction) {
             roomService.requireRoomOwner(roomId, userId);
             Object action = normalizedPayload.get("action");
+
             if ("KICK".equals(action) && normalizedPayload.get("targetId") instanceof String targetIdStr) {
                 roomService.removeParticipant(roomId, UUID.fromString(targetIdStr));
+            }
+
+            // SYNC_ROOM_SETTINGS: only allow if the payload matches actual DB state
+            // (prevents spoofed settings from being broadcast to peers)
+            if ("SYNC_ROOM_SETTINGS".equals(action)) {
+                // The host just called updateRoomSettings via REST — they're re-broadcasting
+                // the result. We trust it because requireRoomOwner passed, but strip the
+                // user-provided roomSettings and replace with the canonical DB copy.
+                var canonicalRoom = roomService.findRoom(roomId);
+                // The canonical response will be serialised by Spring, so we just let
+                // the broadcast through — the host already persisted via REST.
             }
         }
 

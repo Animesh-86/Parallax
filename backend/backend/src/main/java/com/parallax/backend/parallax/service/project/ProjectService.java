@@ -13,4 +13,6 @@ public interface ProjectService {
     ProjectResponse linkProjectToTeam(UUID projectId, UUID requesterId, UUID teamId);
     ProjectResponse updateSettings(UUID projectId, UUID requesterId, com.parallax.backend.parallax.dto.project.UpdateProjectSettingsRequest request);
     ProjectResponse toggleExtension(UUID projectId, UUID requesterId, String extensionId, boolean enabled);
+    void deleteProject(UUID projectId, UUID requesterId);
+    ProjectResponse archiveProject(UUID projectId, UUID requesterId, boolean archive);
 }

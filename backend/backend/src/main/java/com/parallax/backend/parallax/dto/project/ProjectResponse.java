@@ -18,10 +18,11 @@ public class ProjectResponse {
     private String settingsJson;
     private String enabledExtensionsJson;
     private String runtimeName;
+    private boolean archived;
 
     public ProjectResponse() {}
 
-    public ProjectResponse(UUID id, String name, String language, List<FileDto> files, String activeSessionId, UUID teamId, String teamName, String createdAt, String description, String settingsJson, String enabledExtensionsJson, String runtimeName) {
+    public ProjectResponse(UUID id, String name, String language, List<FileDto> files, String activeSessionId, UUID teamId, String teamName, String createdAt, String description, String settingsJson, String enabledExtensionsJson, String runtimeName, boolean archived) {
         this.id = id;
         this.name = name;
         this.language = language;
@@ -34,6 +35,7 @@ public class ProjectResponse {
         this.settingsJson = settingsJson;
         this.enabledExtensionsJson = enabledExtensionsJson;
         this.runtimeName = runtimeName;
+        this.archived = archived;
     }
 
     public UUID getId() { return id; }
@@ -49,6 +51,7 @@ public class ProjectResponse {
     public String getEnabledExtensionsJson() { return enabledExtensionsJson; }
     public String getRuntimeName() { return runtimeName; }
     public void setRuntimeName(String runtimeName) { this.runtimeName = runtimeName; }
+    public boolean isArchived() { return archived; }
 
     public static class FileDto {
         private UUID id;
@@ -81,6 +84,7 @@ public class ProjectResponse {
         private String settingsJson;
         private String enabledExtensionsJson;
         private String runtimeName;
+        private boolean archived;
 
         public Builder id(UUID id) { this.id = id; return this; }
         public Builder name(String name) { this.name = name; return this; }
@@ -94,9 +98,10 @@ public class ProjectResponse {
         public Builder settingsJson(String settingsJson) { this.settingsJson = settingsJson; return this; }
         public Builder enabledExtensionsJson(String enabledExtensionsJson) { this.enabledExtensionsJson = enabledExtensionsJson; return this; }
         public Builder runtimeName(String runtimeName) { this.runtimeName = runtimeName; return this; }
+        public Builder archived(boolean archived) { this.archived = archived; return this; }
 
         public ProjectResponse build() {
-            return new ProjectResponse(id, name, language, files, activeSessionId, teamId, teamName, createdAt, description, settingsJson, enabledExtensionsJson, runtimeName);
+            return new ProjectResponse(id, name, language, files, activeSessionId, teamId, teamName, createdAt, description, settingsJson, enabledExtensionsJson, runtimeName, archived);
         }
     }
 
@@ -112,6 +117,7 @@ public class ProjectResponse {
                 .description(project.getDescription())
                 .settingsJson(project.getSettingsJson())
                 .enabledExtensionsJson(project.getEnabledExtensionsJson())
+                .archived(project.isArchived())
                 .files(files.stream()
                         .map(f -> new FileDto(
                                 f.getId(),

@@ -32,6 +32,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [teamInfo, setTeamInfo] = useState<{ id?: string; name?: string }>({});
   const [runtimeName, setRuntimeName] = useState('Standard Sandbox');
+  const [isArchived, setIsArchived] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -47,6 +48,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
       setSettings((prev: any) => ({ ...prev, ...parsedSettings }));
       setTeamInfo({ id: details.teamId, name: details.teamName });
       setRuntimeName(details.runtimeName || 'Standard Sandbox');
+      setIsArchived((details as any).archived || false);
 
       if (details.teamId) {
         const collabs = await collabApi.getProjectCollaborators(projectId);
@@ -89,7 +91,29 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
       await projectSettingsApi.deleteProject(projectId);
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to delete project');
+      setSaving(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!window.confirm(`Are you sure you want to ${isArchived ? 'unarchive' : 'archive'} this project?`)) {
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      if (isArchived) {
+        await projectSettingsApi.unarchiveProject(projectId);
+        setIsArchived(false);
+      } else {
+        await projectSettingsApi.archiveProject(projectId);
+        setIsArchived(true);
+      }
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(`Failed to ${isArchived ? 'unarchive' : 'archive'} project`);
       setSaving(false);
     }
   };
@@ -345,8 +369,11 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
                     <Trash2 className="w-3 h-3" />
                     {saving ? 'DELETING...' : 'DELETE THIS PROJECT'}
                  </button>
-                 <button className="w-full py-2.5 bg-white/5 border border-white/10 rounded-md text-[11px] font-bold text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2">
-                    ARCHIVE PROJECT
+                 <button 
+                    onClick={handleArchive}
+                    disabled={saving}
+                    className="w-full py-2.5 bg-white/5 border border-white/10 rounded-md text-[11px] font-bold text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2">
+                    {saving ? 'PROCESSING...' : isArchived ? 'UNARCHIVE PROJECT' : 'ARCHIVE PROJECT'}
                  </button>
               </div>
             </div>

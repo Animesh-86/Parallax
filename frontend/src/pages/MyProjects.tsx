@@ -18,6 +18,7 @@ type Project = {
     name: string;
     language: string;
     updatedAt: string;
+    isArchived: boolean;
 };
 
 export default function MyProjects() {
@@ -26,6 +27,7 @@ export default function MyProjects() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [viewFilter, setViewFilter] = useState<'active' | 'archived'>('active');
 
     // Modal State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -54,7 +56,8 @@ export default function MyProjects() {
                 id: p.id,
                 name: p.name,
                 language: p.language || "Unknown",
-                updatedAt: p.updatedAt || p.updated_at || p.createdAt || ""
+                updatedAt: p.updatedAt || p.updated_at || p.createdAt || "",
+                isArchived: p.archived || false
             }));
 
             // Sort by newest
@@ -99,10 +102,12 @@ export default function MyProjects() {
     };
 
     // Filter Logic
-    const filteredProjects = projects.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.language.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredProjects = projects.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              p.language.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilter = viewFilter === 'archived' ? p.isArchived : !p.isArchived;
+        return matchesSearch && matchesFilter;
+    });
 
     const formatDate = (dateString: string) => {
         if (!dateString) return "N/A";
@@ -123,7 +128,7 @@ export default function MyProjects() {
                 <div className="max-w-[1800px] mx-auto px-6 h-16 flex items-center justify-between">
                     <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 group">
                         <div className="relative">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-[#D4AF37] text-black flex items-center justify-center">
                                 <Code2 className="w-5 h-5" />
                             </div>
                         </div>
@@ -142,7 +147,7 @@ export default function MyProjects() {
 
                     <div className="flex items-center gap-3">
                         <NotificationBell />
-                        <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#A1A1AA] flex items-center justify-center font-semibold">AC</button>
+                        <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-lg bg-[#D4AF37] text-black flex items-center justify-center font-semibold">AC</button>
                     </div>
                 </div>
             </header>
@@ -163,16 +168,32 @@ export default function MyProjects() {
                     </button>
                 </div>
 
-                {/* Filters */}
-                <div className="mb-8 relative max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                    <input
-                        type="text"
-                        placeholder="Search projects..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#D4AF37]/50 text-base transition-all"
-                    />
+                {/* Filters and Tabs */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                    <div className="relative max-w-md w-full">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <input
+                            type="text"
+                            placeholder="Search projects..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-12 pr-4 h-12 glass-panel-soft rounded-xl focus:outline-none focus:border-[#D4AF37]/50 text-base transition-all"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                        <button 
+                            onClick={() => setViewFilter('active')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewFilter === 'active' ? 'bg-[#D4AF37] text-black shadow-md' : 'text-white/60 hover:text-white'}`}
+                        >
+                            Active
+                        </button>
+                        <button 
+                            onClick={() => setViewFilter('archived')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewFilter === 'archived' ? 'bg-[#D4AF37] text-black shadow-md' : 'text-white/60 hover:text-white'}`}
+                        >
+                            Archived
+                        </button>
+                    </div>
                 </div>
 
                 {/* Projects Grid */}
@@ -190,17 +211,21 @@ export default function MyProjects() {
                 ) : filteredProjects.length === 0 ? (
                     <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#09090B]/70">
                         <div className="text-3xl md:text-4xl font-bold text-white">
-                            No Projects Yet
+                            {viewFilter === 'active' ? 'No Projects Yet' : 'No Archived Projects'}
                         </div>
                         <p className="text-white/45 text-lg max-w-md">
-                            Start your journey by creating your first project.
+                            {viewFilter === 'active' 
+                                ? 'Start your journey by creating your first project.' 
+                                : 'Archived projects will appear here.'}
                         </p>
-                        <button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all"
-                        >
-                            Create Project
-                        </button>
+                        {viewFilter === 'active' && (
+                            <button
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-xl hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all"
+                            >
+                                Create Project
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

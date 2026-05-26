@@ -425,4 +425,35 @@ public class ProjectServiceImpl implements ProjectService {
         project = projectRepository.save(project);
         return toResponse(project);
     }
+
+    @Override
+    @Transactional
+    public void deleteProject(UUID projectId, UUID requesterId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+
+        if (!project.getOwner().getId().equals(requesterId)) {
+            throw new SecurityException("Only the project owner can delete the project");
+        }
+
+        collaboratorRepo.deleteAll(collaboratorRepo.findAllByProjectId(projectId));
+        projectFileRepository.deleteAll(projectFileRepository.findByProjectId(projectId));
+        projectRepository.delete(project);
+    }
+
+    @Override
+    @Transactional
+    public ProjectResponse archiveProject(UUID projectId, UUID requesterId, boolean archive) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+
+        if (!project.getOwner().getId().equals(requesterId)) {
+            throw new SecurityException("Only the project owner can archive the project");
+        }
+
+        project.setArchived(archive);
+        project.setUpdatedAt(Instant.now());
+        project = projectRepository.save(project);
+        return toResponse(project);
+    }
 }

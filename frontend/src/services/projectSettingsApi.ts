@@ -39,5 +39,15 @@ export const projectSettingsApi = {
   deleteProject: async (projectId: string) => {
     const res = await api.delete(`/projects/${projectId}`);
     return res.data;
+  },
+
+  archiveProject: async (projectId: string) => {
+    const res = await api.post(`/projects/${projectId}/archive`);
+    return res.data;
+  },
+
+  unarchiveProject: async (projectId: string) => {
+    const res = await api.post(`/projects/${projectId}/unarchive`);
+    return res.data;
   }
 };

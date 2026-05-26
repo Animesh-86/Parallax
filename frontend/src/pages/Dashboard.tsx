@@ -25,6 +25,7 @@ import { teamApi, Team } from '../services/teamApi';
 import { useCollab } from '../context/CollaborationContext';
 import { DashboardHeader } from '../components/DashboardHeader';
 import { CreateRoomModal } from '../components/modals/CreateRoomModal';
+import { ConfirmDeleteModal } from '../components/modals/ConfirmDeleteModal';
 import { ProjectSkeleton, FriendSkeleton, RoomSkeleton } from '../components/DashboardSkeletons';
 import { toast } from "sonner";
 import { apiBaseUrl } from '../services/env';
@@ -66,6 +67,7 @@ export default function Dashboard() {
     const [rooms, setRooms] = useState<MeetingRoom[]>([]);
     const [loadingRooms, setLoadingRooms] = useState(false);
     const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
+    const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
 
     // Dynamic Teams State
     const [teams, setTeams] = useState<Team[]>([]);
@@ -356,14 +358,21 @@ export default function Dashboard() {
         return { roomCode: newRoom.roomCode, name: newRoom.name };
     };
 
-    const handleDeleteRoom = async (roomId: string) => {
-        if (!window.confirm('Delete this room? This cannot be undone.')) return;
+    const confirmDeleteRoom = (e: React.MouseEvent, roomId: string) => {
+        e.stopPropagation();
+        setDeleteRoomId(roomId);
+    };
+
+    const handleDeleteRoom = async () => {
+        if (!deleteRoomId) return;
         try {
-            await collabApi.deleteRoom(roomId);
+            await collabApi.deleteRoom(deleteRoomId);
             fetchRooms();
         } catch (err) {
             console.error('Delete room error:', err);
             toast.error('Failed to delete room');
+        } finally {
+            setDeleteRoomId(null);
         }
     };
 
@@ -733,10 +742,7 @@ export default function Dashboard() {
                                                 Join Room
                                             </button>
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteRoom(room.id);
-                                                }}
+                                                onClick={(e) => confirmDeleteRoom(e, room.id)}
                                                 className="p-2 rounded-lg border border-[#EF6461]/40 bg-[#EF6461]/10 text-[#EF6461] hover:bg-[#EF6461]/20 transition-all"
                                                 title="Delete room"
                                             >
@@ -829,6 +835,14 @@ export default function Dashboard() {
                 onClose={() => setIsCreateRoomModalOpen(false)}
                 onCreateRoom={handleCreateRoom}
                 onJoinRoom={(code) => navigate(`/room/${code}`)}
+            />
+
+            <ConfirmDeleteModal
+                isOpen={!!deleteRoomId}
+                onClose={() => setDeleteRoomId(null)}
+                onConfirm={handleDeleteRoom}
+                title="Delete Room"
+                message="Are you sure you want to delete this room? This action cannot be undone and will kick all active participants."
             />
         </>
     );

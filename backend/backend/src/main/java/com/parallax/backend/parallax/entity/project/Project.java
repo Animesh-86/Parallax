@@ -43,6 +43,9 @@ public class Project {
     @Column(columnDefinition = "TEXT")
     private String enabledExtensionsJson; // JSON list of enabled extensions
 
+    @Column(nullable = false)
+    private boolean archived = false;
+
     public Project() {}
 
     public Project(UUID id, String name, String language) {
@@ -84,4 +87,7 @@ public class Project {
 
     public String getEnabledExtensionsJson() { return enabledExtensionsJson; }
     public void setEnabledExtensionsJson(String enabledExtensionsJson) { this.enabledExtensionsJson = enabledExtensionsJson; }
+
+    public boolean isArchived() { return archived; }
+    public void setArchived(boolean archived) { this.archived = archived; }
 }

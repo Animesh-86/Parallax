@@ -150,49 +150,13 @@ export const collabApi = {
     },
 
     updateRoomSettings: async (roomId: string, payload: RoomSettingsUpdatePayload): Promise<MeetingRoom> => {
-        try {
-            const response = await api.patch(`/api/rooms/${roomId}/settings`, payload);
-            return response.data;
-        } catch (error: any) {
-            if (error?.response?.status !== 404 && error?.response?.status !== 405) {
-                throw error;
-            }
-
-            try {
-                const putResponse = await api.put(`/api/rooms/${roomId}/settings`, payload);
-                return putResponse.data;
-            } catch (putError: any) {
-                if (putError?.response?.status !== 404 && putError?.response?.status !== 405) {
-                    throw putError;
-                }
-
-                const postResponse = await api.post(`/api/rooms/${roomId}/settings`, payload);
-                return postResponse.data;
-            }
-        }
+        const response = await api.patch(`/api/rooms/${roomId}/settings`, payload);
+        return response.data;
     },
 
     updateRoomSettingsByCode: async (roomCode: string, payload: RoomSettingsUpdatePayload): Promise<MeetingRoom> => {
-        try {
-            const response = await api.patch(`/api/rooms/by-code/${roomCode}/settings`, payload);
-            return response.data;
-        } catch (error: any) {
-            if (error?.response?.status !== 404 && error?.response?.status !== 405) {
-                throw error;
-            }
-
-            try {
-                const putResponse = await api.put(`/api/rooms/by-code/${roomCode}/settings`, payload);
-                return putResponse.data;
-            } catch (putError: any) {
-                if (putError?.response?.status !== 404 && putError?.response?.status !== 405) {
-                    throw putError;
-                }
-
-                const postResponse = await api.post(`/api/rooms/by-code/${roomCode}/settings`, payload);
-                return postResponse.data;
-            }
-        }
+        const response = await api.patch(`/api/rooms/by-code/${roomCode}/settings`, payload);
+        return response.data;
     },
 
     // Invite a user to a meeting room by email
