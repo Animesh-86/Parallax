@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- ============================================================
+         Parallax — Structured Logging Configuration
+         
+         Profiles:
+         - default/dev: Human-readable console output
+         - prod:        JSON structured logs for log aggregation
+         ============================================================ -->
+
+    <!-- ====== DEV PROFILE (default) ====== -->
+    <springProfile name="default,dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+
+        <!-- Suppress noisy Hibernate SQL in dev (show-sql=false handles JPA layer) -->
+        <logger name="org.hibernate.SQL" level="WARN" />
+        <logger name="org.hibernate.type.descriptor.sql" level="WARN" />
+
+        <!-- Suppress noisy Spring Security debug -->
+        <logger name="org.springframework.security" level="WARN" />
+
+        <!-- Parallax app logs at DEBUG in dev -->
+        <logger name="com.parallax" level="DEBUG" />
+    </springProfile>
+
+    <!-- ====== PRODUCTION PROFILE ====== -->
+    <springProfile name="prod">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdc>true</includeMdc>
+                <includeContext>false</includeContext>
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                </fieldNames>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE" />
+        </root>
+
+        <!-- Suppress noisy loggers in production -->
+        <logger name="org.hibernate.SQL" level="WARN" />
+        <logger name="org.springframework.security" level="WARN" />
+        <logger name="org.apache.catalina" level="WARN" />
+
+        <!-- Parallax app at INFO in production -->
+        <logger name="com.parallax" level="INFO" />
+    </springProfile>
+</configuration>

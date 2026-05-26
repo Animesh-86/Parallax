@@ -5,7 +5,25 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "project_files")
+@Table(
+        name = "project_files",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_project_files_project_path",
+                        columnNames = {"project_id", "path"}
+                )
+        },
+        indexes = {
+                @Index(
+                        name = "idx_project_files_project_id",
+                        columnList = "project_id"
+                ),
+                @Index(
+                        name = "idx_project_files_project_path",
+                        columnList = "project_id, path"
+                )
+        }
+)
 public class ProjectFile {
 
     @Id
@@ -18,6 +36,7 @@ public class ProjectFile {
     @Column(nullable = false)
     private String path;
 
+    @Basic(fetch = FetchType.LAZY) // Don't load content unless explicitly accessed
     @Column(columnDefinition = "TEXT")
     private String content;
 

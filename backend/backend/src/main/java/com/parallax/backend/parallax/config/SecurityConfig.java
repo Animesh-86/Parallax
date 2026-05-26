@@ -21,6 +21,9 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
+
     private final JwtUtils jwt;
     private final UserRepository userRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -60,8 +63,7 @@ public class SecurityConfig {
                     CorsConfiguration cfg = new CorsConfiguration();
 
                     cfg.setAllowedOriginPatterns(List.of(
-                            "http://localhost:3000",
-                            "http://localhost:3001"
+                            frontendUrl
                     ));
                     cfg.setAllowedMethods(List.of(
                             "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
@@ -98,6 +100,9 @@ public class SecurityConfig {
 
                         // Health check
                         .requestMatchers("/api/health").permitAll()
+
+                        // Actuator health (for load balancer health checks)
+                        .requestMatchers("/actuator/health").permitAll()
 
                         // WebSocket handshake ONLY
                         .requestMatchers(
