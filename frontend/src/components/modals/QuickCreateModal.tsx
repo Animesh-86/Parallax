@@ -198,7 +198,7 @@ export function QuickCreateModal({
                 type="button"
                 onClick={handleCreate}
                 disabled={!projectName.trim() || !selectedLanguage || isSubmitting}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-black hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                 <Sparkles className="w-4 h-4 relative z-10" />

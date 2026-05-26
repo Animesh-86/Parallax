@@ -100,11 +100,11 @@ export function CreateRoomModal({
                   <div className="relative">
                     <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${
                       createdRoom 
-                        ? 'bg-gradient-to-br from-[#4ADE80]/20 to-[#D4AF37]/20 border-[#4ADE80]/30'
+                        ? 'bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 border-[#D4AF37]/30'
                         : 'bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 border-[#D4AF37]/30'
                     }`}>
                       {createdRoom ? (
-                        <Check className="w-6 h-6 text-[#4ADE80]" />
+                        <Check className="w-6 h-6 text-[#D4AF37]" />
                       ) : (
                         <Users className="w-6 h-6 text-[#D4AF37]" />
                       )}
@@ -199,7 +199,7 @@ export function CreateRoomModal({
                     type="button"
                     onClick={handleCreate}
                     disabled={!roomName.trim() || isSubmitting}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-black hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                     <Sparkles className="w-4 h-4 relative z-10" />
@@ -241,7 +241,7 @@ export function CreateRoomModal({
                       onClick={handleCopyLink}
                       className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 flex-shrink-0 ${
                         copied
-                          ? 'bg-[#4ADE80]/20 border-[#4ADE80]/30 text-[#4ADE80]'
+                          ? 'bg-[#D4AF37]/20 border-[#D4AF37]/30 text-[#D4AF37]'
                           : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/70'
                       }`}
                     >
@@ -281,7 +281,7 @@ export function CreateRoomModal({
                   <button
                     type="button"
                     onClick={handleJoin}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#4ADE80] to-[#D4AF37] rounded-xl font-medium text-white hover:shadow-xl hover:shadow-[#4ADE80]/40 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-black hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                     <ExternalLink className="w-4 h-4 relative z-10" />

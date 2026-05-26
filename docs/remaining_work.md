@@ -473,3 +473,31 @@ docker run -d --name parallax-storage -p 9000:9000 -p 9001:9001 \
 ---
 
 *This document should be updated as items are completed. Check off items by moving them to a "Completed" section at the bottom.*
+
+
+Connecting to a Neon serverless PostgreSQL database is very easy since we already have the PostgreSQL driver installed in the pom.xml.
+
+Here are the exact steps to connect:
+
+1. Get your Neon Connection String
+Log into your Neon dashboard, select your project, and copy the JDBC connection string. It will look something like this: jdbc:postgresql://ep-summer-water-123456.us-east-2.aws.neon.tech/neondb?sslmode=require
+
+2. Update your .env file
+Open the .env file located at backend/backend/.env and update (or add) the following database variables. Replace the values with your Neon credentials:
+
+properties
+# Database Configuration
+DB_URL=jdbc:postgresql://ep-summer-water-123456.us-east-2.aws.neon.tech/neondb?sslmode=require
+DB_USERNAME=your_neon_username
+DB_PASSWORD=your_neon_password
+DDL_AUTO=update
+(Note: We keep DDL_AUTO=update for now so Hibernate automatically creates the tables in your empty Neon database).
+
+3. Restart the Backend
+Stop your currently running Spring Boot server and start it again:
+
+bash
+mvn spring-boot:run
+How to verify it worked:
+When the server starts, look at the logs. You should no longer see H2 mentioned, and instead see Hibernate connecting to PostgreSQL.
+If you go to your Neon dashboard and open the "Tables" view, you should see that Spring Boot automatically created the users, project_files, and other tables for you!

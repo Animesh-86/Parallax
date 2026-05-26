@@ -194,7 +194,7 @@ export function LinkProjectModal({
                     key={project.id}
                     className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-200 ${
                       isLinked
-                        ? 'bg-[#4ADE80]/10 border-[#4ADE80]/20'
+                        ? 'bg-[#D4AF37]/10 border-[#D4AF37]/20'
                         : 'bg-white/[0.02] border-white/5 hover:border-[#D4AF37]/30 hover:bg-white/[0.04]'
                     }`}
                   >
@@ -202,12 +202,12 @@ export function LinkProjectModal({
                       <div
                         className={`p-2 rounded-lg shrink-0 ${
                           isLinked
-                            ? 'bg-[#4ADE80]/20'
+                            ? 'bg-[#D4AF37]/20'
                             : 'bg-white/5'
                         }`}
                       >
                         {isLinked ? (
-                          <CheckCircle2 className="w-4 h-4 text-[#4ADE80]" />
+                          <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
                         ) : (
                           <Code2 className="w-4 h-4 text-white/40" />
                         )}
@@ -219,7 +219,7 @@ export function LinkProjectModal({
                     </div>
 
                     {isLinked ? (
-                      <span className="text-xs text-[#4ADE80] font-medium shrink-0">Linked ✓</span>
+                      <span className="text-xs text-[#D4AF37] font-medium shrink-0">Linked ✓</span>
                     ) : (
                       <button
                         onClick={() => handleLink(project.id)}
@@ -244,11 +244,11 @@ export function LinkProjectModal({
           {linked.size > 0 && (
             <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
               <p className="text-sm text-white/50">
-                <span className="text-[#4ADE80] font-medium">{linked.size}</span> project{linked.size !== 1 ? 's' : ''} linked
+                <span className="text-[#D4AF37] font-medium">{linked.size}</span> project{linked.size !== 1 ? 's' : ''} linked
               </p>
               <button
                 onClick={handleClose}
-                className="px-4 py-2 bg-[#D4AF37] rounded-lg text-sm font-medium hover:bg-[#D4AF37]/90 transition-colors"
+                className="px-4 py-2 bg-[#D4AF37] rounded-lg text-sm font-medium hover:bg-[#D4AF37]/90 text-black transition-colors"
               >
                 Done
               </button>
