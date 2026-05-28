@@ -118,7 +118,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
   return (
     <div className="bg-[#09090B] border border-white/5 rounded-2xl overflow-hidden">
       {/* Tab Bar */}
-      <div className="flex border-b border-white/5">
+      <div className="flex border-b border-white/5 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {[
           { id: 'commits' as const, label: 'Commits', icon: GitCommit, count: commits.length },
           { id: 'branches' as const, label: 'Branches', icon: GitBranch, count: branches.length },
@@ -129,7 +129,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-3 text-xs font-medium flex items-center justify-center gap-2 transition-all border-b-2 ${
+              className={`flex-1 shrink-0 whitespace-nowrap px-4 py-3 text-xs font-medium flex items-center justify-center gap-2 transition-all border-b-2 ${
                 activeTab === tab.id
                   ? 'border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/5'
                   : 'border-transparent text-white/50 hover:text-white/80 hover:bg-white/5'
