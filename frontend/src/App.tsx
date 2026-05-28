@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { Suspense } from "react";
+import GlobalLoader from "./components/GlobalLoader";
 
 import LandingPage from "./pages/LandingPage";
-import Dashboard from "./pages/Dashboard";
-import Workspace from "./pages/Workspace";
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const Workspace = React.lazy(() => import("./pages/Workspace"));
 import MeetingRoom from "./pages/MeetingRoom";
 import TeamWorkspace from "./pages/TeamWorkspace";
 import Profile from "./pages/Profile";
@@ -45,7 +47,8 @@ export default function App() {
     <BrowserRouter>
       <SmoothScroll />
       <Toaster position="top-center" richColors theme="dark" />
-      <Routes>
+      <Suspense fallback={<GlobalLoader fullScreen={true} />}>
+        <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<About />} />
         <Route path="/features" element={<Features />} />
@@ -100,6 +103,7 @@ export default function App() {
         <Route path="/oauth-failure" element={<OAuthFailurePage />} />
         <Route path="/onboarding" element={<Onboarding />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

@@ -100,6 +100,25 @@ public class ProjectController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/{projectId}/github/pr")
+    public ResponseEntity<Void> createPullRequest(
+            @PathVariable UUID projectId,
+            @RequestBody Map<String, String> body,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        String branchName = body.get("branchName");
+        String prTitle = body.get("title");
+        String commitMessage = body.get("message");
+        
+        if (branchName == null || prTitle == null || commitMessage == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        projectService.createPullRequest(projectId, userId, branchName, prTitle, commitMessage);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{projectId}")
     public ResponseEntity<Void> deleteProject(
             @PathVariable UUID projectId,
@@ -108,5 +127,25 @@ public class ProjectController {
         UUID userId = AuthUtil.requireUserId(authentication);
         projectService.deleteProject(projectId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{projectId}/archive")
+    public ResponseEntity<ProjectResponse> archiveProject(
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        ProjectResponse response = projectService.archiveProject(projectId, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{projectId}/unarchive")
+    public ResponseEntity<ProjectResponse> unarchiveProject(
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        ProjectResponse response = projectService.unarchiveProject(projectId, userId);
+        return ResponseEntity.ok(response);
     }
 }

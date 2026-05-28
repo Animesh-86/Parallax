@@ -3,7 +3,10 @@ package com.parallax.backend.parallax;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import org.springframework.scheduling.annotation.EnableAsync;
+
 @SpringBootApplication
+@EnableAsync
 public class ParallaxApplication {
 
 	public static void main(String[] args) {

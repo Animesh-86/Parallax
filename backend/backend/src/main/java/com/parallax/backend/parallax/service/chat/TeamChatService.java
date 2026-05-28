@@ -18,31 +18,33 @@ public class TeamChatService {
     private final TeamChatRepository teamChatRepository;
     private final TeamChatRoomRegistry roomRegistry;
 
-    public void processUserMessage(UUID teamId, UUID userId, String username, String content) {
+    public void processUserMessage(UUID teamId, UUID channelId, UUID userId, String username, String content) {
         TeamChatMessage message = TeamChatMessage.builder()
                 .teamId(teamId)
+                .channelId(channelId)
                 .senderId(userId)
                 .senderName(username)
                 .content(content)
                 .type(MessageType.USER)
                 .build();
         teamChatRepository.save(message);
-        roomRegistry.broadcast(teamId, message);
+        roomRegistry.broadcast(teamId, channelId, message);
     }
 
-    public void systemMessage(UUID teamId, String content) {
+    public void systemMessage(UUID teamId, UUID channelId, String content) {
         TeamChatMessage message = TeamChatMessage.builder()
                 .teamId(teamId)
+                .channelId(channelId)
                 .senderId(null)
                 .senderName("System")
                 .content(content)
                 .type(MessageType.SYSTEM)
                 .build();
         teamChatRepository.save(message);
-        roomRegistry.broadcast(teamId, message);
+        roomRegistry.broadcast(teamId, channelId, message);
     }
 
-    public List<TeamChatMessage> getRecentMessages(UUID teamId) {
-        return teamChatRepository.findLatestByTeam(teamId, PageRequest.of(0, 50));
+    public List<TeamChatMessage> getRecentMessages(UUID teamId, UUID channelId) {
+        return teamChatRepository.findLatestByChannel(channelId, PageRequest.of(0, 50));
     }
 }

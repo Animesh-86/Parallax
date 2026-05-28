@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { X, Folder, ChevronDown, Sparkles } from 'lucide-react';
+import { X, Folder, ChevronDown, Plus } from 'lucide-react';
+import GlobalLoader from '../GlobalLoader';
 
 interface QuickCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   // parent will handle saving + navigation
-  onCreateProject: (projectName: string, language: string) => Promise<void> | void;
+  onCreateProject: (projectName: string, language: string, githubRepoUrl?: string, aiReviewEnabled?: boolean) => Promise<void> | void;
 }
 
 export function QuickCreateModal({
@@ -15,6 +16,8 @@ export function QuickCreateModal({
 }: QuickCreateModalProps) {
   const [projectName, setProjectName] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [githubRepoUrl, setGithubRepoUrl] = useState('');
+  const [aiReviewEnabled, setAiReviewEnabled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,11 +48,13 @@ export function QuickCreateModal({
       setIsSubmitting(true);
       setError(null);
 
-      await onCreateProject(projectName.trim(), selectedLanguage);
+      await onCreateProject(projectName.trim(), selectedLanguage, githubRepoUrl.trim(), aiReviewEnabled);
 
       // reset local state
       setProjectName('');
       setSelectedLanguage('');
+      setGithubRepoUrl('');
+      setAiReviewEnabled(false);
 
       onClose();
     } catch (err) {
@@ -75,6 +80,15 @@ export function QuickCreateModal({
       {/* Modal container */}
       <div className="relative z-10 w-full max-w-lg mx-4">
         <div className="relative bg-[#09090B]/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+          {isSubmitting ? (
+             <div className="p-12 flex flex-col items-center justify-center min-h-[400px]">
+               <GlobalLoader fullScreen={false} />
+               <p className="mt-8 text-white/70 font-mono animate-pulse">
+                  {githubRepoUrl.trim() ? "Cloning repository from GitHub..." : "Initializing workspace..."}
+               </p>
+             </div>
+          ) : (
+            <>
           {/* Header */}
           <div className="relative px-8 pt-8 pb-6 border-b border-white/5">
             <div className="flex items-start justify-between">
@@ -177,6 +191,45 @@ export function QuickCreateModal({
 
             </div>
 
+            {/* GitHub Repo URL (Optional) */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/70">
+                GitHub Repository URL (Optional)
+              </label>
+              <input
+                type="text"
+                value={githubRepoUrl}
+                onChange={(e) => setGithubRepoUrl(e.target.value)}
+                placeholder="https://github.com/user/repo"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/[0.07] transition-all font-mono"
+              />
+            </div>
+
+            {/* AI Code Review Toggle */}
+            <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-white">
+                  Enable AI Pull Request Reviewer
+                </label>
+                <p className="text-xs text-white/50 mt-1">
+                  Automatically analyzes PRs using Spring AI when linked to a GitHub repo.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiReviewEnabled(!aiReviewEnabled)}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+                  aiReviewEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'
+                }`}
+              >
+                <div
+                  className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-black transition-transform duration-300 ${
+                    aiReviewEnabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
             {error && (
               <p className="text-xs text-[#9A3412]">
                 {error}
@@ -201,13 +254,15 @@ export function QuickCreateModal({
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-black hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
-                <Sparkles className="w-4 h-4 relative z-10" />
+                <Plus className="w-4 h-4 relative z-10" />
                 <span className="relative z-10">
                   {isSubmitting ? 'Creating...' : 'Create Project'}
                 </span>
               </button>
             </div>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>

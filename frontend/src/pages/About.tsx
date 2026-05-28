@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { FluidFlowBackground } from '../components/effects/FluidFlowBackground';
-import { Code2, Zap, Target, Sparkles, Rocket, Terminal, Globe, Shield, ArrowRight, Cpu, Layers } from 'lucide-react';
+import { Code2, Zap, Target, Star, Rocket, Terminal, Globe, Shield, ArrowRight, Cpu, Layers } from 'lucide-react';
 
 export default function About() {
     return (
@@ -93,7 +93,7 @@ export default function About() {
                                 className="p-8 rounded-[32px] bg-gradient-to-br from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/20 backdrop-blur-sm"
                             >
                                 <div className="flex items-center gap-3 mb-6">
-                                    <Sparkles className="w-5 h-5 text-[#D4AF37]" />
+                                    <Star className="w-5 h-5 text-[#D4AF37]" />
                                     <h4 className="text-sm font-bold tracking-[0.2em] uppercase">Built Solo</h4>
                                 </div>
                                 <p className="text-xs text-[#CBD5E1] leading-relaxed mb-6">

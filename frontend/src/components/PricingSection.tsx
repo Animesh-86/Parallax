@@ -1,9 +1,9 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { ScrollReveal, ScrollScale3D } from "./ScrollReveal";
-import { Check, Sparkles, Zap, Rocket, Building, Star } from "lucide-react";
+import { Check, Code2, Zap, Rocket, Building, Star } from "lucide-react";
 import { ScrollReveal, ScrollScale3D } from "./ScrollReveal";
-import { Check, Sparkles, Zap, Rocket, Building, Star } from "lucide-react";
+import { Check, Code2, Zap, Rocket, Building, Star } from "lucide-react";
 import { GradientShineText } from "./effects/GradientShineText";
 
 const plans = [
@@ -30,7 +30,7 @@ const plans = [
   },
   {
     name: "Nova",
-    icon: Sparkles,
+    icon: Code2,
     tagline: "Students & Hackathons",
     price: "Coming Soon",
     priceDetail: "Event or Student Access",

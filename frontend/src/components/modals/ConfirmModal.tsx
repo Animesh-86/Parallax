@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
 interface ConfirmModalProps {
@@ -10,6 +10,7 @@ interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   isDanger?: boolean;
+  requireInput?: string;
 }
 
 export function ConfirmModal({
@@ -21,7 +22,17 @@ export function ConfirmModal({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   isDanger = true,
+  requireInput,
 }: ConfirmModalProps) {
+  const [inputValue, setInputValue] = useState('');
+
+  // Reset input when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setInputValue('');
+    }
+  }, [isOpen]);
+
   // Lock body scroll when open
   useEffect(() => {
     if (isOpen) {
@@ -83,6 +94,23 @@ export function ConfirmModal({
             <p className="text-white/70 text-sm leading-relaxed">
               {message}
             </p>
+
+            {requireInput && (
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-white/80">
+                  Please type <span className="font-bold text-white select-all">{requireInput}</span> to confirm.
+                </label>
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  className="w-full bg-[#18181B] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 transition-all font-mono text-sm"
+                  placeholder={requireInput}
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -97,12 +125,16 @@ export function ConfirmModal({
               </button>
               <button
                 type="button"
+                disabled={requireInput ? inputValue !== requireInput : false}
                 onClick={() => {
+                  if (requireInput && inputValue !== requireInput) return;
                   onConfirm();
                   onClose();
                 }}
                 className={`flex-1 px-6 py-3 rounded-xl font-medium text-white transition-all ${
-                  isDanger
+                  requireInput && inputValue !== requireInput
+                    ? 'opacity-50 cursor-not-allowed bg-white/5 text-white/40 border border-white/10'
+                    : isDanger
                     ? 'bg-[#EF6461]/10 border border-[#EF6461]/30 text-[#EF6461] hover:bg-[#EF6461]/20'
                     : 'bg-[#D4AF37] border border-[#D4AF37] text-black hover:bg-[#D4AF37]/90'
                 }`}

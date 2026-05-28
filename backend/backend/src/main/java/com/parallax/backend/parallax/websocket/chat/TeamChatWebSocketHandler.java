@@ -25,14 +25,15 @@ public class TeamChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         UUID teamId = getTeamId(session);
+        UUID channelId = getChannelId(session);
         UUID userId = getUserId(session);
         String username = getUsername(session);
 
-        roomRegistry.join(teamId, session);
-        log.info("User {} ({}) joined team chat {}", username, userId, teamId);
+        roomRegistry.join(teamId, channelId, session);
+        log.info("User {} ({}) joined team chat {} channel {}", username, userId, teamId, channelId);
 
         // Send history
-        var history = teamChatService.getRecentMessages(teamId);
+        var history = teamChatService.getRecentMessages(teamId, channelId);
         String payload = objectMapper.writeValueAsString(Map.of(
                 "type", "HISTORY",
                 "messages", history));
@@ -42,6 +43,7 @@ public class TeamChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         UUID teamId = getTeamId(session);
+        UUID channelId = getChannelId(session);
         UUID userId = getUserId(session);
         String username = getUsername(session);
 
@@ -50,7 +52,7 @@ public class TeamChatWebSocketHandler extends TextWebSocketHandler {
             String content = payload.get("content");
 
             if (content != null && !content.isBlank()) {
-                teamChatService.processUserMessage(teamId, userId, username, content);
+                teamChatService.processUserMessage(teamId, channelId, userId, username, content);
             }
         } catch (Exception e) {
             log.error("Error processing team chat message from {}", userId, e);
@@ -64,6 +66,10 @@ public class TeamChatWebSocketHandler extends TextWebSocketHandler {
 
     private UUID getTeamId(WebSocketSession session) {
         return (UUID) session.getAttributes().get("teamId");
+    }
+
+    private UUID getChannelId(WebSocketSession session) {
+        return (UUID) session.getAttributes().get("channelId");
     }
 
     private UUID getUserId(WebSocketSession session) {

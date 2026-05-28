@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Check, Chrome, Code2, Github, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Check, Chrome, Code2, Github, Cpu, Zap } from 'lucide-react';
 
 import { useNavigate, Link } from 'react-router-dom';
 import api from "../services/api";
@@ -125,7 +125,7 @@ export default function Signup() {
                         {[{ icon: Code2, text: 'Real-time Collaboration' }, {
                             icon: Zap,
                             text: 'Lightning Fast'
-                        }, { icon: Sparkles, text: 'AI-Powered' }].map((feature, idx) => {
+                        }, { icon: Cpu, text: 'AI-Powered' }].map((feature, idx) => {
                             const Icon = feature.icon;
                             return (
                                 <div

@@ -9,12 +9,16 @@ export interface ProjectSettings {
   teamId?: string;
   teamName?: string;
   runtimeName?: string;
+  githubRepoUrl?: string;
+  aiReviewEnabled?: boolean;
 }
 
 export interface UpdateSettingsRequest {
   name?: string;
   description?: string;
   settingsJson?: string;
+  githubRepoUrl?: string;
+  aiReviewEnabled?: boolean;
 }
 
 export const projectSettingsApi = {

@@ -1,29 +1,26 @@
 import { useEffect, useState, useRef } from 'react';
-import { MessageSquare, Smile, Send, Hash, Phone, Video } from 'lucide-react';
+import { MessageSquare, Smile, Send, Hash, Phone, Video, Headphones } from 'lucide-react';
 import { ChatWebSocketClient, GenericChatMessage } from '../../services/wsChatClient';
 import { useVoice } from '../../context/VoiceContext';
 import { getAvatarInitials } from '../../services/userUtils';
+import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 interface UnifiedChatPanelProps {
     contextId: string;
+    channelId?: string;
     contextType: "PROJECT" | "TEAM";
     contextName?: string;
     wsClient: ChatWebSocketClient;
 }
 
-export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient }: UnifiedChatPanelProps) {
+export function UnifiedChatPanel({ contextId, channelId, contextType, contextName, wsClient }: UnifiedChatPanelProps) {
     const { joinCall } = useVoice();
-    const [activeTab, setActiveTab] = useState('chat');
     const [messages, setMessages] = useState<GenericChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [connected, setConnected] = useState(false);
+    const [emojiPickerMsgId, setEmojiPickerMsgId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    const tabs = [
-        { id: 'chat', label: 'Chat', icon: MessageSquare },
-        { id: 'reactions', label: 'Reactions', icon: Smile },
-    ];
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
@@ -44,13 +41,13 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
             setConnected(true);
         };
 
-        wsClient.connect(contextId, contextType, handleNewMessage, handleHistory);
+        wsClient.connect(contextId, contextType, handleNewMessage, handleHistory, channelId);
 
         return () => {
             wsClient.disconnect();
             setConnected(false);
         };
-    }, [contextId, contextType, wsClient]);
+    }, [contextId, channelId, contextType, wsClient]);
 
     const handleSend = () => {
         if (!input.trim()) return;
@@ -71,6 +68,22 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
         return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    const toggleLocalReaction = (msgId: string, emoji: string) => {
+        setMessages(prev => prev.map(m => {
+            if (m.id !== msgId && m.createdAt !== msgId) return m; // use createdAt as fallback id
+            const currentReactions = m.reactions || [];
+            const meIndex = currentReactions.findIndex(r => r.emojiCode === emoji && r.userId === 'local');
+            
+            let newReactions;
+            if (meIndex >= 0) {
+                newReactions = currentReactions.filter((_, idx) => idx !== meIndex);
+            } else {
+                newReactions = [...currentReactions, { id: 'temp', userId: 'local', emojiCode: emoji }];
+            }
+            return { ...m, reactions: newReactions };
+        }));
+    };
+
     return (
         <div className="flex-1 flex flex-col bg-[#09090B] h-full border border-white/5 rounded-2xl overflow-hidden">
             {/* Header */}
@@ -81,7 +94,7 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                             <Hash className="w-4 h-4 text-[#D4AF37]" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-sm">{contextName || "Team"} — General</h3>
+                            <h3 className="font-semibold text-sm">{contextName || "Team"}</h3>
                             <p className="text-xs text-white/40">
                                 {connected ? (
                                     <span className="flex items-center gap-1">
@@ -95,17 +108,11 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                     <div className="flex items-center gap-2">
                         <button 
                             onClick={() => joinCall(contextId, "team", true, false)}
-                            className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-emerald-500 transition-all"
-                            title="Voice Call"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-lg text-[#D4AF37] text-xs font-medium transition-all"
+                            title="Start Huddle"
                         >
-                            <Phone className="w-4 h-4" />
-                        </button>
-                        <button 
-                            onClick={() => joinCall(contextId, "team", true, true)}
-                            className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-[#D4AF37] transition-all"
-                            title="Video Call"
-                        >
-                            <Video className="w-4 h-4" />
+                            <Headphones className="w-3.5 h-3.5" />
+                            Huddle
                         </button>
                     </div>
                 </div>
@@ -129,32 +136,8 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                 </div>
             )}
 
-            {/* Tab bar (Optional: hide for teams if not wanted, but keeping unified is better) */}
-            <div className="flex items-center border-b border-white/5 shrink-0">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm transition-colors relative ${activeTab === tab.id
-                                    ? 'text-white'
-                                    : 'text-white/60 hover:text-white/90'
-                                }`}
-                        >
-                            <Icon className="w-4 h-4" />
-                            {tab.label}
-                            {activeTab === tab.id && (
-                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA]" />
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-
             {/* Content */}
-            <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
-                {activeTab === 'chat' ? (
+            <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10" onClick={() => emojiPickerMsgId && setEmojiPickerMsgId(null)}>
                     <div className="p-4 space-y-4">
                         {messages.length === 0 && (
                             <div className="flex flex-col items-center justify-center h-full text-center mt-10">
@@ -197,7 +180,7 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                                         </div>
 
                                         {/* Message content */}
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0 relative">
                                             <div className="flex items-baseline gap-2 mb-1">
                                                 <span className="text-sm font-semibold text-[#D4AF37]">{msg.senderName}</span>
                                                 <span className="text-xs text-white/40 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -205,6 +188,48 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                                                 </span>
                                             </div>
                                             <div className="text-sm text-white/80 break-words whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                                            
+                                            {/* Reactions Display */}
+                                            {msg.reactions && msg.reactions.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                                    {Array.from(new Set(msg.reactions.map(r => r.emojiCode))).map(emoji => {
+                                                        const count = msg.reactions!.filter(r => r.emojiCode === emoji).length;
+                                                        const me = msg.reactions!.some(r => r.emojiCode === emoji && r.userId === 'local');
+                                                        return (
+                                                            <button 
+                                                                key={emoji}
+                                                                onClick={(e) => { e.stopPropagation(); toggleLocalReaction(msg.id || msg.createdAt || '', emoji); }}
+                                                                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs border transition-colors ${me ? 'bg-[#D4AF37]/20 border-[#D4AF37]/30 text-[#D4AF37]' : 'bg-white/5 border-white/5 text-white/60 hover:border-white/20'}`}
+                                                            >
+                                                                <span>{emoji}</span>
+                                                                <span className="font-medium">{count}</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {/* Inline Emoji Picker Button */}
+                                            <div className="absolute -right-2 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); setEmojiPickerMsgId(msg.id || msg.createdAt || null); }}
+                                                    className="p-1.5 bg-[#121214] border border-white/10 rounded-lg text-white/40 hover:text-white hover:bg-white/10 shadow-lg"
+                                                >
+                                                    <Smile className="w-4 h-4" />
+                                                </button>
+                                                
+                                                {emojiPickerMsgId === (msg.id || msg.createdAt) && (
+                                                    <div className="absolute right-0 top-8 z-50 shadow-2xl" onClick={e => e.stopPropagation()}>
+                                                        <EmojiPicker 
+                                                            theme={Theme.DARK} 
+                                                            onEmojiClick={(e) => {
+                                                                toggleLocalReaction(msg.id || msg.createdAt || '', e.emoji);
+                                                                setEmojiPickerMsgId(null);
+                                                            }} 
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -212,15 +237,9 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                         })}
                         <div ref={messagesEndRef} />
                     </div>
-                ) : (
-                    <div className="p-10 text-center text-white/40">
-                        Reactions coming soon...
-                    </div>
-                )}
             </div>
 
             {/* Message input */}
-            {activeTab === 'chat' && (
                 <div className="p-3 border-t border-white/5 shrink-0 bg-[#09090B]">
                     <div className="flex items-center gap-2 bg-white/5 rounded-xl px-4 py-2 border border-white/10 focus-within:border-[#D4AF37]/40 transition-colors">
                         <input
@@ -241,7 +260,6 @@ export function UnifiedChatPanel({ contextId, contextType, contextName, wsClient
                         </button>
                     </div>
                 </div>
-            )}
         </div>
     );
 }

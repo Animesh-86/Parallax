@@ -19,10 +19,12 @@ public class ProjectResponse {
     private String enabledExtensionsJson;
     private String runtimeName;
     private boolean archived;
+    private String githubRepoUrl;
+    private boolean aiReviewEnabled;
 
     public ProjectResponse() {}
 
-    public ProjectResponse(UUID id, String name, String language, List<FileDto> files, String activeSessionId, UUID teamId, String teamName, String createdAt, String description, String settingsJson, String enabledExtensionsJson, String runtimeName, boolean archived) {
+    public ProjectResponse(UUID id, String name, String language, List<FileDto> files, String activeSessionId, UUID teamId, String teamName, String createdAt, String description, String settingsJson, String enabledExtensionsJson, String runtimeName, boolean archived, String githubRepoUrl, boolean aiReviewEnabled) {
         this.id = id;
         this.name = name;
         this.language = language;
@@ -36,6 +38,8 @@ public class ProjectResponse {
         this.enabledExtensionsJson = enabledExtensionsJson;
         this.runtimeName = runtimeName;
         this.archived = archived;
+        this.githubRepoUrl = githubRepoUrl;
+        this.aiReviewEnabled = aiReviewEnabled;
     }
 
     public UUID getId() { return id; }
@@ -52,6 +56,8 @@ public class ProjectResponse {
     public String getRuntimeName() { return runtimeName; }
     public void setRuntimeName(String runtimeName) { this.runtimeName = runtimeName; }
     public boolean isArchived() { return archived; }
+    public String getGithubRepoUrl() { return githubRepoUrl; }
+    public boolean isAiReviewEnabled() { return aiReviewEnabled; }
 
     public static class FileDto {
         private UUID id;
@@ -85,6 +91,8 @@ public class ProjectResponse {
         private String enabledExtensionsJson;
         private String runtimeName;
         private boolean archived;
+        private String githubRepoUrl;
+        private boolean aiReviewEnabled;
 
         public Builder id(UUID id) { this.id = id; return this; }
         public Builder name(String name) { this.name = name; return this; }
@@ -99,9 +107,11 @@ public class ProjectResponse {
         public Builder enabledExtensionsJson(String enabledExtensionsJson) { this.enabledExtensionsJson = enabledExtensionsJson; return this; }
         public Builder runtimeName(String runtimeName) { this.runtimeName = runtimeName; return this; }
         public Builder archived(boolean archived) { this.archived = archived; return this; }
+        public Builder githubRepoUrl(String githubRepoUrl) { this.githubRepoUrl = githubRepoUrl; return this; }
+        public Builder aiReviewEnabled(boolean aiReviewEnabled) { this.aiReviewEnabled = aiReviewEnabled; return this; }
 
         public ProjectResponse build() {
-            return new ProjectResponse(id, name, language, files, activeSessionId, teamId, teamName, createdAt, description, settingsJson, enabledExtensionsJson, runtimeName, archived);
+            return new ProjectResponse(id, name, language, files, activeSessionId, teamId, teamName, createdAt, description, settingsJson, enabledExtensionsJson, runtimeName, archived, githubRepoUrl, aiReviewEnabled);
         }
     }
 
@@ -118,6 +128,8 @@ public class ProjectResponse {
                 .settingsJson(project.getSettingsJson())
                 .enabledExtensionsJson(project.getEnabledExtensionsJson())
                 .archived(project.isArchived())
+                .githubRepoUrl(project.getGithubRepoUrl())
+                .aiReviewEnabled(project.isAiReviewEnabled())
                 .files(files.stream()
                         .map(f -> new FileDto(
                                 f.getId(),

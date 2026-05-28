@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { GitCommit, GitBranch, GitMerge, Clock, User, ChevronDown, Plus, Loader, AlertCircle, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { versioningApi, ProjectCommit, ProjectBranch, MergeRequestData } from '../../services/versioningApi';
+import { CreatePullRequestModal } from './CreatePullRequestModal';
 
 interface ActivityPanelProps {
   projectId: string;
   activeBranchId: string | null;
   onBranchChange: (branch: ProjectBranch) => void;
+  githubRepoUrl?: string;
 }
 
-export function ActivityPanel({ projectId, activeBranchId, onBranchChange }: ActivityPanelProps) {
+export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githubRepoUrl }: ActivityPanelProps) {
   const [activeTab, setActiveTab] = useState<'commits' | 'branches' | 'merge-requests'>('commits');
   const [commits, setCommits] = useState<ProjectCommit[]>([]);
   const [branches, setBranches] = useState<ProjectBranch[]>([]);
@@ -19,6 +21,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange }: Act
   const [newBranchName, setNewBranchName] = useState('');
   const [showNewBranch, setShowNewBranch] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isPrModalOpen, setIsPrModalOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -275,7 +278,21 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange }: Act
 
       {/* Merge Requests Tab */}
       {activeTab === 'merge-requests' && (
-        <div className="max-h-[400px] overflow-y-auto">
+        <div className="flex flex-col h-full">
+          {/* Create PR Button (GitHub) */}
+          {githubRepoUrl && (
+            <div className="p-4 border-b border-white/5">
+              <button
+                onClick={() => setIsPrModalOpen(true)}
+                className="w-full px-3 py-2 bg-white/5 border border-dashed border-white/10 rounded-lg text-xs text-white/50 hover:text-white/80 hover:border-[#D4AF37]/30 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Create GitHub Pull Request
+              </button>
+            </div>
+          )}
+
+          <div className="flex-1 max-h-[400px] overflow-y-auto">
           {mergeRequests.length === 0 ? (
             <div className="p-8 text-center text-white/40 text-sm">
               <GitMerge className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -326,6 +343,18 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange }: Act
             </div>
           )}
         </div>
+        </div>
+      )}
+
+      {isPrModalOpen && (
+        <CreatePullRequestModal
+          projectId={projectId}
+          onClose={() => setIsPrModalOpen(false)}
+          onSuccess={() => {
+            setIsPrModalOpen(false);
+            loadData();
+          }}
+        />
       )}
     </div>
   );

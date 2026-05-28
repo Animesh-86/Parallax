@@ -1,4 +1,4 @@
-import { Bell, Check, Sparkles, X } from "lucide-react";
+import { Bell, Check, X } from "lucide-react";
 import { useCollab } from "../context/CollaborationContext";
 import {
     Popover,
@@ -72,7 +72,7 @@ export function NotificationBell({ onInviteAction }: NotificationBellProps) {
                     {pendingCount === 0 ? (
                         <div className="px-6 py-12 text-center flex flex-col items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-[#D4AF37]" />
+                                <Bell className="w-5 h-5 text-[#D4AF37]" />
                             </div>
                             <p className="text-sm font-medium text-white/70">No new notifications</p>
                             <p className="text-xs text-white/40">Invites and updates will appear here.</p>

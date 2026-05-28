@@ -1,5 +1,6 @@
 package com.parallax.backend.parallax.config;
 
+import com.parallax.backend.parallax.websocket.terminal.TerminalWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -68,19 +69,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         private final com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor;
         private final com.parallax.backend.parallax.websocket.chat.DirectChatWebSocketHandler directChatHandler;
         private final com.parallax.backend.parallax.websocket.chat.DirectChatHandshakeInterceptor directChatInterceptor;
+        private final TerminalWebSocketHandler terminalHandler;
 
         RawWebSocketConfig(com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler,
                 com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor,
                 com.parallax.backend.parallax.websocket.chat.TeamChatWebSocketHandler teamChatHandler,
                 com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor,
                 com.parallax.backend.parallax.websocket.chat.DirectChatWebSocketHandler directChatHandler,
-                com.parallax.backend.parallax.websocket.chat.DirectChatHandshakeInterceptor directChatInterceptor) {
+                com.parallax.backend.parallax.websocket.chat.DirectChatHandshakeInterceptor directChatInterceptor,
+                TerminalWebSocketHandler terminalHandler) {
             this.chatHandler = chatHandler;
             this.chatInterceptor = chatInterceptor;
             this.teamChatHandler = teamChatHandler;
             this.teamChatInterceptor = teamChatInterceptor;
             this.directChatHandler = directChatHandler;
             this.directChatInterceptor = directChatInterceptor;
+            this.terminalHandler = terminalHandler;
         }
 
         @Override
@@ -90,12 +94,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     .addInterceptors(chatInterceptor)
                     .setAllowedOriginPatterns(frontendUrl);
 
-            registry.addHandler(teamChatHandler, "/ws/team-chat/{teamId}")
+            registry.addHandler(teamChatHandler, "/ws/team-chat/{teamId}/{channelId}")
                     .addInterceptors(teamChatInterceptor)
                     .setAllowedOriginPatterns(frontendUrl);
                     
             registry.addHandler(directChatHandler, "/ws/direct-chat")
                     .addInterceptors(directChatInterceptor)
+                    .setAllowedOriginPatterns(frontendUrl);
+                    
+            registry.addHandler(terminalHandler, "/ws/terminal/{projectId}")
                     .setAllowedOriginPatterns(frontendUrl);
         }
     }

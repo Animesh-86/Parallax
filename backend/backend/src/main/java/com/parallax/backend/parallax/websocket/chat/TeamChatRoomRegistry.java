@@ -22,33 +22,35 @@ public class TeamChatRoomRegistry {
 
     private final ObjectMapper objectMapper;
 
-    private final Map<UUID, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
-    private final Map<String, UUID> sessionTeamMap = new ConcurrentHashMap<>();
+    private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
+    private final Map<String, String> sessionRoomMap = new ConcurrentHashMap<>();
 
     public TeamChatRoomRegistry(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
-    public void join(UUID teamId, WebSocketSession session) {
-        rooms.computeIfAbsent(teamId, k -> new CopyOnWriteArraySet<>()).add(session);
-        sessionTeamMap.put(session.getId(), teamId);
+    public void join(UUID teamId, UUID channelId, WebSocketSession session) {
+        String roomId = teamId.toString() + ":" + channelId.toString();
+        rooms.computeIfAbsent(roomId, k -> new CopyOnWriteArraySet<>()).add(session);
+        sessionRoomMap.put(session.getId(), roomId);
     }
 
     public void leave(WebSocketSession session) {
-        UUID teamId = sessionTeamMap.remove(session.getId());
-        if (teamId != null) {
-            Set<WebSocketSession> sessions = rooms.get(teamId);
+        String roomId = sessionRoomMap.remove(session.getId());
+        if (roomId != null) {
+            Set<WebSocketSession> sessions = rooms.get(roomId);
             if (sessions != null) {
                 sessions.remove(session);
                 if (sessions.isEmpty()) {
-                    rooms.remove(teamId);
+                    rooms.remove(roomId);
                 }
             }
         }
     }
 
-    public void broadcast(UUID teamId, TeamChatMessage message) {
-        Set<WebSocketSession> sessions = rooms.get(teamId);
+    public void broadcast(UUID teamId, UUID channelId, TeamChatMessage message) {
+        String roomId = teamId.toString() + ":" + channelId.toString();
+        Set<WebSocketSession> sessions = rooms.get(roomId);
         if (sessions == null || sessions.isEmpty()) return;
 
         try {

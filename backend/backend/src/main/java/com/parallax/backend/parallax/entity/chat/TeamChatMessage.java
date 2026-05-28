@@ -6,7 +6,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "team_chat_messages", indexes = {
-        @Index(name = "idx_team_chat_created", columnList = "team_id, created_at")
+        @Index(name = "idx_team_chat_created", columnList = "team_id, created_at"),
+        @Index(name = "idx_team_chat_channel", columnList = "channel_id, created_at")
 })
 public class TeamChatMessage {
 
@@ -22,6 +23,9 @@ public class TeamChatMessage {
 
     @Column(name = "sender_name")
     private String senderName;
+
+    @Column(name = "channel_id")
+    private UUID channelId;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
@@ -58,6 +62,9 @@ public class TeamChatMessage {
     public UUID getTeamId() { return teamId; }
     public void setTeamId(UUID teamId) { this.teamId = teamId; }
 
+    public UUID getChannelId() { return channelId; }
+    public void setChannelId(UUID channelId) { this.channelId = channelId; }
+
     public UUID getSenderId() { return senderId; }
     public void setSenderId(UUID senderId) { this.senderId = senderId; }
 
@@ -78,6 +85,7 @@ public class TeamChatMessage {
     public static class Builder {
         private UUID id;
         private UUID teamId;
+        private UUID channelId;
         private UUID senderId;
         private String senderName;
         private String content;
@@ -86,6 +94,7 @@ public class TeamChatMessage {
 
         public Builder id(UUID id) { this.id = id; return this; }
         public Builder teamId(UUID teamId) { this.teamId = teamId; return this; }
+        public Builder channelId(UUID channelId) { this.channelId = channelId; return this; }
         public Builder senderId(UUID senderId) { this.senderId = senderId; return this; }
         public Builder senderName(String senderName) { this.senderName = senderName; return this; }
         public Builder content(String content) { this.content = content; return this; }
@@ -93,7 +102,9 @@ public class TeamChatMessage {
         public Builder createdAt(Instant createdAt) { this.createdAt = createdAt; return this; }
 
         public TeamChatMessage build() {
-            return new TeamChatMessage(id, teamId, senderId, senderName, content, type, createdAt);
+            TeamChatMessage msg = new TeamChatMessage(id, teamId, senderId, senderName, content, type, createdAt);
+            msg.setChannelId(channelId);
+            return msg;
         }
     }
 }

@@ -1,16 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Terminal as TerminalIcon, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Terminal as XTerm } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import '@xterm/xterm/css/xterm.css';
+import { wsBaseUrl } from '../../services/env';
 
 interface TerminalProps {
   isOpen: boolean;
   onToggle: () => void;
   output: string;
   exitCode: number | null;
+  projectId?: string;
 }
 
-export function Terminal({ isOpen, onToggle, output, exitCode }: TerminalProps) {
+export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: TerminalProps) {
   const [activeTab, setActiveTab] = useState('terminal');
   const [height, setHeight] = useState(250);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const xtermRef = useRef<XTerm | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const tabs = [
     { id: 'terminal', label: 'Terminal' },
@@ -18,6 +26,74 @@ export function Terminal({ isOpen, onToggle, output, exitCode }: TerminalProps) 
     { id: 'output', label: 'Output' },
     { id: 'debug', label: 'Debug Console' },
   ];
+
+  // Initialize xterm
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'terminal' || !terminalRef.current || !projectId) return;
+
+    if (!xtermRef.current) {
+      const term = new XTerm({
+        theme: {
+          background: '#09090B',
+          foreground: '#A1A1AA',
+          cursor: '#D4AF37',
+        },
+        fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+        fontSize: 14,
+        cursorBlink: true,
+      });
+      const fitAddon = new FitAddon();
+      term.loadAddon(fitAddon);
+      term.open(terminalRef.current);
+      fitAddon.fit();
+      xtermRef.current = term;
+
+      const token = localStorage.getItem("access_token");
+      const ws = new WebSocket(`${wsBaseUrl}/ws/terminal/${projectId}?token=${token}`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        term.writeln('\x1b[1;32m[Parallax Interactive Terminal Attached]\x1b[0m');
+      };
+
+      ws.onmessage = (event) => {
+        term.write(event.data);
+      };
+
+      ws.onclose = () => {
+        term.writeln('\r\n\x1b[1;31m[Terminal Disconnected]\x1b[0m');
+      };
+
+      term.onData(data => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(data);
+        }
+      });
+
+      const handleResize = () => {
+        fitAddon.fit();
+      };
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        ws.close();
+        term.dispose();
+        xtermRef.current = null;
+      };
+    }
+  }, [isOpen, activeTab, projectId]);
+
+  // Adjust xterm on resize
+  useEffect(() => {
+    if (xtermRef.current) {
+      // Small delay to allow container layout to update
+      setTimeout(() => {
+        const event = new Event('resize');
+        window.dispatchEvent(event);
+      }, 50);
+    }
+  }, [height, activeTab, isOpen]);
 
 
   if (!isOpen) {
@@ -92,10 +168,12 @@ export function Terminal({ isOpen, onToggle, output, exitCode }: TerminalProps) 
         </button>
       </div>
 
-      {/* Terminal content */}
-      {/* Terminal content */}
-      <div className="flex-1 overflow-auto p-4 font-mono text-sm">
+      <div className="flex-1 overflow-auto p-4 font-mono text-sm relative">
         {activeTab === 'terminal' && (
+          <div className="absolute inset-0 p-2" ref={terminalRef} />
+        )}
+
+        {activeTab === 'output' && (
           <div className="space-y-2">
             {exitCode !== null && (
               <div className="text-xs text-white/60">
@@ -124,11 +202,7 @@ export function Terminal({ isOpen, onToggle, output, exitCode }: TerminalProps) 
           </div>
         )}
 
-        {activeTab === 'output' && (
-          <div className="text-white/60">
-            <div>Use the Run button to see program output here.</div>
-          </div>
-        )}
+
 
         {activeTab === 'debug' && (
           <div className="text-white/60">

@@ -29,6 +29,7 @@ import com.parallax.backend.parallax.exception.ResourceNotFoundException;
 import com.parallax.backend.parallax.repository.UserRepository;
 import com.parallax.backend.parallax.repository.collaborator.ProjectCollaboratorRepository;
 import com.parallax.backend.parallax.repository.project.ProjectRepository;
+import com.parallax.backend.parallax.repository.team.TeamChannelRepository;
 import com.parallax.backend.parallax.repository.team.TeamMemberRepository;
 import com.parallax.backend.parallax.repository.team.TeamRepository;
 import com.parallax.backend.parallax.store.SessionRegistry;
@@ -41,6 +42,7 @@ public class TeamServiceImpl implements TeamService {
 
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final TeamChannelRepository teamChannelRepository;
     private final UserRepository userRepository;
     private final SessionRegistry sessionRegistry;
     private final ProjectRepository projectRepository;
@@ -69,6 +71,21 @@ public class TeamServiceImpl implements TeamService {
         ownerMembership.setJoinedAt(Instant.now());
         ownerMembership.setInvitedAt(Instant.now());
         teamMemberRepository.save(ownerMembership);
+
+        // Auto-create default text (#general) and voice channel
+        com.parallax.backend.parallax.entity.team.TeamChannel general = new com.parallax.backend.parallax.entity.team.TeamChannel();
+        general.setTeamId(team.getId());
+        general.setName("general");
+        general.setType(com.parallax.backend.parallax.entity.team.TeamChannel.ChannelType.TEXT);
+        general.setDefault(true);
+        teamChannelRepository.save(general);
+
+        com.parallax.backend.parallax.entity.team.TeamChannel voice = new com.parallax.backend.parallax.entity.team.TeamChannel();
+        voice.setTeamId(team.getId());
+        voice.setName("Voice / Video");
+        voice.setType(com.parallax.backend.parallax.entity.team.TeamChannel.ChannelType.VOICE);
+        voice.setDefault(true);
+        teamChannelRepository.save(voice);
 
         return toTeamResponse(team, ownerMembership);
     }

@@ -4,6 +4,8 @@ public class UpdateProjectSettingsRequest {
     private String name;
     private String description;
     private String settingsJson;
+    private String githubRepoUrl;
+    private Boolean aiReviewEnabled;
 
     public UpdateProjectSettingsRequest() {}
 
@@ -15,4 +17,10 @@ public class UpdateProjectSettingsRequest {
 
     public String getSettingsJson() { return settingsJson; }
     public void setSettingsJson(String settingsJson) { this.settingsJson = settingsJson; }
+
+    public String getGithubRepoUrl() { return githubRepoUrl; }
+    public void setGithubRepoUrl(String githubRepoUrl) { this.githubRepoUrl = githubRepoUrl; }
+
+    public Boolean getAiReviewEnabled() { return aiReviewEnabled; }
+    public void setAiReviewEnabled(Boolean aiReviewEnabled) { this.aiReviewEnabled = aiReviewEnabled; }
 }

@@ -181,7 +181,7 @@ export default function Dashboard() {
         }
     };
 
-    const handleCreateProject = async (projectName: string, language: string) => {
+    const handleCreateProject = async (projectName: string, language: string, githubRepoUrl?: string, aiReviewEnabled?: boolean) => {
         try {
             // 1️⃣ Log where we are
             console.log("🟢 Starting project creation...");
@@ -208,6 +208,8 @@ export default function Dashboard() {
                 body: JSON.stringify({
                     name: projectName,
                     language,
+                    githubRepoUrl,
+                    aiReviewEnabled
                 }),
             });
 
@@ -298,7 +300,7 @@ export default function Dashboard() {
                 createdAt: p.createdAt || p.created_at || p.updatedAt || "",
                 teamId: p.teamId || undefined,
                 teamName: p.teamName || undefined,
-            }));
+            })).filter((p: DashboardProject) => !(p as any).archived);
 
             // sort by newest (local access or server modification)
             mapped.sort((a, b) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Puzzle, Search, Package, Sparkles, Clock, Lock, ShieldCheck } from 'lucide-react';
+import { Puzzle, Search, Package, Zap, Clock, Lock, ShieldCheck } from 'lucide-react';
 
 export function ExtensionsPanel() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,7 +67,7 @@ export function ExtensionsPanel() {
 
       <div className="p-4 border-t border-white/5 bg-black/40">
         <div className="flex items-center gap-2 text-[10px] text-white/20 italic">
-          <Sparkles className="w-3 h-3" />
+          <Zap className="w-3 h-3" />
           <span>The next generation of modular development is almost here.</span>
         </div>
       </div>

@@ -12,11 +12,16 @@ import { UnifiedChatPanel } from '../components/chat/UnifiedChatPanel';
 import { teamChatWsClient } from '../services/wsChatClient';
 import { LinkProjectModal } from '../components/modals/LinkProjectModal';
 import { ConfirmModal } from '../components/modals/ConfirmModal';
+import { TeamKanbanBoard } from '../components/workspace/TeamKanbanBoard';
+import { TeamNotes } from '../components/workspace/TeamNotes';
 import { apiBaseUrl } from '../services/env';
+import { getDisplayName } from '../services/userUtils';
+import { safeFormatDate } from '../services/dateUtils';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 type TabView = 'overview' | 'projects' | 'members' | 'chat' | 'tasks' | 'docs' | 'settings';
 
-export default function TeamWorkspace() {
+function TeamWorkspaceContent() {
   const navigate = useNavigate();
   const { teamId } = useParams<{ teamId: string }>();
   const [activeTab, setActiveTab] = useState<TabView>('overview');
@@ -32,8 +37,14 @@ export default function TeamWorkspace() {
   const [isDeleteTeamModalOpen, setIsDeleteTeamModalOpen] = useState(false);
   const [projectToUnlink, setProjectToUnlink] = useState<TeamProject | null>(null);
   const [teamProjects, setTeamProjects] = useState<TeamProject[]>([]);
-  const [loadingProjects, setLoadingProjects] = useState(false);
   const [isLinkProjectModalOpen, setIsLinkProjectModalOpen] = useState(false);
+
+  // Channels state
+  const [channels, setChannels] = useState<{ id: string; name: string; type: 'TEXT' | 'VOICE'; isDefault: boolean }[]>([]);
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
+  const [isCreateChannelModalOpen, setIsCreateChannelModalOpen] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+  const [newChannelType, setNewChannelType] = useState<'TEXT' | 'VOICE'>('TEXT');
 
   const loadTeamData = async () => {
     if (!teamId) {
@@ -43,12 +54,19 @@ export default function TeamWorkspace() {
     
     try {
       setLoading(true);
-      const [teamData, membersData] = await Promise.all([
+      const [teamData, membersData, channelsData] = await Promise.all([
         teamApi.getTeam(teamId),
         teamApi.getTeamMembers(teamId),
+        teamApi.getChannels(teamId)
       ]);
       setTeam(teamData);
       setMembers(membersData);
+      setChannels(channelsData);
+      if (channelsData.length > 0 && !activeChannelId) {
+        // Set first text channel as active
+        const defaultText = channelsData.find((c: any) => c.type === 'TEXT') || channelsData[0];
+        setActiveChannelId(defaultText.id);
+      }
       fetchTeamProjects();
     } catch (err) {
       console.error('Failed to load team:', err);
@@ -101,7 +119,7 @@ export default function TeamWorkspace() {
     }
   };
 
-  const handleCreateProject = async (projectName: string, language: string) => {
+  const handleCreateProject = async (projectName: string, language: string, githubRepoUrl?: string, aiReviewEnabled?: boolean) => {
     try {
       const token = localStorage.getItem('access_token');
       if (!token) throw new Error('No access token');
@@ -112,7 +130,7 @@ export default function TeamWorkspace() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: projectName, language, teamId }),
+        body: JSON.stringify({ name: projectName, language, teamId, githubRepoUrl, aiReviewEnabled }),
       });
 
       if (!res.ok) throw new Error('Failed to create project');
@@ -286,7 +304,7 @@ export default function TeamWorkspace() {
                     <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-[#D4AF37]" />
                     <div>
                       <p className="text-sm"><span className="font-medium">Team created</span></p>
-                      <p className="text-xs text-white/40 mt-1">{new Date(team.createdAt).toLocaleDateString()}</p>
+                      <p className="text-xs text-white/40 mt-1">{safeFormatDate(team.createdAt)}</p>
                     </div>
                   </div>
                 </div>
@@ -451,7 +469,10 @@ export default function TeamWorkspace() {
                         <div className={`w-3 h-3 rounded-full ${m.isOnline ? 'bg-[#4ADE80]' : 'bg-white/20'}`} />
                       </div>
                       <p className="text-xs text-white/40 mb-4">Role: {m.role}</p>
-                      <button className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs hover:bg-white/10 transition-all">
+                      <button 
+                        onClick={() => navigate('/friends', { state: { selectedFriendId: m.userId } })}
+                        className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs hover:bg-white/10 transition-all"
+                      >
                         <MessageSquare className="w-3 h-3 inline mr-2" />
                         Message
                       </button>
@@ -474,7 +495,7 @@ export default function TeamWorkspace() {
                           <p className="text-xs text-white/50">{m.email}</p>
                         </div>
                       </div>
-                      <p className="text-xs text-white/40 mb-4">Invited {m.invitedAt ? new Date(m.invitedAt).toLocaleDateString() : 'recently'}</p>
+                      <p className="text-xs text-white/40 mb-4">Invited {m.invitedAt ? safeFormatDate(m.invitedAt) : 'recently'}</p>
                       {(team.myRole === 'OWNER' || team.myRole === 'ADMIN') && (
                         <button className="w-full px-3 py-2 bg-[#EF6461]/10 border border-[#EF6461]/30 rounded-lg text-xs text-[#9A3412] hover:bg-[#EF6461]/20 transition-all">
                           Cancel Invite
@@ -489,32 +510,103 @@ export default function TeamWorkspace() {
         )}
 
         {activeTab === 'chat' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
-              <Hash className="w-6 h-6 text-[#D4AF37]" />
-              Team Chat
-            </h2>
-            <UnifiedChatPanel contextId={team.id} contextType="TEAM" contextName={team.name} wsClient={teamChatWsClient} />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex h-[70vh] gap-4">
+            {/* Sidebar */}
+            <div className="w-64 bg-[#09090B] border border-white/5 rounded-2xl flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Channels</h3>
+                {(team.myRole === 'OWNER' || team.myRole === 'ADMIN') && (
+                  <button onClick={() => setIsCreateChannelModalOpen(true)} className="p-1 hover:bg-white/10 rounded">
+                    <Plus className="w-4 h-4 text-white/60 hover:text-white" />
+                  </button>
+                )}
+              </div>
+              <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                <div className="text-xs font-semibold text-white/40 uppercase tracking-wider px-2 py-1 mt-2">Text Channels</div>
+                {channels.filter(c => c.type === 'TEXT').map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => setActiveChannelId(c.id)}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+                      activeChannelId === c.id ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'text-white/60 hover:bg-white/5 hover:text-white/90'
+                    }`}
+                  >
+                    <Hash className="w-4 h-4" />
+                    {c.name}
+                  </button>
+                ))}
+                
+                <div className="text-xs font-semibold text-white/40 uppercase tracking-wider px-2 py-1 mt-4">Voice Channels</div>
+                {channels.filter(c => c.type === 'VOICE').map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      if (activeChannelId === c.id) return;
+                      // Logic to open voice room modal or jump to room
+                      // Just set active for now, real voice handles differently
+                      setActiveChannelId(c.id);
+                    }}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+                      activeChannelId === c.id ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'text-white/60 hover:bg-white/5 hover:text-white/90'
+                    }`}
+                  >
+                    <Video className="w-4 h-4" />
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Chat Panel */}
+            <div className="flex-1 bg-[#09090B] border border-white/5 rounded-2xl overflow-hidden relative">
+              {activeChannelId ? (
+                channels.find(c => c.id === activeChannelId)?.type === 'TEXT' ? (
+                  <UnifiedChatPanel 
+                    contextId={team.id} 
+                    channelId={activeChannelId}
+                    contextType="TEAM" 
+                    contextName={`#${channels.find(c => c.id === activeChannelId)?.name}`} 
+                    wsClient={teamChatWsClient} 
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-center p-8">
+                    <div>
+                      <Video className="w-12 h-12 text-[#D4AF37] mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Voice / Video Channel</h3>
+                      <p className="text-white/60 mb-6">Join the cosmic communication array.</p>
+                      <button 
+                        onClick={() => setIsCreateRoomModalOpen(true)}
+                        className="px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-lg font-medium"
+                      >
+                        Join Room
+                      </button>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="flex items-center justify-center h-full text-white/40">Select a channel</div>
+              )}
+            </div>
           </motion.div>
         )}
 
         {activeTab === 'tasks' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 className="text-2xl font-semibold mb-6">Tasks</h2>
-            <div className="bg-[#09090B] border border-white/5 rounded-2xl p-12 text-center">
-              <p className="text-white/60">Task board coming soon</p>
-            </div>
+            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+              <ListTodo className="w-6 h-6 text-[#D4AF37]" />
+              Team Board
+            </h2>
+            <TeamKanbanBoard teamId={team.id} members={activeMembers} myName={getDisplayName()} />
           </motion.div>
         )}
 
         {activeTab === 'docs' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 className="text-2xl font-semibold mb-6">Documentation</h2>
-            <div className="bg-[#09090B] border border-white/5 rounded-2xl p-8 prose prose-invert max-w-none">
-              <h3 className="text-xl font-semibold mb-4">Welcome to {team.name}</h3>
-              <p className="text-white/70">{team.description || 'Team collaboration space'}</p>
-              <p className="text-white/70 mt-4"><strong>Members:</strong> {activeMembers.length} active</p>
-            </div>
+            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+              <FileText className="w-6 h-6 text-[#D4AF37]" />
+              Documentation & Notes
+            </h2>
+            <TeamNotes teamId={team.id} myName={getDisplayName()} />
           </motion.div>
         )}
 
@@ -612,6 +704,7 @@ export default function TeamWorkspace() {
         confirmText="Delete Team"
         cancelText="Cancel"
         isDanger={true}
+        requireInput={`delete ${team?.name}`}
       />
 
       <ConfirmModal
@@ -633,6 +726,91 @@ export default function TeamWorkspace() {
         cancelText="Cancel"
         isDanger={true}
       />
+
+      {/* Create Channel Modal */}
+      {isCreateChannelModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#09090B] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden"
+          >
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Create Channel</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-white/60 mb-2 block">Channel Type</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setNewChannelType('TEXT')}
+                      className={`flex-1 py-2 px-3 rounded-lg border text-sm flex items-center justify-center gap-2 transition-all ${
+                        newChannelType === 'TEXT' ? 'bg-[#D4AF37]/20 border-[#D4AF37]/50 text-[#D4AF37]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                      }`}
+                    >
+                      <Hash className="w-4 h-4" /> Text
+                    </button>
+                    <button
+                      onClick={() => setNewChannelType('VOICE')}
+                      className={`flex-1 py-2 px-3 rounded-lg border text-sm flex items-center justify-center gap-2 transition-all ${
+                        newChannelType === 'VOICE' ? 'bg-[#D4AF37]/20 border-[#D4AF37]/50 text-[#D4AF37]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                      }`}
+                    >
+                      <Video className="w-4 h-4" /> Voice
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm text-white/60 mb-2 block">Channel Name</label>
+                  <input
+                    type="text"
+                    value={newChannelName}
+                    onChange={(e) => setNewChannelName(e.target.value)}
+                    placeholder="e.g. general, announcements"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-[#D4AF37]/50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-8">
+                <button
+                  onClick={() => setIsCreateChannelModalOpen(false)}
+                  className="px-4 py-2 rounded-lg font-medium hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!newChannelName.trim()) return;
+                    try {
+                      await teamApi.createChannel(team.id, { name: newChannelName, type: newChannelType });
+                      const updatedChannels = await teamApi.getChannels(team.id);
+                      setChannels(updatedChannels);
+                      setIsCreateChannelModalOpen(false);
+                      setNewChannelName('');
+                    } catch (e) {
+                      console.error('Failed to create channel', e);
+                    }
+                  }}
+                  disabled={!newChannelName.trim()}
+                  className="px-4 py-2 bg-[#D4AF37] rounded-lg font-medium text-black hover:bg-[#D4AF37]/90 transition-colors disabled:opacity-50"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function TeamWorkspace() {
+  return (
+    <ErrorBoundary>
+      <TeamWorkspaceContent />
+    </ErrorBoundary>
   );
 }

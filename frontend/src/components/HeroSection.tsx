@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { AstraCore } from "./AstraCore";
-import { Code2, Sparkles, Zap } from "lucide-react";
+import { Code2, Rocket, Zap } from "lucide-react";
 import { Parallax, SmoothText } from "./ScrollReveal";
 import { useNavigate } from "react-router-dom";
 
@@ -92,7 +92,7 @@ export function HeroSection() {
               {[
                 { icon: Code2, text: "Real-time Teamwork", color: "from-[#D4AF37] to-[#71717A]" },
                 { icon: Zap, text: "Cloud-Native Coding", color: "from-[#F59E0B] to-[#09090B]" },
-                { icon: Sparkles, text: "Next-Gen Collaboration", color: "from-[#D4AF37] to-[#A1A1AA]" },
+                { icon: Rocket, text: "Next-Gen Collaboration", color: "from-[#D4AF37] to-[#A1A1AA]" },
               ].map((feature, index) => (
                 <motion.div
                   key={index}
@@ -144,7 +144,7 @@ export function HeroSection() {
                     animate={{ y: [0, -2, 0], rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
+                    <Rocket className="w-4 h-4 md:w-5 md:h-5" />
                   </motion.span>
                 </span>
               </motion.button>

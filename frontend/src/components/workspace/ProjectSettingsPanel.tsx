@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Shield, Terminal, Sparkles, Trash2, Users, Info, ChevronRight, Check, X, Type, Layout, Cpu, Globe } from 'lucide-react';
+import { Settings, Save, Shield, Terminal, Trash2, Users, Info, ChevronRight, Check, X, Type, Layout, Cpu, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { projectSettingsApi } from '../../services/projectSettingsApi';
 import { collabApi, Collaborator } from '../../services/collabApi';
@@ -20,7 +20,11 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [githubRepoUrl, setGithubRepoUrl] = useState('');
+  const [aiReviewEnabled, setAiReviewEnabled] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [isArchived, setIsArchived] = useState(false);
   const [settings, setSettings] = useState<any>({
     tabSize: 2,
     fontSize: 14,
@@ -45,10 +49,13 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
       const details = await projectSettingsApi.getProjectDetails(projectId);
       setName(details.name);
       setDescription(details.description || '');
+      setGithubRepoUrl(details.githubRepoUrl || '');
+      setAiReviewEnabled(details.aiReviewEnabled || false);
       const parsedSettings = JSON.parse(details.settingsJson || '{}');
       setSettings((prev: any) => ({ ...prev, ...parsedSettings }));
       setTeamInfo({ id: details.teamId, name: details.teamName });
       setRuntimeName(details.runtimeName || 'Standard Sandbox');
+      setIsArchived((details as any).archived || false);
 
       if (details.teamId) {
         const collabs = await collabApi.getProjectCollaborators(projectId);
@@ -69,6 +76,8 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
       await projectSettingsApi.updateSettings(projectId, {
         name,
         description,
+        githubRepoUrl,
+        aiReviewEnabled,
         settingsJson: JSON.stringify(settings)
       });
       setSuccess(true);
@@ -89,6 +98,23 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
       navigate('/dashboard');
     } catch (err) {
       setError('Failed to delete project');
+      setSaving(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      if (isArchived) {
+        await projectSettingsApi.unarchiveProject(projectId);
+        setIsArchived(false);
+      } else {
+        await projectSettingsApi.archiveProject(projectId);
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError('Failed to archive project');
       setSaving(false);
     }
   };
@@ -155,6 +181,31 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
                 placeholder="Tell the world what you're building..."
               />
             </div>
+
+            <div className="space-y-1.5 pt-2">
+              <label className="text-[10px] uppercase tracking-wider font-bold text-white/30">GitHub Repository URL (Optional)</label>
+              <input 
+                type="text" 
+                value={githubRepoUrl}
+                onChange={(e) => setGithubRepoUrl(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#D4AF37]/50 transition-colors font-mono"
+                placeholder="https://github.com/username/repo"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg">
+              <div>
+                <div className="text-sm font-bold text-white">AI PR Reviewer</div>
+                <div className="text-[10px] text-white/50 mt-0.5">Automatically analyze pull requests for bugs and improvements.</div>
+              </div>
+              <button 
+                onClick={() => setAiReviewEnabled(!aiReviewEnabled)}
+                className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${aiReviewEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'}`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-black transition-transform duration-300 ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+
 
             <div className="space-y-3 pt-2">
               <label className="text-[10px] uppercase tracking-wider font-bold text-white/30">Visibility</label>
@@ -289,7 +340,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
             </div>
 
             <div className="p-3 bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-lg flex gap-3">
-              <Sparkles className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
+              <Info className="w-5 h-5 text-[#D4AF37] flex-shrink-0 mt-0.5" />
               <p className="text-[11px] text-[#D4AF37]/80 leading-relaxed">
                 <span className="font-bold">Project Environments:</span> You can soon define custom Dockerfiles for your project to have full control over the runtime environment.
               </p>
@@ -343,8 +394,10 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
                     <Trash2 className="w-3 h-3" />
                     {saving ? 'DELETING...' : 'DELETE THIS PROJECT'}
                  </button>
-                 <button className="w-full py-2.5 bg-white/5 border border-white/10 rounded-md text-[11px] font-bold text-white/40 hover:text-white/80 transition-all flex items-center justify-center gap-2">
-                    ARCHIVE PROJECT
+                 <button 
+                    onClick={() => setIsArchiveModalOpen(true)}
+                    className="w-full py-2.5 bg-white/5 border border-white/10 rounded-md text-[11px] font-bold text-white/60 hover:text-white/90 hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                    {isArchived ? 'UNARCHIVE PROJECT' : 'ARCHIVE PROJECT'}
                  </button>
               </div>
             </div>
@@ -393,6 +446,19 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
         confirmText="Delete Project"
         cancelText="Cancel"
         isDanger={true}
+        requireInput={`delete ${name}`}
+      />
+      <ConfirmModal
+        isOpen={isArchiveModalOpen}
+        onClose={() => setIsArchiveModalOpen(false)}
+        onConfirm={handleArchive}
+        title={isArchived ? 'Unarchive Project' : 'Archive Project'}
+        message={isArchived
+          ? `Unarchiving "${name}" will make it visible on your dashboard again.`
+          : `Archiving "${name}" will hide it from your dashboard. You can still access it from the Archived tab in My Projects.`}
+        confirmText={isArchived ? 'Unarchive' : 'Archive'}
+        cancelText="Cancel"
+        isDanger={false}
       />
     </div>
   );

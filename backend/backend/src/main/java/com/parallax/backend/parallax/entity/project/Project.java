@@ -46,6 +46,12 @@ public class Project {
     @Column(nullable = false)
     private boolean archived = false;
 
+    @Column(name = "github_repo_url")
+    private String githubRepoUrl;
+
+    @Column(name = "ai_review_enabled", nullable = false)
+    private boolean aiReviewEnabled = false;
+
     public Project() {}
 
     public Project(UUID id, String name, String language) {
@@ -90,4 +96,10 @@ public class Project {
 
     public boolean isArchived() { return archived; }
     public void setArchived(boolean archived) { this.archived = archived; }
+
+    public String getGithubRepoUrl() { return githubRepoUrl; }
+    public void setGithubRepoUrl(String githubRepoUrl) { this.githubRepoUrl = githubRepoUrl; }
+
+    public boolean isAiReviewEnabled() { return aiReviewEnabled; }
+    public void setAiReviewEnabled(boolean aiReviewEnabled) { this.aiReviewEnabled = aiReviewEnabled; }
 }

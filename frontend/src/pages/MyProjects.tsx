@@ -78,7 +78,7 @@ export default function MyProjects() {
     }, []);
 
     // Create Logic
-    const handleCreateProject = async (projectName: string, language: string) => {
+    const handleCreateProject = async (projectName: string, language: string, githubRepoUrl?: string, aiReviewEnabled?: boolean) => {
         try {
             const token = localStorage.getItem("access_token");
             if (!token) return;
@@ -89,7 +89,7 @@ export default function MyProjects() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ name: projectName, language }),
+                body: JSON.stringify({ name: projectName, language, githubRepoUrl, aiReviewEnabled }),
             });
 
             if (!res.ok) throw new Error("Failed to create project");

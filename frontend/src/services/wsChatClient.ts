@@ -34,6 +34,7 @@ export class ChatWebSocketClient {
         contextType: "PROJECT" | "TEAM" | "DIRECT", 
         onMessage: (msg: GenericChatMessage) => void, 
         onHistory: (msgs: GenericChatMessage[]) => void,
+        channelId?: string,
         onSignal?: (signal: { type: string; senderId: string; data: any }) => void
     ) {
         if (this.ws?.readyState === WebSocket.OPEN && this.contextId === contextId && this.contextType === contextType) {
@@ -61,9 +62,14 @@ export class ChatWebSocketClient {
         if (contextType === "TEAM") endpoint = "team-chat";
         else if (contextType === "DIRECT") endpoint = "direct-chat";
         
-        const url = contextType === "DIRECT" 
-            ? `${wsBaseUrl}/ws/${endpoint}?token=${token}` 
-            : `${wsBaseUrl}/ws/${endpoint}/${contextId}?token=${token}`;
+        let url = "";
+        if (contextType === "DIRECT") {
+            url = `${wsBaseUrl}/ws/${endpoint}?token=${token}`;
+        } else if (contextType === "TEAM" && channelId) {
+            url = `${wsBaseUrl}/ws/${endpoint}/${contextId}/${channelId}?token=${token}`;
+        } else {
+            url = `${wsBaseUrl}/ws/${endpoint}/${contextId}?token=${token}`;
+        }
 
         this.ws = new WebSocket(url);
 
@@ -97,7 +103,7 @@ export class ChatWebSocketClient {
             if (!this.isExplicitDisconnect) {
                 console.warn(`⚠️ ${contextType} Chat WS disconnected, reconnecting in 5s...`);
                 this.reconnectTimeout = setTimeout(() => {
-                    this.connect(contextId, contextType, onMessage, onHistory);
+                    this.connect(contextId, contextType, onMessage, onHistory, channelId);
                 }, 5000);
             } else {
                 console.log(`🔴 ${contextType} Chat WS disconnected explicitly`);

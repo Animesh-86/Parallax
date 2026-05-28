@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
-import { User, Sparkles, Check, X, Loader2 } from 'lucide-react';
+import { User, Rocket, Check, X, Loader2 } from 'lucide-react';
 import { CosmicStars } from '../components/workspace/CosmicStars';
 import { apiBaseUrl } from '../services/env';
 import { toast } from 'sonner';
@@ -120,7 +120,7 @@ export default function Onboarding() {
         {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8960C] mb-6 shadow-lg shadow-[#D4AF37]/20">
-            <Sparkles className="w-10 h-10 text-black" />
+            <Rocket className="w-10 h-10 text-black" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Welcome to Parallax</h1>
           <p className="text-white/50 text-lg">Set up your identity to get started</p>
@@ -196,7 +196,7 @@ export default function Onboarding() {
             {submitting ? (
               <><Loader2 className="w-5 h-5 animate-spin" /> Setting up...</>
             ) : (
-              <><Sparkles className="w-5 h-5" /> Complete Setup</>
+              <><Rocket className="w-5 h-5" /> Complete Setup</>
             )}
           </button>
         </div>

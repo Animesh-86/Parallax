@@ -13,4 +13,7 @@ public interface TeamChatRepository extends JpaRepository<TeamChatMessage, UUID>
 
     @Query("SELECT m FROM TeamChatMessage m WHERE m.teamId = :teamId ORDER BY m.createdAt DESC")
     List<TeamChatMessage> findLatestByTeam(@Param("teamId") UUID teamId, Pageable pageable);
+
+    @Query("SELECT m FROM TeamChatMessage m WHERE m.channelId = :channelId ORDER BY m.createdAt DESC")
+    List<TeamChatMessage> findLatestByChannel(@Param("channelId") UUID channelId, Pageable pageable);
 }

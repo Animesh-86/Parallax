@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Users, Sparkles, Copy, Check, ExternalLink, Link2 } from 'lucide-react';
+import { X, Users, Plus, Copy, Check, ExternalLink, Link2 } from 'lucide-react';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
@@ -198,7 +198,7 @@ export function CreateRoomModal({
                     className="flex-1 px-6 py-3 bg-[#D4AF37] rounded-xl font-medium text-black hover:bg-[#D4AF37]/90 hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
-                    <Sparkles className="w-4 h-4 relative z-10" />
+                    <Plus className="w-4 h-4 relative z-10" />
                     <span className="relative z-10">
                       {isSubmitting ? 'Creating...' : 'Create Room'}
                     </span>

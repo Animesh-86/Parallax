@@ -15,4 +15,6 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     List<Project> findByOwner_Id(UUID ownerId);
 
     List<Project> findByTeam_Id(UUID teamId);
+
+    java.util.Optional<Project> findByGithubRepoUrl(String githubRepoUrl);
 }

@@ -1,4 +1,4 @@
-import { GitBranch, Puzzle, Settings, Sparkles, FolderOpen } from 'lucide-react';
+import { GitBranch, Puzzle, Settings, Bot, FolderOpen } from 'lucide-react';
 
 type IntegrationsSidebarProps = {
   activeTool: "explorer" | "git" | "extensions" | "ai" | "settings" | null;
@@ -71,7 +71,7 @@ export function IntegrationsSidebar({ activeTool, onSelectTool }: IntegrationsSi
           }`}
         title="AI Assist"
       >
-        <Sparkles className={`w-5 h-5 ${activeTool !== 'ai' ? 'group-hover:text-[#D4AF37] transition-colors' : ''}`} />
+        <Bot className={`w-5 h-5 ${activeTool !== 'ai' ? 'group-hover:text-[#D4AF37] transition-colors' : ''}`} />
         {activeTool === 'ai' && (
           <div className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-[#A1A1AA] rounded-r" />
         )}

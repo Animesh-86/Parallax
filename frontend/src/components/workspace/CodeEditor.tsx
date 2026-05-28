@@ -332,7 +332,6 @@ export default function CodeEditor({
               autoClosingQuotes: "always",
               formatOnType: true,
               formatOnPaste: true,
-              tabSize: 2,
               suggest: {
                 showWords: true,
                 showSnippets: true,

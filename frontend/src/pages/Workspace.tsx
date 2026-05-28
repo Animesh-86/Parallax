@@ -10,11 +10,12 @@ import { Terminal } from "../components/workspace/Terminal";
 import { VideoPanel } from "../components/workspace/VideoPanel";
 import { ParticipantsList } from "../components/workspace/ParticipantsList";
 import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
+import { AiChatPanel } from "../components/chat/AiChatPanel";
 import { projectChatWs } from "../services/wsChatClient";
 import { ActivityPanel } from "../components/workspace/ActivityPanel";
 import { versioningApi, ProjectBranch } from "../services/versioningApi";
 import { CosmicStars } from "../components/workspace/CosmicStars";
-import { MessageCircle, Video, Users, Sparkles, Settings, GitBranch, Puzzle, X, Play } from "lucide-react";
+import { MessageCircle, Video, Users, Bot, Settings, GitBranch, Puzzle, X, Play } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
@@ -82,7 +83,7 @@ export default function Workspace() {
   /* Right Panel Tools State */
   type RightTool = "video" | "chat" | "collaborators" | "ai" | "settings" | null;
   const [activeTool, setActiveTool] = useState<RightTool>("collaborators");
-
+  
   const toggleRightTool = (tool: RightTool) => {
     if (activeTool === tool) {
       setActiveTool(null);
@@ -320,6 +321,7 @@ export default function Workspace() {
                         projectId={projectId}
                         activeBranchId={activeBranch?.id || null}
                         onBranchChange={(branch) => setActiveBranch(branch)}
+                        githubRepoUrl={projectSettings?.githubRepoUrl}
                       />
                     </div>
                   </div>
@@ -335,14 +337,8 @@ export default function Workspace() {
                       <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
                       <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                     </div>
-                    <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                      <Sparkles className="w-12 h-12 mb-4 text-[#D4AF37] animate-pulse" />
-                      <h3 className="text-lg font-bold text-white mb-2">Agent Coming Soon</h3>
-                      <p className="text-sm">
-                        The AI Agent is stuck in traffic.
-                        <br />
-                        <span className="opacity-50 text-xs block mt-2">(Coming Soon!)</span>
-                      </p>
+                    <div className="flex-1 overflow-hidden">
+                      <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile} />
                     </div>
                   </div>
                 )}
@@ -422,6 +418,7 @@ export default function Workspace() {
               onToggle={() => setTerminalOpen(!terminalOpen)}
               output={runOutput}
               exitCode={runExitCode}
+              projectId={projectId}
             />
           </div>
         </div>
@@ -452,17 +449,12 @@ export default function Workspace() {
               {activeTool === "collaborators" && <ParticipantsList />}
               {activeTool === "ai" && (
                 <div className="flex flex-col h-full w-full">
-                  <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
+                  <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 shrink-0">
                     <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
+                    <button onClick={() => setActiveTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                   </div>
-                  <div className="flex flex-col items-center justify-center flex-1 text-center p-6 text-white/60">
-                    <Sparkles className="w-12 h-12 mb-4 text-[#D4AF37] animate-pulse" />
-                    <h3 className="text-lg font-bold text-white mb-2">Agent Coming Soon</h3>
-                    <p className="text-sm">
-                      The AI Agent is stuck in traffic.
-                      <br />
-                      <span className="opacity-50 text-xs block mt-2">(Coming Soon!)</span>
-                    </p>
+                  <div className="flex-1 overflow-hidden">
+                    <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile} />
                   </div>
                 </div>
               )}
@@ -507,7 +499,7 @@ export default function Workspace() {
             title="AI Assistant"
             className={`p-2 rounded-xl transition-all ${activeTool === "ai" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
-            <Sparkles size={20} />
+            <Bot size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("settings")}

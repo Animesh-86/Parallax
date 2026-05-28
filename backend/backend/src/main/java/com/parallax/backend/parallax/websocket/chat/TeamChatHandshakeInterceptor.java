@@ -45,6 +45,12 @@ public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
             return false;
         }
 
+        UUID channelId = extractChannelId(path);
+        if (channelId == null) {
+            log.warn("Team chat handshake failed: No channel ID in path {}", path);
+            return false;
+        }
+
         String token = extractToken(query);
         if (token == null) {
             log.warn("Team chat handshake failed: No token provided");
@@ -71,6 +77,7 @@ public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
                     .orElse("Unknown");
 
             attributes.put("teamId", teamId);
+            attributes.put("channelId", channelId);
             attributes.put("userId", userId);
             attributes.put("username", username);
 
@@ -88,10 +95,23 @@ public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
 
     private UUID extractTeamId(String path) {
         try {
-            // Expected: /ws/team-chat/<UUID>
+            // Expected: /ws/team-chat/<teamId>/<channelId>
             String[] parts = path.split("/");
-            if (parts.length >= 4 && "team-chat".equals(parts[2])) {
-                return UUID.fromString(parts[parts.length - 1]);
+            if (parts.length >= 5 && "team-chat".equals(parts[2])) {
+                return UUID.fromString(parts[3]);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return null;
+    }
+
+    private UUID extractChannelId(String path) {
+        try {
+            // Expected: /ws/team-chat/<teamId>/<channelId>
+            String[] parts = path.split("/");
+            if (parts.length >= 5 && "team-chat".equals(parts[2])) {
+                return UUID.fromString(parts[4]);
             }
         } catch (Exception e) {
             return null;
