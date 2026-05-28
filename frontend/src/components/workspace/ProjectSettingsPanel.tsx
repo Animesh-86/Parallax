@@ -130,8 +130,8 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
 
   return (
     <div className="flex flex-col h-full bg-[#09090B] text-white">
-      {/* Tabs */}
-      <div className="flex border-b border-white/5 bg-black/20 overflow-x-auto no-scrollbar">
+      {/* Tab Bar */}
+      <div className="flex border-b border-white/5 bg-white/[0.02] overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {[
           { id: 'general', icon: Info, label: 'General' },
           { id: 'editor', icon: Type, label: 'Editor' },
@@ -145,7 +145,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
             <button 
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-shrink-0 px-4 py-3 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
+              className={`flex-1 shrink-0 whitespace-nowrap px-3 py-3 text-[10px] uppercase tracking-wider font-bold flex items-center justify-center gap-1.5 transition-all ${
                 activeTab === tab.id 
                   ? 'text-[#D4AF37] border-b-2 border-[#D4AF37] bg-white/5' 
                   : 'text-white/30 hover:text-white/60 hover:bg-white/5'
