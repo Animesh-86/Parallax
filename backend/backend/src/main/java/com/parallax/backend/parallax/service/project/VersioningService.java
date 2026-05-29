@@ -94,12 +94,7 @@ public class VersioningService {
         
         String output = runGitCommand(projectId, "branch", "--format=%(refname:short)");
         if (output.isBlank()) {
-            // Repo has no commits yet, bootstrap it
-            runGitCommand(projectId, "commit", "--allow-empty", "-m", "Initial commit from Parallax");
-            output = runGitCommand(projectId, "branch", "--format=%(refname:short)");
-            if (output.isBlank()) {
-                return List.of();
-            }
+            return List.of(buildBranchResponse(projectId, "main", getSystemUserOrDummy()));
         }
         
         List<ProjectBranchResponse> list = new ArrayList<>();
@@ -197,7 +192,7 @@ public class VersioningService {
         
         String url = project.getGithubRepoUrl();
         if (url == null || url.isBlank()) {
-            throw new IllegalStateException("Project is not linked to a GitHub repository");
+            throw new IllegalStateException("Project is not linked to a GitHub repository. Please set a remote URL first.");
         }
         
         // Remove trailing slash or .git
@@ -225,6 +220,14 @@ public class VersioningService {
             log.error("Git push failed: {}", output);
             throw new IllegalStateException("Failed to push to GitHub: " + output);
         }
+    }
+
+    @Transactional
+    public void setRemoteUrl(UUID projectId, String url) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        project.setGithubRepoUrl(url);
+        projectRepository.save(project);
     }
 
     public List<ProjectCommitResponse> getCommits(UUID projectId) {

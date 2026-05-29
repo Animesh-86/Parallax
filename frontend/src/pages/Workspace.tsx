@@ -103,24 +103,25 @@ export default function Workspace() {
   const [projectName, setProjectName] = useState<string>(state?.projectName || "");
   const [loadingName, setLoadingName] = useState(!state?.projectName);
 
-  useEffect(() => {
-    const fetchProjectName = async () => {
-      if (!projectId) return;
-      try {
-        if (!projectName || !state?.projectName) {
-          setLoadingName(true);
-          const res = await api.get(`/projects/${projectId}`);
-          setProjectName(res.data.name);
-          setProjectSettings(res.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch project details", err);
-        setProjectName("Parallax Workspace");
-      } finally {
-        setLoadingName(false);
+  const fetchProjectDetails = async (force: boolean = false) => {
+    if (!projectId) return;
+    try {
+      if (!projectName || !state?.projectName || force) {
+        setLoadingName(true);
+        const res = await api.get(`/projects/${projectId}`);
+        setProjectName(res.data.name);
+        setProjectSettings(res.data);
       }
-    };
-    fetchProjectName();
+    } catch (err) {
+      console.error("Failed to fetch project details", err);
+      setProjectName("Parallax Workspace");
+    } finally {
+      setLoadingName(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjectDetails();
   }, [projectId]);
 
   /* Initialize versioning main branch */

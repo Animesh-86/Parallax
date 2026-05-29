@@ -13,13 +13,22 @@ import org.springframework.transaction.annotation.Transactional;
 public class ScratchTest {
 
     @Autowired
+    com.parallax.backend.parallax.service.execution.RunCodeService runCodeService;
+
+    @Autowired
+    com.parallax.backend.parallax.store.SessionRegistry sessionRegistry;
+
+    @Autowired
+    com.parallax.backend.parallax.repository.file.ProjectFileRepository fr;
+
+    @Autowired
     ProjectService ps;
 
     @Autowired
     UserRepository ur;
 
     @Test
-    public void test() {
+    public void test() throws Exception {
         if (ur.findAll().isEmpty()) {
             User u = new User("Test User", "testuser", "test@test.com", "pass", "LOCAL");
             ur.save(u);
@@ -29,6 +38,26 @@ public class ScratchTest {
         req.setName("test" + System.currentTimeMillis());
         req.setLanguage("python");
         req.setGithubRepoUrl("https://github.com/expressjs/express");
-        ps.createProject(req, u.getId());
+        var pr = ps.createProject(req, u.getId());
+        
+        var pid = pr.getId();
+        
+        com.parallax.backend.parallax.entity.file.ProjectFile f = new com.parallax.backend.parallax.entity.file.ProjectFile();
+        f.setId(java.util.UUID.randomUUID());
+        f.setProjectId(pid);
+        f.setPath("main.py");
+        f.setType("FILE");
+        f.setContent("print('Hello from test')");
+        fr.save(f);
+        
+        String sessId = java.util.UUID.randomUUID().toString();
+        sessionRegistry.register(pid, sessId, "dummy", u.getId(), "python");
+        
+        com.parallax.backend.parallax.dto.execution.CommandResult cr = runCodeService.runCodeInSession(
+            sessId, "main.py", 10, u.getId(), line -> System.out.println("OUTPUT: " + line)
+        );
+        
+        System.out.println("EXIT CODE: " + cr.getExitCode());
+        System.out.println("FINAL OUT: " + cr.getOutput());
     }
 }

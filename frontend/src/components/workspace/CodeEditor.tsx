@@ -161,6 +161,13 @@ export default function CodeEditor({
         } else {
           setError(null);
         }
+        return;
+      }
+
+      if (msg.type === "RUN_ERROR") {
+        onRunResult(buffer.current.trimEnd(), msg.exitCode ?? -1);
+        setError(`Execution Error: ${msg.output || "Unknown error"}`);
+        return;
       }
     });
   }, [projectId, onRunResult]);

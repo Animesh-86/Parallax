@@ -3,15 +3,17 @@ import { GitCommit, GitBranch, GitMerge, Clock, User, ChevronDown, Plus, Loader,
 import { motion, AnimatePresence } from 'framer-motion';
 import { versioningApi, ProjectCommit, ProjectBranch, MergeRequestData } from '../../services/versioningApi';
 import { CreatePullRequestModal } from './CreatePullRequestModal';
+import { toast } from 'sonner';
 
 interface ActivityPanelProps {
   projectId: string;
   activeBranchId: string | null;
   onBranchChange: (branch: ProjectBranch) => void;
   githubRepoUrl?: string;
+  onRemoteAdded?: () => void;
 }
 
-export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githubRepoUrl }: ActivityPanelProps) {
+export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githubRepoUrl, onRemoteAdded }: ActivityPanelProps) {
   const [activeTab, setActiveTab] = useState<'commits' | 'branches' | 'merge-requests'>('commits');
   const [commits, setCommits] = useState<ProjectCommit[]>([]);
   const [branches, setBranches] = useState<ProjectBranch[]>([]);
@@ -23,6 +25,8 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
   const [submitting, setSubmitting] = useState(false);
   const [isPrModalOpen, setIsPrModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [remoteUrlInput, setRemoteUrlInput] = useState('');
+  const [settingRemote, setSettingRemote] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -67,12 +71,28 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
     try {
       setSubmitting(true);
       await versioningApi.pushBranch(projectId, activeBranchId);
-      alert('Successfully pushed to GitHub');
+      toast.success('Successfully pushed to GitHub');
     } catch (err: any) {
       console.error('Failed to push:', err);
-      alert('Failed to push: ' + (err.response?.data?.error || err.message));
+      toast.error('Failed to push: ' + (err.response?.data?.error || err.message));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleAddRemote = async () => {
+    if (!remoteUrlInput.trim() || settingRemote) return;
+    try {
+      setSettingRemote(true);
+      await versioningApi.addRemote(projectId, remoteUrlInput.trim());
+      toast.success('Remote configured successfully');
+      setRemoteUrlInput('');
+      if (onRemoteAdded) onRemoteAdded();
+    } catch (err: any) {
+      console.error('Failed to set remote:', err);
+      toast.error('Failed to set remote: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSettingRemote(false);
     }
   };
 
@@ -103,14 +123,24 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
 
   const handleDeleteBranch = async (branchId: string, branchName: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm(`Are you sure you want to delete branch '${branchName}'?`)) {
-      try {
-        await versioningApi.deleteBranch(projectId, branchName);
-        loadData();
-      } catch (err) {
-        alert('Failed to delete branch. Ensure it is not the main branch and you do not have it checked out.');
+    toast(`Are you sure you want to delete branch '${branchName}'?`, {
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            await versioningApi.deleteBranch(projectId, branchName);
+            loadData();
+            toast.success(`Branch ${branchName} deleted`);
+          } catch (err) {
+            toast.error('Failed to delete branch. Ensure it is not the main branch and you do not have it checked out.');
+          }
+        }
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {}
       }
-    }
+    });
   };
 
   const formatTime = (ts: any) => {
@@ -253,6 +283,29 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
                     Push
                   </button>
                 )}
+              </div>
+            </div>
+          )}
+
+          {!githubRepoUrl && (
+            <div className="p-4 border-b border-white/5 bg-[#09090B]/50">
+              <p className="text-xs text-white/50 mb-2">Connect to a GitHub repository to push your branches.</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={remoteUrlInput}
+                  onChange={(e) => setRemoteUrlInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddRemote()}
+                  placeholder="https://github.com/username/repo"
+                  className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs focus:outline-none focus:border-[#D4AF37]/50"
+                />
+                <button
+                  onClick={handleAddRemote}
+                  disabled={!remoteUrlInput.trim() || settingRemote}
+                  className="px-4 py-2 bg-white/10 rounded-lg text-xs font-medium disabled:opacity-50 hover:bg-white/20 transition-colors"
+                >
+                  Add Remote
+                </button>
               </div>
             </div>
           )}

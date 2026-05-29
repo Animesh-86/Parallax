@@ -47,6 +47,12 @@ export interface MergeRequestData {
 // ========== API ==========
 
 export const versioningApi = {
+  // Remote
+  addRemote: async (projectId: string, url: string): Promise<{message: string}> => {
+    const res = await api.post(`/api/projects/${projectId}/versioning/remote`, { url });
+    return res.data;
+  },
+
   // Branches
   getBranches: async (projectId: string): Promise<ProjectBranch[]> => {
     const res = await api.get(`/api/projects/${projectId}/versioning/branches`);

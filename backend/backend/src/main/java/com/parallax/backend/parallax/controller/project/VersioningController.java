@@ -99,6 +99,21 @@ public class VersioningController {
         }
     }
 
+    @PostMapping("/remote")
+    public ResponseEntity<Map<String, String>> setRemoteUrl(
+            @PathVariable UUID projectId,
+            @RequestBody Map<String, String> body,
+            Authentication authentication
+    ) {
+        String url = body.get("url");
+        if (url == null || url.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "URL is required"));
+        }
+        
+        versioningService.setRemoteUrl(projectId, url.trim());
+        return ResponseEntity.ok(Map.of("message", "Remote URL set successfully"));
+    }
+
     // ========== COMMITS ==========
 
     @GetMapping("/commits")
