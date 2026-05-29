@@ -16,9 +16,10 @@ type FileNode = {
   type: "FILE" | "FOLDER";
   children?: FileNode[] | null;
 };
-
 type FileExplorerProps = {
   tree?: FileNode[];
+  expanded: Record<string, boolean>;
+  setExpanded: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   onSelect: (path: string) => void;
   onCreate: (path: string, type: "FILE" | "FOLDER") => void;
   onDelete: (path: string) => void;
@@ -27,12 +28,13 @@ type FileExplorerProps = {
 
 export function FileExplorer({
   tree = [],
+  expanded,
+  setExpanded,
   onSelect,
   onCreate,
   onDelete,
   onClose,
 }: FileExplorerProps) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
 
   const [creationState, setCreationState] = useState<{ type: "FILE" | "FOLDER"; parentPath: string } | null>(null);

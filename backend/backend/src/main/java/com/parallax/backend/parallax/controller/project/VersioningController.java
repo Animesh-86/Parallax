@@ -29,7 +29,7 @@ public class VersioningController {
     public ResponseEntity<List<ProjectBranchResponse>> getBranches(@PathVariable UUID projectId) {
         // Ensure main branch exists
         var branches = versioningService.getBranches(projectId);
-        return ResponseEntity.ok(branches.stream().map(ProjectBranchResponse::from).toList());
+        return ResponseEntity.ok(branches);
     }
 
     @PostMapping("/branches")
@@ -48,7 +48,7 @@ public class VersioningController {
         versioningService.ensureMainBranch(projectId, userId);
 
         var branch = versioningService.createBranch(projectId, name, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectBranchResponse.from(branch));
+        return ResponseEntity.status(HttpStatus.CREATED).body(branch);
     }
 
     @PostMapping("/branches/ensure-main")
@@ -58,7 +58,45 @@ public class VersioningController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         var main = versioningService.ensureMainBranch(projectId, userId);
-        return ResponseEntity.ok(ProjectBranchResponse.from(main));
+        return ResponseEntity.ok(main);
+    }
+
+    @PostMapping("/branches/{branchName}/checkout")
+    public ResponseEntity<Void> checkoutBranch(
+            @PathVariable UUID projectId,
+            @PathVariable String branchName,
+            Authentication authentication
+    ) {
+        versioningService.checkoutBranch(projectId, branchName);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/branches/{branchName}")
+    public ResponseEntity<Void> deleteBranch(
+            @PathVariable UUID projectId,
+            @PathVariable String branchName,
+            Authentication authentication
+    ) {
+        try {
+            versioningService.deleteBranch(projectId, branchName);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/branches/{branchName}/push")
+    public ResponseEntity<Map<String, String>> pushBranch(
+            @PathVariable UUID projectId,
+            @PathVariable String branchName,
+            Authentication authentication
+    ) {
+        try {
+            versioningService.pushToRemote(projectId, branchName);
+            return ResponseEntity.ok(Map.of("message", "Successfully pushed to GitHub"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ========== COMMITS ==========
@@ -66,16 +104,16 @@ public class VersioningController {
     @GetMapping("/commits")
     public ResponseEntity<List<ProjectCommitResponse>> getCommits(@PathVariable UUID projectId) {
         var commits = versioningService.getCommits(projectId);
-        return ResponseEntity.ok(commits.stream().map(ProjectCommitResponse::from).toList());
+        return ResponseEntity.ok(commits);
     }
 
     @GetMapping("/branches/{branchId}/commits")
     public ResponseEntity<List<ProjectCommitResponse>> getBranchCommits(
             @PathVariable UUID projectId,
-            @PathVariable UUID branchId
+            @PathVariable String branchId
     ) {
-        var commits = versioningService.getBranchCommits(branchId);
-        return ResponseEntity.ok(commits.stream().map(ProjectCommitResponse::from).toList());
+        var commits = versioningService.getBranchCommits(projectId, branchId);
+        return ResponseEntity.ok(commits);
     }
 
     @PostMapping("/commits")
@@ -92,9 +130,8 @@ public class VersioningController {
             return ResponseEntity.badRequest().build();
         }
 
-        UUID branchId = UUID.fromString(branchIdStr);
-        var commit = versioningService.createCommit(projectId, branchId, userId, message);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectCommitResponse.from(commit));
+        var commit = versioningService.createCommit(projectId, branchIdStr, userId, message);
+        return ResponseEntity.status(HttpStatus.CREATED).body(commit);
     }
 
     // ========== MERGE REQUESTS ==========
@@ -129,8 +166,8 @@ public class VersioningController {
 
         var mr = versioningService.createMergeRequest(
                 projectId,
-                UUID.fromString(sourceBranchId),
-                UUID.fromString(targetBranchId),
+                sourceBranchId,
+                targetBranchId,
                 userId, title, description
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(MergeRequestResponse.from(mr));

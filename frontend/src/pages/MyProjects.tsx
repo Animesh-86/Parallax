@@ -92,11 +92,22 @@ export default function MyProjects() {
                 body: JSON.stringify({ name: projectName, language, githubRepoUrl, aiReviewEnabled }),
             });
 
-            if (!res.ok) throw new Error("Failed to create project");
+            if (!res.ok) {
+                let errorMsg = `Status: ${res.status} ${res.statusText}`;
+                try {
+                    const errorData = await res.json();
+                    if (errorData.message) errorMsg = errorData.message;
+                } catch (e) {
+                    const errorText = await res.text();
+                    if (errorText) errorMsg = errorText;
+                }
+                throw new Error(`Failed to create project: ${errorMsg}`);
+            }
 
             const created = await res.json();
             navigate(`/editor/${created.id}`);
         } catch (err: any) {
+            console.error("Create project error:", err);
             alert(err.message);
         }
     };

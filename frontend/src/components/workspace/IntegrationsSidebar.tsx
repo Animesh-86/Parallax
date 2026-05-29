@@ -1,13 +1,13 @@
 import { GitBranch, Puzzle, Settings, Bot, FolderOpen } from 'lucide-react';
 
 type IntegrationsSidebarProps = {
-  activeTool: "explorer" | "git" | "extensions" | "ai" | "settings" | null;
-  onSelectTool: (tool: "explorer" | "git" | "extensions" | "ai" | "settings" | null) => void;
+  activeTool: "explorer" | "git" | "extensions" | "settings" | null;
+  onSelectTool: (tool: "explorer" | "git" | "extensions" | "settings" | null) => void;
 };
 
 export function IntegrationsSidebar({ activeTool, onSelectTool }: IntegrationsSidebarProps) {
 
-  const handleToolClick = (tool: "explorer" | "git" | "extensions" | "ai" | "settings") => {
+  const handleToolClick = (tool: "explorer" | "git" | "extensions" | "settings") => {
     if (activeTool === tool) {
       onSelectTool(null); // Toggle off
     } else {
@@ -58,21 +58,6 @@ export function IntegrationsSidebar({ activeTool, onSelectTool }: IntegrationsSi
       >
         <Puzzle className="w-5 h-5" />
         {activeTool === 'extensions' && (
-          <div className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-[#A1A1AA] rounded-r" />
-        )}
-      </button>
-
-      {/* AI Assist */}
-      <button
-        onClick={() => handleToolClick('ai')}
-        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group relative ${activeTool === 'ai'
-            ? 'bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 text-[#A1A1AA] shadow-lg shadow-[#D4AF37]/20'
-            : 'hover:bg-white/10 text-white/60 hover:text-white'
-          }`}
-        title="AI Assist"
-      >
-        <Bot className={`w-5 h-5 ${activeTool !== 'ai' ? 'group-hover:text-[#D4AF37] transition-colors' : ''}`} />
-        {activeTool === 'ai' && (
           <div className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-[#A1A1AA] rounded-r" />
         )}
       </button>

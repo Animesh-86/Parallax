@@ -51,8 +51,6 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectAccessManager accessManager;
     private final TeamRepository teamRepository;
     private final TeamServiceImpl teamService;
-    private final com.parallax.backend.parallax.repository.project.ProjectBranchRepository projectBranchRepository;
-    private final com.parallax.backend.parallax.repository.project.ProjectCommitRepository projectCommitRepository;
     private final com.parallax.backend.parallax.repository.project.MergeRequestRepository mergeRequestRepository;
     private final com.parallax.backend.parallax.repository.chat.ChatRepository chatRepository;
     private final com.parallax.backend.parallax.repository.collaborator.ProjectInvitationRepository projectInvitationRepository;
@@ -106,13 +104,17 @@ public class ProjectServiceImpl implements ProjectService {
 
         List<ProjectFile> finalFiles;
         if (project.getGithubRepoUrl() != null && !project.getGithubRepoUrl().isBlank()) {
-            githubService.importRepositoryToProject(project, ownerId);
-            finalFiles = projectFileRepository.findByProjectId(project.getId());
+            finalFiles = githubService.importRepositoryToProject(project, ownerId);
+            if (!finalFiles.isEmpty()) {
+                projectFileRepository.saveAll(finalFiles);
+            }
         } else {
             finalFiles = createDefaultFiles(project.getId(), project.getLanguage());
             projectFileRepository.saveAll(finalFiles);
-            createProjectRootOnDisk(project.getId(), finalFiles);
         }
+
+        // ALWAYS create the root directory, even if GitHub import failed and finalFiles is empty
+        createProjectRootOnDisk(project.getId(), finalFiles);
 
         return ProjectResponse.from(project, finalFiles, null);
     }
@@ -495,8 +497,6 @@ public class ProjectServiceImpl implements ProjectService {
         projectFileRepository.deleteByProjectId(projectId);
         chatRepository.deleteByProjectId(projectId);
         mergeRequestRepository.deleteByProject_Id(projectId);
-        projectCommitRepository.deleteByProject_Id(projectId);
-        projectBranchRepository.deleteByProject_Id(projectId);
         projectInvitationRepository.deleteByProjectId(projectId);
         collaboratorRepo.deleteByProjectId(projectId);
         

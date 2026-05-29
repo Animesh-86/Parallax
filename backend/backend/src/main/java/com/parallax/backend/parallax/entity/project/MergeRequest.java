@@ -28,13 +28,11 @@ public class MergeRequest {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "source_branch_id", nullable = false)
-    private ProjectBranch sourceBranch;
+    @Column(name = "source_branch_name", nullable = true)
+    private String sourceBranch;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "target_branch_id", nullable = false)
-    private ProjectBranch targetBranch;
+    @Column(name = "target_branch_name", nullable = true)
+    private String targetBranch;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", nullable = false)
@@ -63,7 +61,7 @@ public class MergeRequest {
     @Column(name = "merged_at")
     private Instant mergedAt;
 
-    public MergeRequest(Project project, ProjectBranch sourceBranch, ProjectBranch targetBranch, User author, String title) {
+    public MergeRequest(Project project, String sourceBranch, String targetBranch, User author, String title) {
         this.project = project;
         this.sourceBranch = sourceBranch;
         this.targetBranch = targetBranch;

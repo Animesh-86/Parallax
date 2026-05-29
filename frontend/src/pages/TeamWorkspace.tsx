@@ -3,7 +3,6 @@ import { Users, Loader, AlertCircle, UserPlus, Settings, TrendingUp, FileText, L
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { NotificationBell } from '../components/NotificationBell';
-import { CosmicStars } from '../components/workspace/CosmicStars';
 import { teamApi, Team, TeamMember, TeamProject } from '../services/teamApi';
 import { collabApi } from '../services/collabApi';
 import { QuickCreateModal } from '../components/modals/QuickCreateModal';
@@ -28,6 +27,7 @@ function TeamWorkspaceContent() {
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProjects, setLoadingProjects] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
@@ -133,14 +133,23 @@ function TeamWorkspaceContent() {
         body: JSON.stringify({ name: projectName, language, teamId, githubRepoUrl, aiReviewEnabled }),
       });
 
-      if (!res.ok) throw new Error('Failed to create project');
-      const created = await res.json();
-      setIsCreateProjectModalOpen(false);
-      fetchTeamProjects();
-      navigate(`/editor/${created.id}`);
-    } catch (err) {
+      if (!res.ok) {
+        let errorMsg = `Status: ${res.status} ${res.statusText}`;
+        try {
+            const errorData = await res.json();
+            if (errorData.message) errorMsg = errorData.message;
+        } catch (e) {
+            const errorText = await res.text();
+            if (errorText) errorMsg = errorText;
+        }
+        throw new Error(errorMsg);
+      }
+      
+      const data = await res.json();
+      navigate(`/editor/${data.id}`);
+    } catch (err: any) {
       console.error('Failed to create project:', err);
-      setError('Failed to create project');
+      setError(`Failed to create project: ${err.message}`);
     }
   };
 
@@ -162,7 +171,6 @@ function TeamWorkspaceContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#09090B] text-white flex items-center justify-center">
-        <CosmicStars />
         <div className="text-center z-10">
           <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-[#D4AF37]" />
           <p>Loading team...</p>
@@ -174,7 +182,6 @@ function TeamWorkspaceContent() {
   if (error || !team) {
     return (
       <div className="min-h-screen bg-[#09090B] text-white flex items-center justify-center">
-        <CosmicStars />
         <div className="text-center z-10">
           <AlertCircle className="w-12 h-12 text-[#EF6461] mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2">{error || 'Team not found'}</h2>
@@ -192,7 +199,6 @@ function TeamWorkspaceContent() {
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white relative overflow-hidden">
-      <CosmicStars />
       <div className="fixed inset-0 pointer-events-none opacity-10">
         <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#D4AF37] rounded-full blur-[150px]" />
         <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-[#A1A1AA] rounded-full blur-[150px]" />

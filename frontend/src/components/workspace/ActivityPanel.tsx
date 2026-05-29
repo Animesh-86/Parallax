@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GitCommit, GitBranch, GitMerge, Clock, User, ChevronDown, Plus, Loader, AlertCircle, Check, X } from 'lucide-react';
+import { GitCommit, GitBranch, GitMerge, Clock, User, ChevronDown, Plus, Loader, AlertCircle, Check, X, PlayCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { versioningApi, ProjectCommit, ProjectBranch, MergeRequestData } from '../../services/versioningApi';
 import { CreatePullRequestModal } from './CreatePullRequestModal';
@@ -22,6 +22,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
   const [showNewBranch, setShowNewBranch] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isPrModalOpen, setIsPrModalOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -31,7 +32,9 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
     try {
       setLoading(true);
       const [commitsData, branchesData, mrData] = await Promise.all([
-        versioningApi.getCommits(projectId),
+        activeBranchId 
+          ? versioningApi.getCommits(projectId, activeBranchId)
+          : versioningApi.getCommits(projectId),
         versioningApi.getBranches(projectId),
         versioningApi.getMergeRequests(projectId),
       ]);
@@ -59,6 +62,20 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
     }
   };
 
+  const handlePush = async () => {
+    if (!activeBranchId || submitting) return;
+    try {
+      setSubmitting(true);
+      await versioningApi.pushBranch(projectId, activeBranchId);
+      alert('Successfully pushed to GitHub');
+    } catch (err: any) {
+      console.error('Failed to push:', err);
+      alert('Failed to push: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCreateBranch = async () => {
     if (!newBranchName.trim() || submitting) return;
     try {
@@ -67,6 +84,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
       setNewBranchName('');
       setShowNewBranch(false);
       setBranches(prev => [branch, ...prev]);
+      onBranchChange(branch);
     } catch (err) {
       console.error('Failed to create branch:', err);
     } finally {
@@ -83,8 +101,21 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
     }
   };
 
-  const formatTime = (ts: string) => {
-    const d = new Date(ts);
+  const handleDeleteBranch = async (branchId: string, branchName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm(`Are you sure you want to delete branch '${branchName}'?`)) {
+      try {
+        await versioningApi.deleteBranch(projectId, branchName);
+        loadData();
+      } catch (err) {
+        alert('Failed to delete branch. Ensure it is not the main branch and you do not have it checked out.');
+      }
+    }
+  };
+
+  const formatTime = (ts: any) => {
+    if (!ts) return '';
+    const d = new Date(typeof ts === 'number' ? (ts > 1e11 ? ts : ts * 1000) : ts);
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const mins = Math.floor(diffMs / 60000);
@@ -117,32 +148,78 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
 
   return (
     <div className="bg-[#09090B] border border-white/5 rounded-2xl overflow-hidden">
-      {/* Tab Bar */}
-      <div className="flex border-b border-white/5 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {[
-          { id: 'commits' as const, label: 'Commits', icon: GitCommit, count: commits.length },
-          { id: 'branches' as const, label: 'Branches', icon: GitBranch, count: branches.length },
-          { id: 'merge-requests' as const, label: 'Merge Requests', icon: GitMerge, count: mergeRequests.filter(m => m.status === 'OPEN').length },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 shrink-0 whitespace-nowrap px-4 py-3 text-xs font-medium flex items-center justify-center gap-2 transition-all border-b-2 ${
-                activeTab === tab.id
-                  ? 'border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/5'
-                  : 'border-transparent text-white/50 hover:text-white/80 hover:bg-white/5'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {tab.label}
-              {tab.count > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/10 text-[10px]">{tab.count}</span>
-              )}
-            </button>
-          );
-        })}
+      {/* Current Branch Banner */}
+      <div className="px-4 py-3 bg-[#D4AF37]/5 border-b border-[#D4AF37]/20 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <GitBranch className="w-4 h-4 text-[#D4AF37]" />
+          <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">Current Branch</span>
+        </div>
+        <span className="text-sm font-mono font-bold text-[#D4AF37]">
+          {activeBranchId ? branches.find(b => b.id === activeBranchId)?.name || '...' : '...'}
+        </span>
+      </div>
+
+      {/* Tab Dropdown */}
+      <div className="relative p-2 border-b border-white/5">
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="w-full px-3 py-2 text-sm font-medium flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10"
+        >
+          <div className="flex items-center gap-2">
+            {activeTab === 'commits' && <GitCommit className="w-4 h-4 text-[#D4AF37]" />}
+            {activeTab === 'branches' && <GitBranch className="w-4 h-4 text-[#D4AF37]" />}
+            {activeTab === 'merge-requests' && <GitMerge className="w-4 h-4 text-[#D4AF37]" />}
+            <span>
+              {activeTab === 'commits' ? 'Commits' : activeTab === 'branches' ? 'Branches' : 'Pull Requests'}
+            </span>
+          </div>
+          <ChevronDown className={`w-4 h-4 text-white/50 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        <AnimatePresence>
+          {isDropdownOpen && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setIsDropdownOpen(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full left-2 right-2 mt-1 bg-[#09090B] border border-white/10 rounded-lg overflow-hidden shadow-2xl z-50 py-1"
+              >
+                {[
+                  { id: 'commits' as const, label: 'Commits', icon: GitCommit, count: commits.length },
+                  { id: 'branches' as const, label: 'Branches', icon: GitBranch, count: branches.length },
+                  { id: 'merge-requests' as const, label: 'Pull Requests', icon: GitMerge, count: mergeRequests.filter(m => m.status === 'OPEN').length },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-sm flex items-center justify-between hover:bg-white/5 transition-colors ${
+                        activeTab === tab.id ? 'text-[#D4AF37] bg-white/5' : 'text-white/70'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4" />
+                        {tab.label}
+                      </div>
+                      {tab.count > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px]">{tab.count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Commits Tab */}
@@ -167,6 +244,15 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
                 >
                   Commit
                 </button>
+                {githubRepoUrl && (
+                  <button
+                    onClick={handlePush}
+                    disabled={submitting}
+                    className="px-4 py-2 bg-blue-600 rounded-lg text-xs font-medium text-white disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                  >
+                    Push
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -252,25 +338,33 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
 
           <div className="max-h-[400px] overflow-y-auto divide-y divide-white/5">
             {branches.map((branch) => (
-              <button
-                key={branch.id}
-                onClick={() => onBranchChange(branch)}
-                className={`w-full px-4 py-3 text-left hover:bg-white/[0.02] transition-colors flex items-center gap-3 ${
-                  activeBranchId === branch.id ? 'bg-[#D4AF37]/5' : ''
-                }`}
-              >
-                <GitBranch className={`w-4 h-4 shrink-0 ${branch.isMain ? 'text-[#D4AF37]' : 'text-white/40'}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {branch.name}
-                    {branch.isMain && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37]">default</span>}
-                  </p>
-                  <p className="text-xs text-white/40 mt-0.5">by {branch.createdByName} · {formatTime(branch.createdAt)}</p>
-                </div>
-                {activeBranchId === branch.id && (
-                  <div className="w-2 h-2 rounded-full bg-[#4ADE80]" />
+              <div key={branch.id} className={`flex items-center w-full transition-colors ${activeBranchId === branch.id ? 'bg-[#D4AF37]/5' : ''}`}>
+                <button
+                  onClick={() => onBranchChange(branch)}
+                  className="flex-1 min-w-0 text-left px-4 py-3 hover:bg-white/[0.02] transition-colors flex items-center gap-3"
+                >
+                  <GitBranch className={`w-4 h-4 shrink-0 ${branch.isMain ? 'text-[#D4AF37]' : 'text-white/40'}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {branch.name}
+                      {branch.isMain && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37]">default</span>}
+                    </p>
+                    <p className="text-xs text-white/40 mt-0.5">by {branch.createdByName} · {formatTime(branch.createdAt)}</p>
+                  </div>
+                  {activeBranchId === branch.id && (
+                    <div className="w-2 h-2 rounded-full bg-[#4ADE80]" />
+                  )}
+                </button>
+                {!branch.isMain && (
+                  <button 
+                    onClick={(e) => handleDeleteBranch(branch.id, branch.name, e)}
+                    className="p-3 text-white/30 hover:text-red-400 transition-colors"
+                    title="Delete branch"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 )}
-              </button>
+              </div>
             ))}
           </div>
         </div>

@@ -12,7 +12,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 public class ProjectBranchResponse {
-    private UUID id;
+    private String id;
     private UUID projectId;
     private String name;
     private boolean isMain;
@@ -20,15 +20,4 @@ public class ProjectBranchResponse {
     private String createdByName;
     private Instant createdAt;
 
-    public static ProjectBranchResponse from(ProjectBranch branch) {
-        return ProjectBranchResponse.builder()
-                .id(branch.getId())
-                .projectId(branch.getProject().getId())
-                .name(branch.getName())
-                .isMain(branch.isMain())
-                .createdById(branch.getCreatedBy().getId())
-                .createdByName(branch.getCreatedBy().getFullName())
-                .createdAt(branch.getCreatedAt())
-                .build();
-    }
 }

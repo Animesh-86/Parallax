@@ -58,14 +58,30 @@ export const versioningApi = {
     return res.data;
   },
 
+  deleteBranch: async (projectId: string, name: string): Promise<void> => {
+    await api.delete(`/api/projects/${projectId}/versioning/branches/${encodeURIComponent(name)}`);
+  },
+
   ensureMainBranch: async (projectId: string): Promise<ProjectBranch> => {
     const res = await api.post(`/api/projects/${projectId}/versioning/branches/ensure-main`);
     return res.data;
   },
 
+  checkoutBranch: async (projectId: string, branchName: string): Promise<void> => {
+    await api.post(`/api/projects/${projectId}/versioning/branches/${branchName}/checkout`);
+  },
+
+  pushBranch: async (projectId: string, branchName: string): Promise<{message: string}> => {
+    const res = await api.post(`/api/projects/${projectId}/versioning/branches/${branchName}/push`);
+    return res.data;
+  },
+
   // Commits
-  getCommits: async (projectId: string): Promise<ProjectCommit[]> => {
-    const res = await api.get(`/api/projects/${projectId}/versioning/commits`);
+  getCommits: async (projectId: string, branchId?: string): Promise<ProjectCommit[]> => {
+    const url = branchId 
+      ? `/api/projects/${projectId}/versioning/branches/${encodeURIComponent(branchId)}/commits`
+      : `/api/projects/${projectId}/versioning/commits`;
+    const res = await api.get(url);
     return res.data;
   },
 

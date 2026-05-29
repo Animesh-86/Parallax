@@ -14,7 +14,6 @@ import { AiChatPanel } from "../components/chat/AiChatPanel";
 import { projectChatWs } from "../services/wsChatClient";
 import { ActivityPanel } from "../components/workspace/ActivityPanel";
 import { versioningApi, ProjectBranch } from "../services/versioningApi";
-import { CosmicStars } from "../components/workspace/CosmicStars";
 import { MessageCircle, Video, Users, Bot, Settings, GitBranch, Puzzle, X, Play } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
@@ -46,7 +45,7 @@ export default function Workspace() {
   const { projectId } = useParams();
 
   /* Left Panel Tools State */
-  type LeftTool = "explorer" | "git" | "extensions" | "ai" | "settings" | null;
+  type LeftTool = "explorer" | "git" | "extensions" | "settings" | null;
   const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("explorer");
 
   const toggleLeftTool = (tool: LeftTool) => {
@@ -59,6 +58,7 @@ export default function Workspace() {
 
   /* Main Workspace State */
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
+  const [expandedFileTree, setExpandedFileTree] = useState<Record<string, boolean>>({});
   const [openFiles, setOpenFiles] = useState<string[]>([]);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState("");
@@ -81,15 +81,13 @@ export default function Workspace() {
 
 
   /* Right Panel Tools State */
-  type RightTool = "video" | "chat" | "collaborators" | "ai" | "settings" | null;
-  const [activeTool, setActiveTool] = useState<RightTool>("collaborators");
+  type RightTool = "video" | "chat" | "collaborators" | "ai";
+  const [activeRightTools, setActiveRightTools] = useState<RightTool[]>(["collaborators"]);
   
   const toggleRightTool = (tool: RightTool) => {
-    if (activeTool === tool) {
-      setActiveTool(null);
-    } else {
-      setActiveTool(tool);
-    }
+    setActiveRightTools((prev) => 
+      prev.includes(tool) ? prev.filter(t => t !== tool) : [...prev, tool]
+    );
   };
 
   const templates = [
@@ -131,7 +129,16 @@ export default function Workspace() {
     const initVersioning = async () => {
       try {
         const mainBranch = await versioningApi.ensureMainBranch(projectId);
-        setActiveBranch(mainBranch);
+        const allBranches = await versioningApi.getBranches(projectId);
+        const savedBranchId = localStorage.getItem(`activeBranch_${projectId}`);
+        
+        let targetBranch = mainBranch;
+        if (savedBranchId) {
+          const found = allBranches.find(b => b.id === savedBranchId);
+          if (found) targetBranch = found;
+        }
+        
+        setActiveBranch(targetBranch);
       } catch (err) {
         console.error('Failed to init versioning:', err);
       }
@@ -277,8 +284,6 @@ export default function Workspace() {
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white overflow-hidden relative">
-      <CosmicStars />
-
       <div className="flex h-screen overflow-hidden">
         <div className="flex flex-1 min-w-0">
           <div className="hidden md:block h-full">
@@ -291,8 +296,8 @@ export default function Workspace() {
           {activeLeftTool && (
             <div style={{ width: leftPanelWidth }} className="flex-shrink-0 flex bg-[#09090B] border-r border-white/5">
               <div className="flex-1 overflow-hidden flex flex-col">
-                {activeLeftTool === "explorer" && (
-                  loadingTree ? (
+                <div className={activeLeftTool === "explorer" ? "flex flex-col h-full" : "hidden"}>
+                  {loadingTree ? (
                     <div className="space-y-3 p-4">
                       <Skeleton className="h-6 w-2/3 bg-white/10" />
                       <Skeleton className="h-4 w-full bg-white/10" />
@@ -302,16 +307,18 @@ export default function Workspace() {
                   ) : (
                     <FileExplorer
                       tree={fileTree}
+                      expanded={expandedFileTree}
+                      setExpanded={setExpandedFileTree}
                       onSelect={openFile}
                       onCreate={createEntry}
                       onDelete={deleteEntry}
                       onClose={() => setActiveLeftTool(null)}
                     />
-                  )
-                )}
+                  )}
+                </div>
 
-                {activeLeftTool === "git" && projectId && (
-                  <div className="flex flex-col h-full w-full">
+                {projectId && (
+                  <div className={activeLeftTool === "git" ? "flex flex-col h-full w-full" : "hidden"}>
                     <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
                       <span className="text-xs font-semibold tracking-wide text-white/60">SOURCE CONTROL</span>
                       <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
@@ -320,31 +327,40 @@ export default function Workspace() {
                       <ActivityPanel
                         projectId={projectId}
                         activeBranchId={activeBranch?.id || null}
-                        onBranchChange={(branch) => setActiveBranch(branch)}
+                        onBranchChange={async (b) => {
+                          setActiveBranch(b);
+                          localStorage.setItem(`activeBranch_${projectId}`, b.id);
+                          try {
+                            await versioningApi.checkoutBranch(projectId, b.name);
+                            // Refresh file tree if we switch branches
+                            const newTree = await fileSystemApi.getDirectory(projectId, '/');
+                            setFileTree(newTree);
+                            
+                            // Reload active file content if one is open
+                            if (activeFile) {
+                              const content = await fileSystemApi.getFile(projectId, activeFile);
+                              setFileContent(content);
+                            }
+                          } catch (e) {
+                            console.error('Failed to checkout branch:', e);
+                          }
+                        }}
                         githubRepoUrl={projectSettings?.githubRepoUrl}
                       />
                     </div>
                   </div>
                 )}
 
-                {activeLeftTool === "extensions" && projectId && (
-                  <ExtensionsPanel projectId={projectId} />
-                )}
-
-                {activeLeftTool === "ai" && (
-                  <div className="flex flex-col h-full w-full">
-                    <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
-                      <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
-                      <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile} />
-                    </div>
+                {projectId && (
+                  <div className={activeLeftTool === "extensions" ? "flex flex-col h-full w-full" : "hidden"}>
+                    <ExtensionsPanel projectId={projectId} />
                   </div>
                 )}
 
-                {activeLeftTool === "settings" && projectId && (
-                  <div className="flex flex-col h-full w-full">
+
+
+                {projectId && (
+                  <div className={activeLeftTool === "settings" ? "flex flex-col h-full w-full" : "hidden"}>
                     <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
                       <span className="text-xs font-semibold tracking-wide text-white/60">PROJECT SETTINGS</span>
                       <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
@@ -423,7 +439,7 @@ export default function Workspace() {
           </div>
         </div>
 
-        {activeTool && (
+        {activeRightTools.length > 0 && (
           <div
             className="w-1 cursor-col-resize bg-white/5 hover:bg-white/20 active:bg-[#D4AF37]/30 transition-colors"
             onMouseDown={handleRightDragMouseDown}
@@ -431,82 +447,76 @@ export default function Workspace() {
         )}
 
         {/* Right Panel Content */}
-        {activeTool && (
+        {activeRightTools.length > 0 && (
           <div
-            className="flex h-full flex-shrink-0 bg-[#09090B] border-l border-white/5"
+            className="flex flex-col h-full flex-shrink-0 bg-[#09090B] border-l border-white/5"
             style={{ width: rightPanelWidth }}
           >
-            <div className="flex-1 overflow-hidden">
-              {activeTool === "video" && <VideoPanel mode="video" onModeChange={() => { }} />}
-              {activeTool === "chat" && projectId && (
-                <UnifiedChatPanel 
-                  contextId={projectId} 
-                  contextType="PROJECT" 
-                  contextName={projectName}
-                  wsClient={projectChatWs} 
-                />
-              )}
-              {activeTool === "collaborators" && <ParticipantsList />}
-              {activeTool === "ai" && (
-                <div className="flex flex-col h-full w-full">
-                  <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 shrink-0">
-                    <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
-                    <button onClick={() => setActiveTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
+            {activeRightTools.map((tool, index) => (
+              <div 
+                key={tool} 
+                className={`flex-1 overflow-hidden flex flex-col min-h-[250px] ${index > 0 ? 'border-t border-white/10' : ''}`}
+              >
+                {tool === "video" && <VideoPanel mode="video" onModeChange={() => { }} onClose={() => toggleRightTool("video")} />}
+                
+                {tool === "chat" && projectId && (
+                  <UnifiedChatPanel 
+                    contextId={projectId} 
+                    contextType="PROJECT" 
+                    contextName={projectName}
+                    wsClient={projectChatWs}
+                    onClose={() => toggleRightTool("chat")} 
+                  />
+                )}
+                
+                {tool === "collaborators" && <ParticipantsList onClose={() => toggleRightTool("collaborators")} />}
+                
+                {tool === "ai" && (
+                  <div className="flex flex-col h-full w-full">
+                    <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 shrink-0">
+                      <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
+                      <button onClick={() => toggleRightTool("ai")} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile} />
+                    </div>
                   </div>
-                  <div className="flex-1 overflow-hidden">
-                    <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile} />
-                  </div>
-                </div>
-              )}
-              {activeTool === "settings" && projectId && (
-                <div className="flex flex-col h-full w-full">
-                  <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
-                    <span className="text-xs font-semibold tracking-wide text-white/60">PROJECT SETTINGS</span>
-                    <button onClick={() => setActiveTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
-                  </div>
-                  <ProjectSettingsPanel projectId={projectId} onUpdate={() => fetchProjectName()} />
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
+
 
         {/* Right Panel Icons (Always Visible) */}
         <div className="flex flex-col items-center gap-4 w-14 py-4 border-l border-white/10 bg-[#09090B]">
           <button
             onClick={() => toggleRightTool("collaborators")}
             title="Collaborators"
-            className={`p-2 rounded-xl transition-all ${activeTool === "collaborators" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeRightTools.includes("collaborators") ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <Users size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("chat")}
             title="Chat"
-            className={`p-2 rounded-xl transition-all ${activeTool === "chat" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeRightTools.includes("chat") ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <MessageCircle size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("video")}
             title="Video Call"
-            className={`p-2 rounded-xl transition-all ${activeTool === "video" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeRightTools.includes("video") ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <Video size={20} />
           </button>
           <button
             onClick={() => toggleRightTool("ai")}
             title="AI Assistant"
-            className={`p-2 rounded-xl transition-all ${activeTool === "ai" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+            className={`p-2 rounded-xl transition-all ${activeRightTools.includes("ai") ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
           >
             <Bot size={20} />
-          </button>
-          <button
-            onClick={() => toggleRightTool("settings")}
-            title="Settings"
-            className={`p-2 rounded-xl transition-all ${activeTool === "settings" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
-          >
-            <Settings size={20} />
           </button>
         </div>
       </div>

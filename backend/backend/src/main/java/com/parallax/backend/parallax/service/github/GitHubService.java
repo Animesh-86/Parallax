@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.parallax.backend.parallax.entity.project.Project;
 import com.parallax.backend.parallax.repository.project.ProjectRepository;
 import com.parallax.backend.parallax.service.ai.AiReviewService;
+import com.parallax.backend.parallax.entity.file.ProjectFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -64,9 +66,10 @@ public class GitHubService {
         }
     }
 
-    public void importRepositoryToProject(Project project, java.util.UUID userId) {
+    public List<ProjectFile> importRepositoryToProject(Project project, java.util.UUID userId) {
+        List<ProjectFile> files = new java.util.ArrayList<>();
         if (project.getGithubRepoUrl() == null || project.getGithubRepoUrl().isEmpty()) {
-            return;
+            return files;
         }
 
         try {
@@ -76,7 +79,7 @@ public class GitHubService {
             if (url.endsWith(".git")) url = url.substring(0, url.length() - 4);
 
             String[] parts = url.split("/");
-            if (parts.length < 2) return;
+            if (parts.length < 2) return files;
             String repo = parts[parts.length - 1];
             String owner = parts[parts.length - 2];
 
@@ -102,11 +105,9 @@ public class GitHubService {
                             String projectPath = filePath.substring(firstSlash + 1);
 
                             if (zipEntry.isDirectory()) {
-                                try {
-                                    fileService.createFile(project.getId(), projectPath, "FOLDER", userId);
-                                } catch (Exception e) {
-                                    // Ignore already exists
-                                }
+                                // Add folder
+                                ProjectFile pf = new ProjectFile(java.util.UUID.randomUUID(), project.getId(), projectPath, null, "FOLDER");
+                                files.add(pf);
                             } else {
                                 java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
                                 int nRead;
@@ -115,13 +116,13 @@ public class GitHubService {
                                     buffer.write(data, 0, nRead);
                                 }
                                 String content = new String(buffer.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+                                
+                                // Clean up content (e.g. remove null bytes that crash PostgreSQL)
+                                content = content.replace("\0", "");
 
-                                try {
-                                    fileService.createFile(project.getId(), projectPath, "FILE", userId);
-                                    fileService.save(project.getId(), projectPath, content, userId);
-                                } catch (Exception e) {
-                                    log.warn("Failed to create/save file {} in project {}", projectPath, project.getId());
-                                }
+                                // Add file
+                                ProjectFile pf = new ProjectFile(java.util.UUID.randomUUID(), project.getId(), projectPath, content, "FILE");
+                                files.add(pf);
                             }
                         }
                         zipEntry = zis.getNextEntry();
@@ -134,6 +135,7 @@ public class GitHubService {
         } catch (Exception e) {
             log.error("Failed to import repository to project {}", project.getId(), e);
         }
+        return files;
     }
 
     public void createPullRequest(Project project, String branchName, String prTitle, String commitMessage) {

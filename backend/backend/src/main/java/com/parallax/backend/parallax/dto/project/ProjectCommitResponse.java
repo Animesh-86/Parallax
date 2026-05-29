@@ -7,7 +7,7 @@ import java.util.UUID;
 public class ProjectCommitResponse {
     private UUID id;
     private UUID projectId;
-    private UUID branchId;
+    private String branchId;
     private String branchName;
     private UUID authorId;
     private String authorName;
@@ -16,7 +16,7 @@ public class ProjectCommitResponse {
 
     public ProjectCommitResponse() {}
 
-    public ProjectCommitResponse(UUID id, UUID projectId, UUID branchId, String branchName, UUID authorId, String authorName, String message, Instant committedAt) {
+    public ProjectCommitResponse(UUID id, UUID projectId, String branchId, String branchName, UUID authorId, String authorName, String message, Instant committedAt) {
         this.id = id;
         this.projectId = projectId;
         this.branchId = branchId;
@@ -33,8 +33,8 @@ public class ProjectCommitResponse {
     public UUID getProjectId() { return projectId; }
     public void setProjectId(UUID projectId) { this.projectId = projectId; }
 
-    public UUID getBranchId() { return branchId; }
-    public void setBranchId(UUID branchId) { this.branchId = branchId; }
+    public String getBranchId() { return branchId; }
+    public void setBranchId(String branchId) { this.branchId = branchId; }
 
     public String getBranchName() { return branchName; }
     public void setBranchName(String branchName) { this.branchName = branchName; }
@@ -58,7 +58,7 @@ public class ProjectCommitResponse {
     public static class Builder {
         private UUID id;
         private UUID projectId;
-        private UUID branchId;
+        private String branchId;
         private String branchName;
         private UUID authorId;
         private String authorName;
@@ -67,7 +67,7 @@ public class ProjectCommitResponse {
 
         public Builder id(UUID id) { this.id = id; return this; }
         public Builder projectId(UUID projectId) { this.projectId = projectId; return this; }
-        public Builder branchId(UUID branchId) { this.branchId = branchId; return this; }
+        public Builder branchId(String branchId) { this.branchId = branchId; return this; }
         public Builder branchName(String branchName) { this.branchName = branchName; return this; }
         public Builder authorId(UUID authorId) { this.authorId = authorId; return this; }
         public Builder authorName(String authorName) { this.authorName = authorName; return this; }
@@ -79,16 +79,4 @@ public class ProjectCommitResponse {
         }
     }
 
-    public static ProjectCommitResponse from(ProjectCommit commit) {
-        return ProjectCommitResponse.builder()
-                .id(commit.getId())
-                .projectId(commit.getProject().getId())
-                .branchId(commit.getBranch().getId())
-                .branchName(commit.getBranch().getName())
-                .authorId(commit.getAuthor().getId())
-                .authorName(commit.getAuthor().getFullName())
-                .message(commit.getMessage())
-                .committedAt(commit.getCommittedAt())
-                .build();
-    }
 }

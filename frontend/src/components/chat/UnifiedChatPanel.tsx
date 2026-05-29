@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { MessageSquare, Smile, Send, Hash, Phone, Video, Headphones } from 'lucide-react';
+import { MessageSquare, Smile, Send, Hash, Phone, Video, Headphones, X } from 'lucide-react';
 import { ChatWebSocketClient, GenericChatMessage } from '../../services/wsChatClient';
 import { useVoice } from '../../context/VoiceContext';
 import { getAvatarInitials } from '../../services/userUtils';
@@ -11,9 +11,10 @@ interface UnifiedChatPanelProps {
     contextType: "PROJECT" | "TEAM";
     contextName?: string;
     wsClient: ChatWebSocketClient;
+    onClose?: () => void;
 }
 
-export function UnifiedChatPanel({ contextId, channelId, contextType, contextName, wsClient }: UnifiedChatPanelProps) {
+export function UnifiedChatPanel({ contextId, channelId, contextType, contextName, wsClient, onClose }: UnifiedChatPanelProps) {
     const { joinCall } = useVoice();
     const [messages, setMessages] = useState<GenericChatMessage[]>([]);
     const [input, setInput] = useState('');
@@ -132,6 +133,11 @@ export function UnifiedChatPanel({ contextId, channelId, contextType, contextNam
                         >
                             <Video className="w-3.5 h-3.5" />
                         </button>
+                        {onClose && (
+                            <button onClick={onClose} className="ml-1 p-1.5 hover:bg-white/10 rounded-lg text-white/60 transition-colors">
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

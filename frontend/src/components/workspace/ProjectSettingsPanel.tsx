@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Shield, Terminal, Trash2, Users, Info, ChevronRight, Check, X, Type, Layout, Cpu, Globe } from 'lucide-react';
+import { Settings, Save, Shield, Terminal, Trash2, Users, Info, ChevronRight, Check, X, Type, Layout, Cpu, Globe, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { projectSettingsApi } from '../../services/projectSettingsApi';
 import { collabApi, Collaborator } from '../../services/collabApi';
@@ -38,6 +39,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [teamInfo, setTeamInfo] = useState<{ id?: string; name?: string }>({});
   const [runtimeName, setRuntimeName] = useState('Standard Sandbox');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -130,32 +132,71 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
 
   return (
     <div className="flex flex-col h-full bg-[#09090B] text-white">
-      {/* Tab Bar */}
-      <div className="flex border-b border-white/5 bg-white/[0.02] overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {[
-          { id: 'general', icon: Info, label: 'General' },
-          { id: 'editor', icon: Type, label: 'Editor' },
-          { id: 'environment', icon: Cpu, label: 'Runtime' },
-          { id: 'collaborators', icon: Users, label: 'Team' },
-          { id: 'danger', icon: Shield, label: 'Danger' }
-        ].map((tab) => {
-          if (tab.id === 'collaborators' && !teamInfo.id) return null;
-          const Icon = tab.icon;
-          return (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 shrink-0 whitespace-nowrap px-3 py-3 text-[10px] uppercase tracking-wider font-bold flex items-center justify-center gap-1.5 transition-all ${
-                activeTab === tab.id 
-                  ? 'text-[#D4AF37] border-b-2 border-[#D4AF37] bg-white/5' 
-                  : 'text-white/30 hover:text-white/60 hover:bg-white/5'
-              }`}
-            >
-              <Icon className="w-3 h-3" />
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Tab Dropdown */}
+      <div className="relative p-2 border-b border-white/5 bg-white/[0.02]">
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="w-full px-3 py-2 text-sm font-medium flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10"
+        >
+          <div className="flex items-center gap-2">
+            {activeTab === 'general' && <Info className="w-4 h-4 text-[#D4AF37]" />}
+            {activeTab === 'editor' && <Type className="w-4 h-4 text-[#D4AF37]" />}
+            {activeTab === 'environment' && <Cpu className="w-4 h-4 text-[#D4AF37]" />}
+            {activeTab === 'collaborators' && <Users className="w-4 h-4 text-[#D4AF37]" />}
+            {activeTab === 'danger' && <Shield className="w-4 h-4 text-[#EF6461]" />}
+            <span className="uppercase tracking-wider font-bold text-[10px]">
+              {activeTab === 'general' ? 'General' : activeTab === 'editor' ? 'Editor' : activeTab === 'environment' ? 'Runtime' : activeTab === 'collaborators' ? 'Team' : 'Danger'}
+            </span>
+          </div>
+          <ChevronDown className={`w-4 h-4 text-white/50 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        <AnimatePresence>
+          {isDropdownOpen && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setIsDropdownOpen(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full left-2 right-2 mt-1 bg-[#1A1A1A] border border-white/10 rounded-lg overflow-hidden shadow-xl z-50 py-1"
+              >
+                {[
+                  { id: 'general', icon: Info, label: 'General' },
+                  { id: 'editor', icon: Type, label: 'Editor' },
+                  { id: 'environment', icon: Cpu, label: 'Runtime' },
+                  { id: 'collaborators', icon: Users, label: 'Team' },
+                  { id: 'danger', icon: Shield, label: 'Danger' }
+                ].map((tab) => {
+                  if (tab.id === 'collaborators' && !teamInfo.id) return null;
+                  const Icon = tab.icon;
+                  return (
+                    <button 
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id as any);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-sm flex items-center justify-between hover:bg-white/5 transition-colors ${
+                        activeTab === tab.id ? 'text-[#D4AF37] bg-white/5' : 'text-white/70'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className={`w-4 h-4 ${tab.id === 'danger' ? (activeTab === tab.id ? 'text-[#EF6461]' : '') : ''}`} />
+                        <span className="uppercase tracking-wider font-bold text-[10px]">
+                          {tab.label}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Content */}
@@ -200,7 +241,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
               </div>
               <button 
                 onClick={() => setAiReviewEnabled(!aiReviewEnabled)}
-                className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${aiReviewEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'}`}
+                className={`shrink-0 relative w-10 h-5 rounded-full transition-colors duration-300 ${aiReviewEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'}`}
               >
                 <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-black transition-transform duration-300 ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>

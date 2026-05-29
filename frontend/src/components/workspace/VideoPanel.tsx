@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Mic, MicOff, Video, VideoOff, Monitor, Settings, PhoneOff, Phone } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Monitor, Settings, PhoneOff, Phone, X } from 'lucide-react';
 import { useVoice } from '../../context/VoiceContext';
 import { useCollab } from '../../context/CollaborationContext';
 import { cn } from '../../components/ui/utils';
@@ -10,6 +10,7 @@ import { getAvatarInitials, getDisplayName } from '../../services/userUtils';
 interface VideoPanelProps {
   mode: 'video' | 'audio';
   onModeChange: (mode: 'video' | 'audio') => void;
+  onClose?: () => void;
 }
 
 // Internal Video Player Component
@@ -36,7 +37,7 @@ const VideoPlayer = ({ stream, isMe = false }: { stream?: MediaStream | null, is
   );
 };
 
-export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
+export function VideoPanel({ mode, onModeChange, onClose }: VideoPanelProps) {
   const { projectId } = useParams();
   const {
     isConnected,
@@ -130,8 +131,13 @@ export function VideoPanel({ mode, onModeChange }: VideoPanelProps) {
   return (
     <div className="flex flex-col h-full bg-[#09090B] relative font-sans">
       {/* Header */}
-      <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 bg-[#09090B]">
+      <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 bg-[#09090B] shrink-0">
         <span className="text-xs font-semibold tracking-wide text-white/60">VIDEO & VOICE</span>
+        {onClose && (
+          <button onClick={onClose} className="hover:bg-white/10 p-1 rounded transition-colors">
+            <X className="w-4 h-4 text-white/60" />
+          </button>
+        )}
       </div>
 
       <div className="flex items-center justify-between px-4 py-3">
