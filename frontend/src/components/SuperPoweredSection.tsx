@@ -4,50 +4,50 @@ import { GradientShineText } from "./effects/GradientShineText";
 
 const features = [
     {
-        title: "Cloud-Native IDE",
-        description: "A full-fledged development environment running entirely in your browser. No local setup, no dependency hell.",
+        title: "Persistent Workspaces",
+        description: "Full-fledged Ubuntu development environments running entirely in isolated Docker containers with persistent VFS storage.",
         details: [
-            "Instant-on workspaces",
-            "Intelligent syntax highlighting",
-            "Multi-language execution support",
-            "Integrated terminal & file explorer",
-            "VS Code compatible theme"
+            "Host-mounted volume persistence",
+            "Multi-language polyglot execution",
+            "Zero-trust sandboxed processes",
+            "Raw PTY TTY streams",
+            "Automatic environment recovery"
         ],
         color: "#D4AF37", // Champagne Gold
     },
     {
-        title: "Ephemeral Runtimes",
-        description: "Execute code safely in isolated Docker containers. Every session gets a pristine, sandboxed environment that wipes clean on exit.",
+        title: "LSP Intelligence",
+        description: "First-class intellisense powered by native Language Server Protocols (LSP) running directly inside your workspace container.",
         details: [
-            "Zero-trust execution sandboxes",
-            "Per-session memory & CPU limits",
-            "Real-time stdout/stderr streaming",
-            "Isolated network namespaces",
-            "Auto-destruction on disconnect"
+            "Real-time auto-completion",
+            "Inline error diagnostics",
+            "Hover definitions & signatures",
+            "Direct WebSocket RPC streams",
+            "Monaco Language Client integration"
         ],
         color: "#F8FAFC", // Diamond White
     },
     {
-        title: "Real-Time Sync Engine",
-        description: "Experience Google Docs-style collaboration for code. Sub-millisecond latency powered by advanced Operational Transformation (OT).",
+        title: "Real-Time Collaboration",
+        description: "Seamless multiplayer coding with sub-millisecond latency via custom WebSockets. Work together without stepping on toes.",
         details: [
-            "Conflict-free concurrent editing",
             "Live cursor & selection tracking",
-            "Event-driven WebSocket architecture",
-            "Optimistic UI updates",
-            "Persistent session state recovery"
+            "Conflict-free concurrent editing",
+            "Integrated team chat channels",
+            "Granular RBAC permissions",
+            "Inline code review comments"
         ],
         color: "#F59E0B", // Amber
     },
     {
-        title: "Integrated Comms",
-        description: "Don't switch tabs to talk. Native voice, video, and chat built directly into the editor for seamless pair programming.",
+        title: "Native Git Workflows",
+        description: "Version control is a first-class citizen. Create branches, commit code, and review pull requests without leaving the editor.",
         details: [
-            "Peer-to-peer WebRTC streaming",
-            "Low-latency voice channels",
-            "In-editor text chat",
-            "Active speaker indicators",
-            "End-to-end encrypted media"
+            "Visual branch management",
+            "1-click merge requests",
+            "Cross-project team synchronization",
+            "Seamless GitHub remote pushes",
+            "Integrated diff viewer"
         ],
         color: "#71717A", // Muted Zinc
     },
