@@ -314,13 +314,6 @@ public class ProjectServiceImpl implements ProjectService {
 
         List<ProjectFile> files = new ArrayList<>();
 
-        files.add(new ProjectFile(
-                UUID.randomUUID(),
-                projectId,
-                "src",
-                null,
-                "FOLDER"
-        ));
 
         String mainFile = "README.md";
         String mainContent = "# New Project\n\nThis project was created in Parallax.";
@@ -328,23 +321,23 @@ public class ProjectServiceImpl implements ProjectService {
         if (language != null) {
             switch (language.toLowerCase()) {
                 case "python" -> {
-                    mainFile = "src/main.py";
+                    mainFile = "main.py";
                     mainContent = "print('Hello from Parallax!')";
                 }
                 case "java" -> {
-                    mainFile = "src/Main.java";
+                    mainFile = "Main.java";
                     mainContent = "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello from Parallax!\");\n    }\n}";
                 }
                 case "javascript" -> {
-                    mainFile = "src/index.js";
+                    mainFile = "index.js";
                     mainContent = "console.log('Hello from Parallax!');";
                 }
                 case "c" -> {
-                    mainFile = "src/main.c";
+                    mainFile = "main.c";
                     mainContent = "#include <stdio.h>\n\nint main() {\n    printf(\"Hello from Parallax!\\n\");\n    return 0;\n}";
                 }
                 case "cpp" -> {
-                    mainFile = "src/main.cpp";
+                    mainFile = "main.cpp";
                     mainContent = "#include <iostream>\n\nint main() {\n    std::cout << \"Hello from Parallax!\" << std::endl;\n    return 0;\n}";
                 }
             }

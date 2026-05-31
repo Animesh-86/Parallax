@@ -1,4 +1,4 @@
-import { X, Split, Play, LogOut, GitBranch, Users } from 'lucide-react';
+import { X, Split, Play, LogOut, GitBranch, Users, Globe } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 type EditorTabsProps = {
   projectName: string;
@@ -10,6 +10,7 @@ type EditorTabsProps = {
   teamId?: string | null;
   teamName?: string | null;
   activeBranch?: { name: string } | null;
+  onOpenPreview?: () => void;
 };
 
 export function EditorTabs({
@@ -22,6 +23,7 @@ export function EditorTabs({
   teamId,
   teamName,
   activeBranch,
+  onOpenPreview,
 }: EditorTabsProps) {
   const navigate = useNavigate();
 
@@ -64,8 +66,9 @@ export function EditorTabs({
         <div className="flex items-center gap-1">
           {files.map((file) => {
             const isActive = file === activeFile;
+            const isBrowserPreview = file === "browser-preview";
             // Get simplified name (basename)
-            const fileName = file.split('/').pop() || file;
+            const fileName = isBrowserPreview ? "🌐 Browser Preview" : (file.split('/').pop() || file);
 
             return (
               <div
@@ -94,17 +97,30 @@ export function EditorTabs({
 
         {/* Right side controls */}
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+          {/* Browser Preview Button */}
+          {activeFile !== 'browser-preview' && onOpenPreview && (
+            <button
+              className="group px-3 py-1.5 bg-[#09090B] border border-white/10 hover:bg-white/5 rounded-lg transition-all flex items-center gap-2 text-white/70 hover:text-white"
+              title="Browser Preview"
+              onClick={onOpenPreview}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold uppercase tracking-wider">Preview</span>
+            </button>
+          )}
           {/* Run Code Button - VS Code style */}
-          <button
-            className="group px-3 py-1.5 bg-gradient-to-r from-[#D4AF37] to-[#F59E0B] hover:shadow-lg hover:shadow-[#D4AF37]/30 rounded-lg transition-all duration-300 flex items-center gap-2 text-black"
-            title="Run Code"
-            onClick={onRun}
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span className="text-xs font-bold uppercase tracking-wider">
-              {activeFile ? `Run ${activeFile.split('/').pop()}` : 'Run'}
-            </span>
-          </button>
+          {activeFile !== 'browser-preview' && (
+            <button
+              className="group px-3 py-1.5 bg-gradient-to-r from-[#D4AF37] to-[#F59E0B] hover:shadow-lg hover:shadow-[#D4AF37]/30 rounded-lg transition-all duration-300 flex items-center gap-2 text-black"
+              title="Run Code"
+              onClick={onRun}
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span className="text-xs font-bold uppercase tracking-wider">
+                {activeFile ? `Run ${activeFile.split('/').pop()}` : 'Run'}
+              </span>
+            </button>
+          )}
           <button
             onClick={() => navigate("/dashboard")}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all"

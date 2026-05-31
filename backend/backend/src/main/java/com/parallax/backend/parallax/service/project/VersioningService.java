@@ -42,9 +42,16 @@ public class VersioningService {
     @Value("${github.pat}")
     private String githubPat;
 
+    private final java.util.concurrent.ConcurrentMap<UUID, Object> projectLocks = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private Object getProjectLock(UUID projectId) {
+        return projectLocks.computeIfAbsent(projectId, k -> new Object());
+    }
+
     // ========== GIT RUNNER ==========
     
     private String runGitCommand(UUID projectId, String... args) {
+        synchronized (getProjectLock(projectId)) {
         Path projectRoot = Paths.get(storageProperties.getProjects()).resolve(projectId.toString());
         if (!Files.exists(projectRoot)) {
             return "";
@@ -65,6 +72,7 @@ public class VersioningService {
         } catch (Exception e) {
             log.error("Failed to run git command in {}: {}", projectRoot, e.getMessage());
             return "";
+        }
         }
     }
 
@@ -137,6 +145,13 @@ public class VersioningService {
     }
 
     private ProjectBranchResponse buildBranchResponse(UUID projectId, String name, User user) {
+        Instant createdAt = Instant.now();
+        String dateStr = runGitCommand(projectId, "log", "-1", "--format=%aI", name);
+        if (dateStr != null && !dateStr.isBlank() && !dateStr.startsWith("fatal:")) {
+            try {
+                createdAt = Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(dateStr.trim()));
+            } catch (Exception ignored) {}
+        }
         return ProjectBranchResponse.builder()
                 .id(name) // Using name as ID
                 .projectId(projectId)
@@ -144,7 +159,7 @@ public class VersioningService {
                 .isMain("main".equals(name) || "master".equals(name))
                 .createdById(user != null ? user.getId() : UUID.randomUUID())
                 .createdByName(user != null ? user.getFullName() : "System")
-                .createdAt(Instant.now())
+                .createdAt(createdAt)
                 .build();
     }
 
@@ -162,8 +177,13 @@ public class VersioningService {
         runGitCommand(projectId, "config", "user.name", user.getFullName());
         runGitCommand(projectId, "config", "user.email", user.getEmail());
         
-        // Add and commit
+        // Add and check status
         runGitCommand(projectId, "add", ".");
+        String status = runGitCommand(projectId, "status", "--porcelain");
+        if (status.isBlank()) {
+            throw new IllegalStateException("Nothing to commit.");
+        }
+        
         runGitCommand(projectId, "commit", "-m", message);
         
         String hash = runGitCommand(projectId, "rev-parse", "HEAD");
@@ -251,15 +271,18 @@ public class VersioningService {
             if (parts.length >= 5) {
                 String hash = parts[0];
                 String authorName = parts[1];
+                String authorEmail = parts[2];
                 String subject = parts[3];
                 String dateStr = parts[4];
+                
+                User author = userRepository.findByEmail(authorEmail).orElse(null);
                 
                 list.add(ProjectCommitResponse.builder()
                         .id(UUID.nameUUIDFromBytes(hash.getBytes()))
                         .projectId(projectId)
                         .branchId(branchName)
                         .branchName(branchName)
-                        .authorId(systemUser != null ? systemUser.getId() : UUID.randomUUID())
+                        .authorId(author != null ? author.getId() : (systemUser != null ? systemUser.getId() : UUID.randomUUID()))
                         .authorName(authorName)
                         .message(subject)
                         .committedAt(Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(dateStr)))

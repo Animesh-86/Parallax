@@ -87,13 +87,15 @@ public class SecurityConfig {
                 // AUTHORIZATION
                 .authorizeHttpRequests(auth -> auth
 
-                        // PUBLIC ENDPOINTS
-                        // Public profile (READ ONLY)
+                        // Public endpoints
                         .requestMatchers(HttpMethod.GET, "/api/profiles/*").permitAll()
 
                         // Auth & OAuth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                        
+                        // Webhooks
+                        .requestMatchers("/api/github/webhooks").permitAll()
 
                         // Static resources & Error
                         .requestMatchers("/favicon.ico", "/error").permitAll()

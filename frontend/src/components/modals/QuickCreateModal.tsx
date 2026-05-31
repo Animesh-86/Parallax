@@ -15,9 +15,7 @@ export function QuickCreateModal({
   onCreateProject,
 }: QuickCreateModalProps) {
   const [projectName, setProjectName] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('');
   const [githubRepoUrl, setGithubRepoUrl] = useState('');
-  const [aiReviewEnabled, setAiReviewEnabled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,31 +28,22 @@ export function QuickCreateModal({
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
-  const languages = [
-    { value: 'python', label: 'Python', color: '#3776AB' },
-    { value: 'java', label: 'Java', color: '#007396' },
-    { value: 'javascript', label: 'JavaScript', color: '#F7DF1E' },
-    { value: 'c', label: 'C', color: '#A8B9CC' },
-    { value: 'cpp', label: 'C++', color: '#00599C' },
-    { value: 'none', label: 'Empty Project (No Template)', color: '#A1A1AA' },
-  ];
+
 
   if (!isOpen) return null;
 
   const handleCreate = async () => {
-    if (!projectName.trim() || !selectedLanguage || isSubmitting) return;
+    if (!projectName.trim() || isSubmitting) return;
 
     try {
       setIsSubmitting(true);
       setError(null);
 
-      await onCreateProject(projectName.trim(), selectedLanguage, githubRepoUrl.trim(), aiReviewEnabled);
+      await onCreateProject(projectName.trim(), 'none', githubRepoUrl.trim(), true);
 
       // reset local state
       setProjectName('');
-      setSelectedLanguage('');
       setGithubRepoUrl('');
-      setAiReviewEnabled(false);
 
       onClose();
     } catch (err) {
@@ -138,58 +127,7 @@ export function QuickCreateModal({
               />
             </div>
 
-            {/* Language dropdown */}
-            <div className="space-y-2">
-            {/* Language Selection Grid */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-white/70">
-                Project Template (Initial Language)
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {languages.map((lang) => {
-                  const isSelected = selectedLanguage === lang.value;
-                  return (
-                    <button
-                      key={lang.value}
-                      type="button"
-                      onClick={() => setSelectedLanguage(lang.value)}
-                      className={`relative px-3 py-4 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-3 group ${
-                        isSelected 
-                          ? 'bg-[#D4AF37]/10 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.1)]' 
-                          : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]'
-                      }`}
-                    >
-                      <div 
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                          isSelected ? 'bg-[#D4AF37]/20' : 'bg-white/5'
-                        }`}
-                      >
-                        <span
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor: lang.color,
-                            boxShadow: isSelected ? `0 0 10px ${lang.color}` : 'none',
-                          }}
-                        />
-                      </div>
-                      <span className={`text-[11px] font-bold tracking-wide uppercase transition-colors duration-300 ${
-                        isSelected ? 'text-white' : 'text-white/40 group-hover:text-white/60'
-                      }`}>
-                        {lang.label === 'Empty Project (No Template)' ? 'Empty' : lang.label}
-                      </span>
 
-                      {isSelected && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#D4AF37] rounded-full flex items-center justify-center shadow-lg">
-                          <div className="w-1.5 h-1.5 bg-black rounded-full" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            </div>
 
             {/* GitHub Repo URL (Optional) */}
             <div className="space-y-2">
@@ -205,30 +143,7 @@ export function QuickCreateModal({
               />
             </div>
 
-            {/* AI Code Review Toggle */}
-            <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-white">
-                  Enable AI Pull Request Reviewer
-                </label>
-                <p className="text-xs text-white/50 mt-1">
-                  Automatically analyzes PRs using Spring AI when linked to a GitHub repo.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAiReviewEnabled(!aiReviewEnabled)}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                  aiReviewEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'
-                }`}
-              >
-                <div
-                  className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-black transition-transform duration-300 ${
-                    aiReviewEnabled ? 'translate-x-6' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
+
 
             {error && (
               <p className="text-xs text-[#9A3412]">
@@ -250,7 +165,7 @@ export function QuickCreateModal({
               <button
                 type="button"
                 onClick={handleCreate}
-                disabled={!projectName.trim() || !selectedLanguage || isSubmitting}
+                disabled={!projectName.trim() || isSubmitting}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#A1A1AA] rounded-xl font-medium text-black hover:shadow-xl hover:shadow-[#D4AF37]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />

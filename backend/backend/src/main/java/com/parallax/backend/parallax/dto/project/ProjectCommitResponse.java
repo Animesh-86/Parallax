@@ -1,6 +1,5 @@
 package com.parallax.backend.parallax.dto.project;
 
-import com.parallax.backend.parallax.entity.project.ProjectCommit;
 import java.time.Instant;
 import java.util.UUID;
 

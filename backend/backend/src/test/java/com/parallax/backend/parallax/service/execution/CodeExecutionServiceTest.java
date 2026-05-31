@@ -83,7 +83,7 @@ class CodeExecutionServiceTest {
         doNothing().when(accessManager).require(projectId, userId, ProjectPermission.EXECUTE_CODE);
         
         SessionRegistry.SessionInfo sessionInfo = new SessionRegistry.SessionInfo(
-                "sess-123", "container", projectId, userId, "python"
+                "sess-123", "container", projectId, userId, "python", null
         );
         when(sessionFacade.getSessionByProject(projectId)).thenReturn(sessionInfo);
 

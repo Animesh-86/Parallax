@@ -51,7 +51,7 @@ public class ScratchTest {
         fr.save(f);
         
         String sessId = java.util.UUID.randomUUID().toString();
-        sessionRegistry.register(pid, sessId, "dummy", u.getId(), "python");
+        sessionRegistry.register(pid, sessId, "dummy", u.getId(), "python", null);
         
         com.parallax.backend.parallax.dto.execution.CommandResult cr = runCodeService.runCodeInSession(
             sessId, "main.py", 10, u.getId(), line -> System.out.println("OUTPUT: " + line)

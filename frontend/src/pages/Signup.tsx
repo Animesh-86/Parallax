@@ -4,6 +4,7 @@ import { ArrowRight, Check, Chrome, Code2, Github, Cpu, Zap } from 'lucide-react
 import { useNavigate, Link } from 'react-router-dom';
 import api from "../services/api";
 import { apiBaseUrl } from "../services/env";
+import { toast } from "sonner";
 
 export default function Signup() {
     const [formData, setFormData] = useState({
@@ -27,12 +28,12 @@ export default function Signup() {
         e.preventDefault();
 
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match");
+            toast.error("Passwords do not match");
             return;
         }
 
         if (!formData.acceptTerms) {
-            alert("You must accept the terms to continue");
+            toast.error("You must accept the terms to continue");
             return;
         }
 
@@ -58,15 +59,16 @@ export default function Signup() {
                 localStorage.setItem("access_token", accessToken);
             }
 
+            toast.success("Account created successfully!");
             navigate("/dashboard");
 
         } catch (err: any) {
             console.error("Signup failed:", err);
 
-            if (err.response?.data?.message) {
-                alert(err.response.data.message);
+            if (err.response && err.response.data && err.response.data.message) {
+                toast.error(err.response.data.message);
             } else {
-                alert("Signup failed. Check your details and try again.");
+                toast.error("Signup failed. Check your details and try again.");
             }
         }
     };

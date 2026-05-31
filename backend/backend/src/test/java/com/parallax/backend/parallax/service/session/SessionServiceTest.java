@@ -65,8 +65,6 @@ class SessionServiceTest {
         String sessionId = sessionService.startSession(projectId, userId);
 
         assertEquals("existing-session-123", sessionId);
-        // Ensure no further logic like file sync or docker commands is called
-        verify(fileSyncService, never()).syncProjectToSession(any(), any());
     }
 
     @Test

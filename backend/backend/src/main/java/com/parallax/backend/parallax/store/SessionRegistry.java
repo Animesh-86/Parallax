@@ -45,6 +45,7 @@ public class SessionRegistry {
         private final UUID projectId;
         private final UUID ownerUserId;
         private final String language;
+        private final Integer webPort;
 
         private Instant createdAt;
         private Instant lastSeen;
@@ -54,13 +55,15 @@ public class SessionRegistry {
                 String containerName,
                 UUID projectId,
                 UUID ownerUserId,
-                String language
+                String language,
+                Integer webPort
         ) {
             this.sessionId = sessionId;
             this.containerName = containerName;
             this.projectId = projectId;
             this.ownerUserId = ownerUserId;
             this.language = language;
+            this.webPort = webPort;
             this.createdAt = Instant.now();
             this.lastSeen = Instant.now();
         }
@@ -70,6 +73,7 @@ public class SessionRegistry {
         public UUID getProjectId() { return projectId; }
         public UUID getOwnerUserId() { return ownerUserId; }
         public String getLanguage() { return language; }
+        public Integer getWebPort() { return webPort; }
         public Instant getCreatedAt() { return createdAt; }
         public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
         public Instant getLastSeen() { return lastSeen; }
@@ -89,10 +93,11 @@ public class SessionRegistry {
             String sessionId,
             String containerName,
             UUID ownerUserId,
-            String language
+            String language,
+            Integer webPort
     ) {
         SessionInfo info =
-                new SessionInfo(sessionId, containerName, projectId, ownerUserId, language);
+                new SessionInfo(sessionId, containerName, projectId, ownerUserId, language, webPort);
 
         SessionInfo old = byProjectId.get(projectId);
         if (old != null && !old.getSessionId().equals(sessionId)) {

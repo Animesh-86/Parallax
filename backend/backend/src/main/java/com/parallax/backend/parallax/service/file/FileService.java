@@ -50,6 +50,28 @@ public class FileService {
         if (file == null) {
             throw new ResourceNotFoundException("File not found: " + safePath);
         }
+
+        // VFS: Read from disk as single source of truth
+        Path resolved = resolveProjectPath(projectId, safePath);
+        try {
+            if (Files.exists(resolved) && !Files.isDirectory(resolved)) {
+                String diskContent = Files.readString(resolved, StandardCharsets.UTF_8);
+                file.setContent(diskContent);
+            } else if (!"FOLDER".equalsIgnoreCase(file.getType()) && file.getContent() != null) {
+                // Lazy migration: File missing on disk, but has DB content. Write to disk.
+                Files.createDirectories(resolved.getParent());
+                Files.writeString(
+                        resolved,
+                        file.getContent(),
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING
+                );
+            }
+        } catch (IOException e) {
+            log.warn("Failed to read/migrate file from disk: {}", safePath, e);
+        }
+
         return file;
     }
 
@@ -89,7 +111,7 @@ public class FileService {
         pf.setUpdatedAt(Instant.now());
         fileRepo.save(pf);
 
-        // ---------------- Filesystem (best-effort projection)
+        // ---------------- Filesystem (authoritative)
         Path resolved = resolveProjectPath(projectId, safePath);
 
         try {
@@ -106,24 +128,8 @@ public class FileService {
             }
         } catch (IOException e) {
             log.error("Filesystem sync failed for {}", safePath, e);
-            // DB is source of truth → do NOT throw
+            throw new IllegalStateException("Failed to create file on disk", e);
         }
-
-        // ---------------- Session sync (non-blocking)
-        sessionRegistry.getSessionIdForProject(projectId)
-                .ifPresent(sessionId -> {
-                    try {
-                        if ("FILE".equals(t)) {
-                            fileSyncService.writeFileToSession(
-                                    sessionId,
-                                    safePath,
-                                    ""
-                            );
-                        }
-                    } catch (Exception e) {
-                        log.warn("Session sync failed", e);
-                    }
-                });
 
         return pf;
     }
@@ -157,7 +163,7 @@ public class FileService {
         file.setUpdatedAt(Instant.now());
         fileRepo.saveAndFlush(file);
 
-        // ---------------- Filesystem SECOND
+        // ---------------- Filesystem SECOND (Authoritative)
         Path resolved = resolveProjectPath(projectId, safePath);
 
         try {
@@ -171,22 +177,8 @@ public class FileService {
             );
         } catch (IOException e) {
             log.error("Filesystem write failed for {}", safePath, e);
-            // Do NOT rollback DB
+            throw new IllegalStateException("Failed to save file to disk", e);
         }
-
-        // ---------------- Session sync LAST
-        sessionRegistry.getSessionIdForProject(projectId)
-                .ifPresent(sessionId -> {
-                    try {
-                        fileSyncService.writeFileToSession(
-                                sessionId,
-                                safePath,
-                                content
-                        );
-                    } catch (Exception e) {
-                        log.warn("Session sync failed", e);
-                    }
-                });
 
         return file;
     }

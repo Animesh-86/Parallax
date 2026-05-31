@@ -7,6 +7,8 @@ import { codeWs } from "../../services/wsCode";
 import { connectRunSocket, sendRunRequest } from "../../services/wsRun";
 import { CodeEditMessage, RunCodeBroadcastMessage } from "../../types/wsTypes";
 import { startSession } from "../../services/session";
+import { MonacoLanguageClient } from 'monaco-languageclient';
+import { toSocket, WebSocketMessageReader, WebSocketMessageWriter } from 'vscode-ws-jsonrpc';
 
 interface JwtPayload {
   sub: string;
@@ -47,6 +49,10 @@ export default function CodeEditor({
   const [userId, setUserId] = useState("unknown-user");
   const [sessionReady, setSessionReady] = useState(false);
   const [sessionStarting, setSessionStarting] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const [monacoInstance, setMonacoInstance] = useState<any>(null);
+  const decorationsCollection = useRef<any>(null);
 
   const runTimeoutRef = useRef<number | null>(null);
   const runSocketConnected = useRef(false);
@@ -73,6 +79,40 @@ export default function CodeEditor({
       setUserId("invalid-token");
     }
   }, []);
+
+  // --------------------------------------------------
+  // Fetch Comments
+  // --------------------------------------------------
+  useEffect(() => {
+    if (!projectId || !filePath) return;
+    fetch(`http://localhost:8080/api/projects/${projectId}/comments?filePath=${encodeURIComponent(filePath)}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+    })
+    .then(r => r.json())
+    .then(data => setComments(data))
+    .catch(console.error);
+  }, [projectId, filePath]);
+
+  // --------------------------------------------------
+  // Render Comment Decorations
+  // --------------------------------------------------
+  useEffect(() => {
+    if (!monacoInstance || !editorInstance) return;
+    const decs = comments.map(c => ({
+      range: new monacoInstance.Range(c.lineNumber, 1, c.lineNumber, 1),
+      options: {
+        isWholeLine: true,
+        className: 'bg-yellow-500/20',
+        hoverMessage: { value: `**Comment:** ${c.content}\n\n*(Press Ctrl+M on a line to add a comment)*` }
+      }
+    }));
+    
+    if (decorationsCollection.current) {
+      decorationsCollection.current.set(decs);
+    } else {
+      decorationsCollection.current = editorInstance.createDecorationsCollection(decs);
+    }
+  }, [comments, monacoInstance, editorInstance]);
 
   // --------------------------------------------------
   // Start execution session
@@ -261,6 +301,73 @@ export default function CodeEditor({
       minimap: { enabled: minimap },
       wordWrap: wordWrap,
     });
+
+    setEditorInstance(editor);
+    setMonacoInstance(monaco);
+
+    // Add Comment Action
+    editor.addAction({
+      id: "add-comment",
+      label: "Add Inline Comment",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM],
+      contextMenuGroupId: "navigation",
+      run: function (ed: any) {
+        const position = ed.getPosition();
+        if (!position) return;
+        const text = prompt("Enter your comment for line " + position.lineNumber);
+        if (text) {
+          fetch(`http://localhost:8080/api/projects/${projectId}/comments`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`
+            },
+            body: JSON.stringify({
+              filePath: filePathRef.current,
+              lineNumber: position.lineNumber,
+              content: text
+            })
+          })
+          .then(r => r.json())
+          .then(newComment => {
+            setComments(prev => [...prev, newComment]);
+          })
+          .catch(console.error);
+        }
+      }
+    });
+
+    // Language Client Setup
+    if (projectId && filePath) {
+      const lang = getLanguageFromPath(filePath);
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        const wsUrl = `ws://localhost:8080/ws/lsp/${projectId}/${lang}?token=${token}`;
+        const socket = new WebSocket(wsUrl);
+        socket.onopen = () => {
+          const socketConnection = toSocket(socket);
+          const reader = new WebSocketMessageReader(socketConnection);
+          const writer = new WebSocketMessageWriter(socketConnection);
+          
+          const languageClient = new MonacoLanguageClient({
+            name: `${lang} Language Client`,
+            clientOptions: {
+              documentSelector: [lang]
+            },
+            connectionProvider: {
+              get: () => Promise.resolve({ reader, writer })
+            }
+          });
+          
+          languageClient.start().catch(err => console.error("LSP Start Error:", err));
+          
+          editor.onDidDispose(() => {
+            languageClient.dispose();
+            socket.close();
+          });
+        };
+      }
+    }
   };
 
   if (!filePath) {

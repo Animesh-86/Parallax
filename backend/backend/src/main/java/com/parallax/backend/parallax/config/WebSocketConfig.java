@@ -70,6 +70,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         private final com.parallax.backend.parallax.websocket.chat.DirectChatWebSocketHandler directChatHandler;
         private final com.parallax.backend.parallax.websocket.chat.DirectChatHandshakeInterceptor directChatInterceptor;
         private final TerminalWebSocketHandler terminalHandler;
+        private final com.parallax.backend.parallax.websocket.terminal.TerminalHandshakeInterceptor terminalInterceptor;
+        private final com.parallax.backend.parallax.websocket.lsp.LspWebSocketHandler lspHandler;
+        private final com.parallax.backend.parallax.websocket.lsp.LspHandshakeInterceptor lspInterceptor;
 
         RawWebSocketConfig(com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler,
                 com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor,
@@ -77,7 +80,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 com.parallax.backend.parallax.websocket.chat.TeamChatHandshakeInterceptor teamChatInterceptor,
                 com.parallax.backend.parallax.websocket.chat.DirectChatWebSocketHandler directChatHandler,
                 com.parallax.backend.parallax.websocket.chat.DirectChatHandshakeInterceptor directChatInterceptor,
-                TerminalWebSocketHandler terminalHandler) {
+                TerminalWebSocketHandler terminalHandler,
+                com.parallax.backend.parallax.websocket.terminal.TerminalHandshakeInterceptor terminalInterceptor,
+                com.parallax.backend.parallax.websocket.lsp.LspWebSocketHandler lspHandler,
+                com.parallax.backend.parallax.websocket.lsp.LspHandshakeInterceptor lspInterceptor) {
             this.chatHandler = chatHandler;
             this.chatInterceptor = chatInterceptor;
             this.teamChatHandler = teamChatHandler;
@@ -85,6 +91,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             this.directChatHandler = directChatHandler;
             this.directChatInterceptor = directChatInterceptor;
             this.terminalHandler = terminalHandler;
+            this.terminalInterceptor = terminalInterceptor;
+            this.lspHandler = lspHandler;
+            this.lspInterceptor = lspInterceptor;
         }
 
         @Override
@@ -103,6 +112,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     .setAllowedOriginPatterns(frontendUrl);
                     
             registry.addHandler(terminalHandler, "/ws/terminal/{projectId}")
+                    .addInterceptors(terminalInterceptor)
+                    .setAllowedOriginPatterns(frontendUrl);
+                    
+            registry.addHandler(lspHandler, "/ws/lsp/{projectId}/{language}")
+                    .addInterceptors(lspInterceptor)
                     .setAllowedOriginPatterns(frontendUrl);
         }
     }

@@ -11,10 +11,11 @@ import { VideoPanel } from "../components/workspace/VideoPanel";
 import { ParticipantsList } from "../components/workspace/ParticipantsList";
 import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
 import { AiChatPanel } from "../components/chat/AiChatPanel";
+import { BrowserPreviewPanel } from "../components/workspace/BrowserPreviewPanel";
 import { projectChatWs } from "../services/wsChatClient";
 import { ActivityPanel } from "../components/workspace/ActivityPanel";
 import { versioningApi, ProjectBranch } from "../services/versioningApi";
-import { MessageCircle, Video, Users, Bot, Settings, GitBranch, Puzzle, X, Play } from "lucide-react";
+import { MessageCircle, Video, Users, Bot, Settings, GitBranch, Puzzle, X, Play, Globe } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
@@ -46,7 +47,7 @@ export default function Workspace() {
 
   /* Left Panel Tools State */
   type LeftTool = "explorer" | "git" | "extensions" | "settings" | null;
-  const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("explorer");
+  const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("git");
 
   const toggleLeftTool = (tool: LeftTool) => {
     if (activeLeftTool === tool) {
@@ -81,7 +82,7 @@ export default function Workspace() {
 
 
   /* Right Panel Tools State */
-  type RightTool = "video" | "chat" | "collaborators" | "ai";
+  type RightTool = "video" | "chat" | "collaborators" | "ai" | "activity";
   const [activeRightTools, setActiveRightTools] = useState<RightTool[]>(["collaborators"]);
   
   const toggleRightTool = (tool: RightTool) => {
@@ -382,8 +383,6 @@ export default function Workspace() {
               projectName={loadingName ? <Skeleton className="h-5 w-32 inline-block" /> : projectName}
               files={openFiles}
               activeFile={activeFile}
-              teamId={teamId}
-              teamName={teamName}
               activeBranch={activeBranch}
               onSelect={(path) => {
                 setActiveFile(path);
@@ -394,6 +393,14 @@ export default function Workspace() {
                 setTerminalOpen(true);
                 setRunSignal((v) => v + 1);
               }}
+              onOpenPreview={() => {
+                if (!openFiles.includes("browser-preview")) {
+                  setOpenFiles(prev => [...prev, "browser-preview"]);
+                }
+                setActiveFile("browser-preview");
+              }}
+              teamId={teamId}
+              teamName={teamName}
             />
 
             <div className="flex-1 overflow-hidden relative">
@@ -407,27 +414,31 @@ export default function Workspace() {
                   </div>
                 </div>
               )}
-              <CodeEditor
-                filePath={activeFile}
-                content={fileContent}
-                onChange={saveFile}
-                runSignal={runSignal}
-                onRunResult={(out, code) => {
-                  setRunOutput(out);
-                  setRunExitCode(code);
-                }}
-                {...(() => {
-                  const s = JSON.parse(projectSettings?.settingsJson || '{}');
-                  return {
-                    tabSize: s.tabSize || 2,
-                    fontSize: s.fontSize || 14,
-                    fontFamily: s.fontFamily || "'Fira Code', 'JetBrains Mono', Consolas, monospace",
-                    minimap: s.minimap !== undefined ? s.minimap : true,
-                    wordWrap: s.wordWrap || "on",
-                    autoSave: s.autoSave !== undefined ? s.autoSave : true,
-                  };
-                })()}
-              />
+              {activeFile === "browser-preview" ? (
+                <BrowserPreviewPanel projectId={projectId!} />
+              ) : (
+                <CodeEditor
+                  filePath={activeFile}
+                  content={fileContent}
+                  onChange={saveFile}
+                  runSignal={runSignal}
+                  onRunResult={(out, code) => {
+                    setRunOutput(out);
+                    setRunExitCode(code);
+                  }}
+                  {...(() => {
+                    const s = JSON.parse(projectSettings?.settingsJson || '{}');
+                    return {
+                      tabSize: s.tabSize || 2,
+                      fontSize: s.fontSize || 14,
+                      fontFamily: s.fontFamily || "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+                      minimap: s.minimap !== undefined ? s.minimap : true,
+                      wordWrap: s.wordWrap || "on",
+                      autoSave: s.autoSave !== undefined ? s.autoSave : true,
+                    };
+                  })()}
+                />
+              )}
             </div>
 
             <Terminal
@@ -519,6 +530,7 @@ export default function Workspace() {
           >
             <Bot size={20} />
           </button>
+          
         </div>
       </div>
     </div>

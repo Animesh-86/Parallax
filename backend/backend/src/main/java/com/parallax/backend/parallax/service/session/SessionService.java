@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -30,9 +31,7 @@ public class SessionService {
     private final FileSyncService fileSyncService;
     private final SessionRegistry sessionRegistry;
     private final ProjectAccessManager accessManager;
-
-    @Value("${code.runner.base-path}")
-    private String sessionBasePath;
+    private final com.parallax.backend.parallax.config.StorageProperties storageProperties;
 
     @Value("${code.session.image-name:parallax-collab}")
     private String sessionImage;
@@ -41,12 +40,14 @@ public class SessionService {
             ProjectRepository projectRepo,
             FileSyncService fileSyncService,
             SessionRegistry sessionRegistry,
-            ProjectAccessManager accessManager
+            ProjectAccessManager accessManager,
+            com.parallax.backend.parallax.config.StorageProperties storageProperties
     ) {
         this.projectRepo = projectRepo;
         this.fileSyncService = fileSyncService;
         this.sessionRegistry = sessionRegistry;
         this.accessManager = accessManager;
+        this.storageProperties = storageProperties;
     }
 
     // START SESSION (IDEMPOTENT)
@@ -73,11 +74,19 @@ public class SessionService {
 
             String sessionId = UUID.randomUUID().toString();
             String containerName = "session_" + sessionId;
+            int webPort = findAvailablePort();
 
-            LOG.info("Starting session {} for project {}", sessionId, projectId);
+            LOG.info("Starting session {} for project {} with webPort {}", sessionId, projectId, webPort);
 
             try {
-                fileSyncService.syncProjectToSession(projectId, sessionId);
+                // Ensure the permanent project directory exists
+                java.nio.file.Path projectPath = java.nio.file.Paths.get(storageProperties.getProjects())
+                        .resolve(projectId.toString())
+                        .toAbsolutePath()
+                        .normalize();
+                java.nio.file.Files.createDirectories(projectPath);
+
+                String hostMount = projectPath.toString().replace("\\", "/");
 
                 String output;
                 try {
@@ -85,7 +94,12 @@ public class SessionService {
                             DOCKER_TIMEOUT_SEC,
                             "docker", "run", "-d",
                             "--name", containerName,
-                            "-v", sessionBasePath + "/" + sessionId + ":/workspace",
+                            "--network", "parallax-network",
+                            "-p", webPort + ":3000",
+                            "-l", "traefik.enable=true",
+                            "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",
+                            "-l", "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port=3000",
+                            "-v", hostMount + ":/workspace",
                             sessionImage,
                             "tail", "-f", "/dev/null"
                     );
@@ -98,7 +112,12 @@ public class SessionService {
                                 DOCKER_TIMEOUT_SEC,
                                 "docker", "run", "-d",
                                 "--name", containerName,
-                                "-v", sessionBasePath + "/" + sessionId + ":/workspace",
+                                "--network", "parallax-network",
+                                "-p", webPort + ":3000",
+                                "-l", "traefik.enable=true",
+                                "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",
+                                "-l", "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port=3000",
+                                "-v", hostMount + ":/workspace",
                                 sessionImage,
                                 "tail", "-f", "/dev/null"
                         );
@@ -114,17 +133,15 @@ public class SessionService {
                         sessionId,
                         containerName,
                         userId,
-                        project.getLanguage()
+                        project.getLanguage(),
+                        webPort
                 );
 
                 return sessionId;
 
             } catch (Exception e) {
                 LOG.error("Session start failed for project {}", projectId, e);
-
-                try { fileSyncService.removeSessionFolder(sessionId); } catch (Exception ignored) {}
                 try { runCommand(10, "docker", "rm", "-f", containerName); } catch (Exception ignored) {}
-
                 throw e;
             }
         }
@@ -147,11 +164,18 @@ public class SessionService {
         runCommand(DOCKER_TIMEOUT_SEC,
                 "docker", "rm", "-f", info.getContainerName());
 
-        fileSyncService.removeSessionFolder(info.getSessionId());
         sessionRegistry.remove(sessionId);
     }
 
     // INTERNAL
+    private int findAvailablePort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not find an available port", e);
+        }
+    }
+
     private String runCommand(int timeoutSec, String... cmd) throws Exception {
 
         Process p = new ProcessBuilder(cmd)

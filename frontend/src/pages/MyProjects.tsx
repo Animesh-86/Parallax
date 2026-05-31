@@ -12,6 +12,7 @@ import { QuickCreateModal } from "../components/modals/QuickCreateModal";
 import { NotificationBell } from "../components/NotificationBell";
 import { ProjectSkeleton } from '../components/DashboardSkeletons';
 import { apiBaseUrl } from '../services/env';
+import { toast } from "sonner";
 
 type Project = {
     id: string;
@@ -108,7 +109,7 @@ export default function MyProjects() {
             navigate(`/editor/${created.id}`);
         } catch (err: any) {
             console.error("Create project error:", err);
-            alert(err.message);
+            toast.error(`Project creation failed: ${err.message}`);
         }
     };
 

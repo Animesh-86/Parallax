@@ -1,6 +1,5 @@
 package com.parallax.backend.parallax.dto.project;
 
-import com.parallax.backend.parallax.entity.project.ProjectBranch;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

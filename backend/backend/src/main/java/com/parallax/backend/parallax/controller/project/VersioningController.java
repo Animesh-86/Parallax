@@ -22,6 +22,11 @@ import java.util.UUID;
 public class VersioningController {
 
     private final VersioningService versioningService;
+    private static final String BRANCH_NAME_REGEX = "^[a-zA-Z0-9_/-]+$";
+
+    private boolean isValidBranchName(String name) {
+        return name != null && name.matches(BRANCH_NAME_REGEX) && !name.startsWith("-");
+    }
 
     // ========== BRANCHES ==========
 
@@ -40,7 +45,7 @@ public class VersioningController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         String name = body.getOrDefault("name", "").trim();
-        if (name.isEmpty()) {
+        if (!isValidBranchName(name)) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -67,6 +72,9 @@ public class VersioningController {
             @PathVariable String branchName,
             Authentication authentication
     ) {
+        if (!isValidBranchName(branchName)) {
+            return ResponseEntity.badRequest().build();
+        }
         versioningService.checkoutBranch(projectId, branchName);
         return ResponseEntity.ok().build();
     }
@@ -77,6 +85,9 @@ public class VersioningController {
             @PathVariable String branchName,
             Authentication authentication
     ) {
+        if (!isValidBranchName(branchName)) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             versioningService.deleteBranch(projectId, branchName);
             return ResponseEntity.ok().build();

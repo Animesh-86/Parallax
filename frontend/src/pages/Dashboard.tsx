@@ -194,7 +194,7 @@ export default function Dashboard() {
 
             // 3️⃣ Check token presence
             if (!token) {
-                alert("❌ No access token found in localStorage.\nPlease log in again.");
+                toast.error("No access token found. Please log in again.");
                 throw new Error("User not authenticated");
             }
 
@@ -230,15 +230,13 @@ export default function Dashboard() {
 
             // 6️⃣ Handle different cases clearly
             if (res.status === 401) {
-                alert("🚫 Unauthorized (401): Your token may be invalid or expired.\n\n" +
-                    "Try logging in again.\n\n" +
-                    "Check console for backend response.");
+                toast.error("Unauthorized (401): Your token may be invalid or expired. Try logging in again.");
                 throw new Error("Unauthorized - token invalid/expired");
             } else if (res.status === 403) {
-                alert("🚫 Forbidden (403): You are not allowed to create this project.");
+                toast.error("Forbidden (403): You are not allowed to create this project.");
                 throw new Error("Forbidden - insufficient permissions");
             } else if (!res.ok) {
-                alert(`❌ Failed to create project.\nStatus: ${res.status} ${res.statusText}`);
+                toast.error(`Failed to create project. Status: ${res.status} ${res.statusText}`);
                 throw new Error(`Request failed: ${res.statusText}`);
             }
 
@@ -252,7 +250,7 @@ export default function Dashboard() {
         } catch (err: any) {
             // 8️⃣ Final catch-all with detailed console log
             console.error("🔥 Create project error (caught):", err);
-            alert(`❌ Project creation failed.\n\n${err.message}`);
+            toast.error(`Project creation failed: ${err.message}`);
         }
     };
 

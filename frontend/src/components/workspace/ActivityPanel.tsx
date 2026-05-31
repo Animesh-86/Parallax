@@ -14,7 +14,7 @@ interface ActivityPanelProps {
 }
 
 export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githubRepoUrl, onRemoteAdded }: ActivityPanelProps) {
-  const [activeTab, setActiveTab] = useState<'commits' | 'branches' | 'merge-requests'>('commits');
+  const [activeTab, setActiveTab] = useState<'commits' | 'branches' | 'merge-requests'>('merge-requests');
   const [commits, setCommits] = useState<ProjectCommit[]>([]);
   const [branches, setBranches] = useState<ProjectBranch[]>([]);
   const [mergeRequests, setMergeRequests] = useState<MergeRequestData[]>([]);

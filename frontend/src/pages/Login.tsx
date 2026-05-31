@@ -3,6 +3,7 @@ import { ArrowRight, Chrome, Code2, Github, Lock, Mail, Terminal } from "lucide-
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { apiBaseUrl } from "../services/env";
+import { toast } from "sonner";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -62,7 +63,7 @@ export default function Login() {
                 message = "Server error. Try again later.";
             }
 
-            alert(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }

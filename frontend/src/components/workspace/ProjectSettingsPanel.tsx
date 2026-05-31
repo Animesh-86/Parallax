@@ -223,29 +223,9 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
               />
             </div>
 
-            <div className="space-y-1.5 pt-2">
-              <label className="text-[10px] uppercase tracking-wider font-bold text-white/30">GitHub Repository URL (Optional)</label>
-              <input 
-                type="text" 
-                value={githubRepoUrl}
-                onChange={(e) => setGithubRepoUrl(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#D4AF37]/50 transition-colors font-mono"
-                placeholder="https://github.com/username/repo"
-              />
-            </div>
 
-            <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg">
-              <div>
-                <div className="text-sm font-bold text-white">AI PR Reviewer</div>
-                <div className="text-[10px] text-white/50 mt-0.5">Automatically analyze pull requests for bugs and improvements.</div>
-              </div>
-              <button 
-                onClick={() => setAiReviewEnabled(!aiReviewEnabled)}
-                className={`shrink-0 relative w-10 h-5 rounded-full transition-colors duration-300 ${aiReviewEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'}`}
-              >
-                <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-black transition-transform duration-300 ${aiReviewEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
-            </div>
+
+
 
 
             <div className="space-y-3 pt-2">

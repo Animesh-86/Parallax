@@ -118,22 +118,9 @@ public class RunCodeService {
                 );
             }
 
-            Path jobDir = Files.createTempDirectory("parallax-run-");
-            log.info("🧪 Execution jobDir = {}", jobDir.toAbsolutePath());
-
             try {
                 // Flush editor → DB → FS
                 executionCoordinator.flushBeforeExecution(projectId);
-
-                // Snapshot DB → execution FS
-                fileSyncService.writeProjectSnapshot(projectId, jobDir);
-
-                Path targetFile = jobDir.resolve(safePath);
-                if (!Files.exists(targetFile)) {
-                    throw new ResourceNotFoundException(
-                            "File missing in snapshot: " + safePath
-                    );
-                }
 
                 // Dynamic Language Detection based on filename
                 String detectedLanguage = detectLanguage(safePath, session.getLanguage());
@@ -143,71 +130,40 @@ public class RunCodeService {
 
                 List<String> cmd = new ArrayList<>();
                 cmd.add("docker");
-                cmd.add("run");
-                cmd.add("--rm");
-
-                // 🔒 SECURITY: Container sandboxing flags
-                cmd.add("--network=none");           // No network access
-                cmd.add("--memory=256m");             // Memory limit
-                cmd.add("--cpus=0.5");                // CPU limit
-                cmd.add("--pids-limit=100");          // Prevent fork bombs
-                cmd.add("--read-only");               // Read-only root filesystem
-                cmd.add("--security-opt=no-new-privileges"); // No privilege escalation
-                cmd.add("--user=65534:65534");        // Run as nobody
-                cmd.add("--tmpfs=/tmp:noexec,nosuid,size=64m"); // Writable tmp with limits
-
-                cmd.add("-v");
-                cmd.add(jobDir.toAbsolutePath() + ":/workspace:ro"); // Read-only volume mount
-                cmd.add("-w");
-                cmd.add("/workspace");
+                cmd.add("exec");
+                cmd.add("-i");
+                cmd.add(session.getContainerName());
 
                 if ("python".equalsIgnoreCase(detectedLanguage)) {
-                    sink.onOutput("[parallax] Active Runner: Python 3");
-                    Path runner = jobDir.resolve("__runner__.py");
-                    Files.writeString(
-                            runner,
-                            "import runpy, sys\nrunpy.run_path(sys.argv[1], run_name='__main__')",
-                            StandardCharsets.UTF_8
-                    );
-                    cmd.add(pythonRunnerImage);
+                    sink.onOutput("[parallax] Active Runner: Workspace Python 3");
                     cmd.add("python3");
-                    cmd.add("__runner__.py");
                     cmd.add(safePath);
                 } else if ("java".equalsIgnoreCase(detectedLanguage)) {
-                    sink.onOutput("[parallax] Active Runner: OpenJDK 21");
-                    cmd.add(javaRunnerImage);
-                    // Use java single-file execution directly — no sh -c to prevent injection
+                    sink.onOutput("[parallax] Active Runner: Workspace OpenJDK 17");
                     cmd.add("java");
                     cmd.add(safePath);
                 } else if ("javascript".equalsIgnoreCase(detectedLanguage) || "typescript".equalsIgnoreCase(detectedLanguage)) {
-                    sink.onOutput("[parallax] Active Runner: Node.js");
-                    cmd.add(jsRunnerImage);
+                    sink.onOutput("[parallax] Active Runner: Workspace Node.js");
                     cmd.add("node");
                     cmd.add(safePath);
                 } else if ("c".equalsIgnoreCase(detectedLanguage)) {
-                    sink.onOutput("[parallax] Active Runner: GCC (C)");
-                    cmd.add(cppRunnerImage);
-                    // Safe: safePath is validated against whitelist above
+                    sink.onOutput("[parallax] Active Runner: Workspace GCC (C)");
                     cmd.add("sh");
                     cmd.add("-c");
                     cmd.add("gcc " + safePath + " -o /tmp/out && /tmp/out");
                 } else if ("cpp".equalsIgnoreCase(detectedLanguage)) {
-                    sink.onOutput("[parallax] Active Runner: G++ (C++)");
-                    cmd.add(cppRunnerImage);
-                    // Safe: safePath is validated against whitelist above
+                    sink.onOutput("[parallax] Active Runner: Workspace G++ (C++)");
                     cmd.add("sh");
                     cmd.add("-c");
                     cmd.add("g++ " + safePath + " -o /tmp/out && /tmp/out");
                 } else {
-                    sink.onOutput("[parallax] Active Runner: Fallback (" + detectedLanguage + ")");
+                    sink.onOutput("[parallax] Active Runner: Workspace Fallback (" + detectedLanguage + ")");
                     if (safePath.endsWith(".c")) {
                         sink.onOutput("[parallax-debug-v5] CRITICAL: .c file hit fallback! Forcing GCC.");
-                        cmd.add(cppRunnerImage);
                         cmd.add("sh");
                         cmd.add("-c");
                         cmd.add("gcc " + safePath + " -o /tmp/out && /tmp/out");
                     } else {
-                        cmd.add(pythonRunnerImage);
                         cmd.add("python3");
                         cmd.add(safePath);
                     }
@@ -241,8 +197,9 @@ public class RunCodeService {
                 sink.onOutput("[parallax] Process finished (exit code: " + process.exitValue() + ")");
                 return new CommandResult(process.exitValue(), output.toString());
 
-            } finally {
-                safeDeleteDirectory(jobDir);
+            } catch (Exception e) {
+                log.error("Execution failed", e);
+                throw e;
             }
 
         } finally {
@@ -302,49 +259,6 @@ public class RunCodeService {
     private void appendTruncatedNotice(StringBuilder sb) {
         if (!sb.toString().contains("[Output truncated]")) {
             sb.append("\n[Output truncated]\n");
-        }
-    }
-
-    private void safeDeleteDirectory(Path dir) {
-        if (dir == null || !Files.exists(dir)) return;
-
-        // Retry logic for Windows where file locks may prevent immediate deletion
-        int maxRetries = 3;
-        for (int attempt = 0; attempt < maxRetries; attempt++) {
-            final int currentAttempt = attempt;
-            try {
-                Files.walk(dir)
-                        .sorted(Comparator.reverseOrder())
-                        .forEach(p -> {
-                            try {
-                                Files.deleteIfExists(p);
-                            } catch (IOException e) {
-                                log.warn("Failed to delete {} (attempt {})", p, currentAttempt + 1);
-                            }
-                        });
-
-                // Check if directory was fully cleaned
-                if (!Files.exists(dir)) {
-                    return;
-                }
-            } catch (IOException e) {
-                log.warn("Cleanup walk failed for {} (attempt {})", dir, attempt + 1, e);
-            }
-
-            // Wait briefly before retry (Windows file lock release)
-            if (attempt < maxRetries - 1) {
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }
-
-        if (Files.exists(dir)) {
-            log.error("Failed to fully clean up execution directory after {} attempts: {}",
-                    maxRetries, dir);
         }
     }
 }

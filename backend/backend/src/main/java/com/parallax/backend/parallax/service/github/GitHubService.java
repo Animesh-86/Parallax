@@ -109,6 +109,12 @@ public class GitHubService {
                                 ProjectFile pf = new ProjectFile(java.util.UUID.randomUUID(), project.getId(), projectPath, null, "FOLDER");
                                 files.add(pf);
                             } else {
+                                // Skip binary files
+                                if (projectPath.matches(".*\\.(png|jpg|jpeg|gif|ico|pdf|zip|jar|class|woff|woff2|ttf|eot)$")) {
+                                    zipEntry = zis.getNextEntry();
+                                    continue;
+                                }
+
                                 java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
                                 int nRead;
                                 byte[] data = new byte[1024];
@@ -158,16 +164,17 @@ public class GitHubService {
             headers.set("Accept", "application/vnd.github.v3+json");
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // 1. Get default branch (assumed 'main' or 'master') ref to get the latest commit SHA
-            String refUrl = String.format("https://api.github.com/repos/%s/%s/git/refs/heads/main", owner, repo);
-            ResponseEntity<JsonNode> refResponse;
-            try {
-                refResponse = restTemplate.exchange(refUrl, HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
-            } catch (Exception e) {
-                // fallback to master
-                refUrl = String.format("https://api.github.com/repos/%s/%s/git/refs/heads/master", owner, repo);
-                refResponse = restTemplate.exchange(refUrl, HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
+            // 0. Get the default branch
+            String repoInfoUrl = String.format("https://api.github.com/repos/%s/%s", owner, repo);
+            ResponseEntity<JsonNode> repoInfoResponse = restTemplate.exchange(repoInfoUrl, HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
+            String defaultBranch = repoInfoResponse.getBody().path("default_branch").asText();
+            if (defaultBranch == null || defaultBranch.isEmpty()) {
+                defaultBranch = "main";
             }
+
+            // 1. Get default branch ref to get the latest commit SHA
+            String refUrl = String.format("https://api.github.com/repos/%s/%s/git/refs/heads/%s", owner, repo, defaultBranch);
+            ResponseEntity<JsonNode> refResponse = restTemplate.exchange(refUrl, HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
             
             String latestCommitSha = refResponse.getBody().path("object").path("sha").asText();
 
@@ -222,7 +229,7 @@ public class GitHubService {
             java.util.Map<String, String> prBody = new java.util.HashMap<>();
             prBody.put("title", prTitle);
             prBody.put("head", branchName);
-            prBody.put("base", refUrl.endsWith("main") ? "main" : "master");
+            prBody.put("base", defaultBranch);
             prBody.put("body", "PR created from Parallax IDE.\n\n" + commitMessage);
 
             String createPrUrl = String.format("https://api.github.com/repos/%s/%s/pulls", owner, repo);

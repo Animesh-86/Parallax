@@ -50,7 +50,7 @@ class RunCodeServiceTest {
         projectId = UUID.randomUUID();
         userId = UUID.randomUUID();
         sessionId = "sess-123";
-        sessionInfo = new SessionRegistry.SessionInfo(sessionId, "container-1", projectId, userId, "python");
+        sessionInfo = new SessionRegistry.SessionInfo(sessionId, "container-1", projectId, userId, "python", null);
     }
 
     @Test
