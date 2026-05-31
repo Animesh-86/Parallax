@@ -43,6 +43,8 @@ class TeamServiceImplTest {
     private ProjectRepository projectRepository;
     @Mock
     private ProjectCollaboratorRepository collaboratorRepository;
+    @Mock
+    private com.parallax.backend.parallax.repository.team.TeamChannelRepository teamChannelRepository;
 
     @InjectMocks
     private TeamServiceImpl teamService;

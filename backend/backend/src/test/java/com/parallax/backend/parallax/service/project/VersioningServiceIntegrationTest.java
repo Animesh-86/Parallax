@@ -40,6 +40,9 @@ public class VersioningServiceIntegrationTest {
     private User testUser;
     private Project testProject;
 
+    @Autowired
+    private com.parallax.backend.parallax.config.StorageProperties storageProperties;
+
     @BeforeEach
     void setUp() {
         // Create a test user
@@ -61,7 +64,7 @@ public class VersioningServiceIntegrationTest {
         // Manually create the directory so git init doesn't fail silently
         try {
             java.nio.file.Files.createDirectories(
-                java.nio.file.Paths.get("data/parallax/projects").resolve(testProject.getId().toString())
+                java.nio.file.Paths.get(storageProperties.getProjects()).resolve(testProject.getId().toString())
             );
         } catch (java.io.IOException e) {
             throw new RuntimeException("Failed to create test directory", e);
@@ -82,7 +85,15 @@ public class VersioningServiceIntegrationTest {
         assertEquals("feature-1", featureBranch.getName());
         assertFalse(featureBranch.isMain());
 
-        // 3. Create a commit on feature branch
+        // 3. Write a file to have something to commit
+        try {
+            java.nio.file.Path projectDir = java.nio.file.Paths.get(storageProperties.getProjects()).resolve(testProject.getId().toString());
+            java.nio.file.Files.writeString(projectDir.resolve("test.txt"), "hello world");
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed to write test file", e);
+        }
+
+        // 4. Create a commit on feature branch
         ProjectCommitResponse commit = versioningService.createCommit(
                 testProject.getId(), 
                 featureBranch.getName(), 
@@ -95,7 +106,7 @@ public class VersioningServiceIntegrationTest {
 
         // 4. List commits for the project
         List<ProjectCommitResponse> projectCommits = versioningService.getCommits(testProject.getId());
-        assertEquals(1, projectCommits.size());
+        assertEquals(2, projectCommits.size());
 
         // 5. Create a Merge Request
         MergeRequest mr = versioningService.createMergeRequest(

@@ -1,6 +1,6 @@
 # Parallax — Premium Collaborative Development Platform
 
-A full-stack collaborative engineering environment that merges real-time code editing, secure peer-to-peer communication, and isolated code execution into a single unified workspace.
+A full-stack collaborative engineering environment that merges real-time code editing, secure peer-to-peer communication, true PTY terminal access, and isolated code execution into a single unified workspace.
 
 --- 
 > ![Parallax Screenshot](assets/screenshot.png)
@@ -12,10 +12,10 @@ A full-stack collaborative engineering environment that merges real-time code ed
 - [Problem Statement](#problem-statement)
 - [Problem Solution](#problem-solution)
 - [Project Description](#project-description)
+- [Architecture](#architecture)
+- [Key Features](#key-features)
 - [Project Scope](#project-scope)
 - [How to Start on Your Local PC](#how-to-start-on-your-local-pc)
-- [System Design](#system-design)
-- [Architecture](#architecture)
 - [Contribution Guidelines](#contribution-guidelines)
 
 ---
@@ -41,34 +41,84 @@ We built **Parallax** to be the ultimate virtual workspace for engineering teams
 |---------|-------------|
 | Context Switching | A **Unified Interface** that places your IDE, project file tree, chat, and voice/video calling in a single browser tab. |
 | Friction in Pair Programming | A **Shared Workspace** powered by Monaco Editor (the engine behind VS Code) with real-time Operational Transformation (OT) sync, allowing multiple developers to type simultaneously with live cursor tracking. |
-| Environment Discrepancies | **Isolated Code Execution** powered by pluggable Docker containers. Code is executed server-side in identical, ephemeral sandboxes (Python, Java, C++, JS) ensuring consistent results for everyone. |
+| Environment Discrepancies | **Isolated Code Execution & VFS** powered by pluggable Docker containers and a true Virtual File System. Code is executed server-side in identical sandboxes ensuring consistent results. |
 | Disconnected Workflows | **Integrated Communication** featuring persistent Project Chat, Workspace Team Chat, Direct Messaging, and WebRTC-powered voice/video calls built directly into the IDE. |
 
 ---
 
 ## Project Description
 
-Parallax is a modern, premium web application built on a robust Java Spring Boot backend and a high-performance React frontend. It leverages WebSockets for sub-millisecond collaboration sync and WebRTC for peer-to-peer media.
+Parallax is a modern, premium web application built on a robust Java Spring Boot backend and a high-performance React frontend. It leverages WebSockets for sub-millisecond collaboration sync, WebRTC for peer-to-peer media, and Docker for scalable containerized sandboxes.
 
-### Key Features
+---
+
+## Architecture
+
+Parallax uses a sophisticated architecture to blend real-time collaboration with isolated container management.
+
+```mermaid
+graph TD
+    Client[Frontend - React/Next.js/Monaco]
+    
+    subgraph Backend [Spring Boot Backend]
+        Auth[Auth/JWT/OAuth2]
+        APIs[REST APIs - Projects/Teams]
+        
+        subgraph WebSocket Services
+            WS_Chat[STOMP: Chat & Signaling]
+            WS_Collab[Raw: Code Sync & OT]
+            WS_LSP[Raw: LSP Proxy]
+            WS_Terminal[Raw: PTY Stream]
+        end
+    end
+    
+    subgraph Workspace Infrastructure
+        Docker[Docker Engine]
+        VFS[Virtual File System]
+        
+        subgraph Ephemeral Containers
+            LSP[Language Servers - PyLSP, jdtls, etc.]
+            Shell[PTY Shells - /bin/bash]
+            WebRunner[Web Servers - Vite/React]
+            AppRunner[Code Execution - python3/gcc/java]
+        end
+    end
+    
+    Client -- HTTP/REST --> Auth
+    Client -- STOMP/Raw WS --> WS_Chat
+    Client -- Raw WS --> WS_Collab
+    Client -- Raw WS --> WS_LSP
+    Client -- Raw WS --> WS_Terminal
+    
+    Auth --> APIs
+    APIs --> VFS
+    
+    WS_LSP --> Docker
+    WS_Terminal --> Docker
+    
+    Docker --> LSP
+    Docker --> Shell
+    Docker --> WebRunner
+    Docker --> AppRunner
+    
+    LSP --> VFS
+    Shell --> VFS
+    WebRunner --> VFS
+    AppRunner --> VFS
+```
+
+---
+
+## Key Features
 
 - **Real-time Collaborative Coding:** Multi-file editing, OT-based conflict resolution, and zero-latency live cursors.
-- **Isolated Code Execution:** Run Python, Java, C++, and JavaScript code directly in the browser. Output and errors are streamed in real-time from secure Docker containers.
+- **Language Server Protocol (LSP) Integration:** True IDE intelligence (autocomplete, linting, hover definitions) in the browser for Python, Java, JS/TS, C, and C++.
+- **True PTY Terminals:** Fully interactive WebSockets-based terminals connected directly to workspace Docker containers.
+- **Git Integration:** Native UI for branching, committing, and pushing code directly to remote repositories.
+- **Web Project Execution:** Spin up React, Next.js, and Vanilla web servers inside the workspace container and view them in a live Browser Preview panel.
 - **Unified Chat System:** Persistent WebSockets for Project Chat, Team Chat, and secure peer-to-peer Direct Messaging with emoji reactions and attachments.
 - **Voice & Video Calling:** Native WebRTC integration for low-latency peer-to-peer media streams, coordinated via a custom STOMP signaling engine.
 - **Advanced Team Management:** Hierarchical RBAC (Role-Based Access Control) across Teams, Projects, and individual files.
-- **Gamification & Productivity:** Earn XP for commits, unlock badges ("Streak Master"), and visualize activity via a GitHub-style contribution heatmap.
-- **Authentication:** Secure JWT persistence with Google and GitHub OAuth2 integration.
-
-### Tech Stack
-
-| Layer | Technologies |
-|-------|-------------|
-| **Frontend** | React 18, TypeScript 5, Vite, Tailwind CSS 4, Framer Motion, Monaco Editor |
-| **Backend** | Java 17, Spring Boot 3.2.x, Spring Security (OAuth2/JWT), Hibernate/JPA |
-| **Real-time Engine** | STOMP over SockJS, Raw WebSockets, WebRTC |
-| **Database** | PostgreSQL (Production) / H2 (Local Development) |
-| **Infrastructure** | Docker Engine, Java ProcessBuilder |
 
 ---
 
@@ -77,16 +127,17 @@ Parallax is a modern, premium web application built on a robust Java Spring Boot
 ### In Scope
 
 - Real-time multi-user code editing with conflict resolution.
-- Secure, sandboxed code execution for 4 major languages.
+- Secure, sandboxed code execution for major languages.
+- Full IDE capabilities (LSP, Terminals, File Explorer).
 - Comprehensive chat system (Project, Team, DM).
 - Peer-to-peer WebRTC video and audio calling.
 - Team and project lifecycle management with strict access controls.
 - OAuth2 authentication and user profile gamification.
+- Full-stack web development previews.
 
 ### Out of Scope (Future Work)
 
-- Advanced Git version control integration (Branching, Merge Requests).
-- Kubernetes-based horizontal scaling for the code runners.
+- Kubernetes-based horizontal scaling for the code runners (currently Docker standalone).
 - End-to-end encryption for stored chat messages.
 - Mobile-native applications (iOS/Android).
 
@@ -96,7 +147,7 @@ Parallax is a modern, premium web application built on a robust Java Spring Boot
 
 ### Prerequisites
 
-- **Java**: 17+
+- **Java**: 21
 - **Node.js**: 18+ (npm 9+)
 - **Docker**: Required and must be running for local code runner execution.
 
@@ -127,10 +178,10 @@ Open a terminal and navigate to the backend directory:
 cd backend/backend
 
 # macOS/Linux
-./mvnw spring-boot:run
+./mvnw spring-boot:run "-Dmaven.test.skip=true"
 
 # Windows
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dmaven.test.skip=true"
 ```
 *The backend will be available at http://localhost:8080*
 
@@ -147,85 +198,6 @@ npm run dev
 
 ---
 
-## System Design
-
-Parallax follows a robust client-server architecture. The Spring Boot backend acts as the central authority for authentication, persistence, and real-time event broadcasting, while Docker handles untrusted code execution.
-
-### Services and Responsibilities
-
-| Service | Responsibility |
-|---------|---------------|
-| **Frontend UI** | Renders the IDE, manages local Monaco state, handles WebRTC peer connections. |
-| **Auth/API Service** | Manages JWT lifecycles, OAuth callbacks, and REST API validations for entities. |
-| **WebSocket Manager** | Routes STOMP messages for presence, chat, and signaling, while maintaining raw WebSocket pipes for high-frequency cursor/code sync. |
-| **Execution Service** | Receives code payloads, maps them to the correct Docker image, spawns isolated containers, and streams `stdout`/`stderr` back to the client. |
-
-### Data Flow Examples
-
-**Collaborative Typing:**
-```
-Browser 1 (Monaco) → Computes OT Delta → Frontend WebSocket
-→ Backend WebSocket Manager (/ws/project/{id})
-→ Broadcast to all active sessions → Browser 2 applies Delta
-```
-
-**Code Execution:**
-```
-Browser → POST /api/execute-code (Language, Code, SessionID)
-→ Backend Execution Service → Rate limit & Lock check
-→ Java ProcessBuilder (`docker run --rm parallax-python-runner ...`)
-→ Standard Output streamed → WebSocket Broadcast (/topic/run-output)
-→ Terminal UI updates in real-time
-```
-
-**WebRTC Calling:**
-```
-Caller Browser → Generates SDP Offer → STOMP (/app/call.offer)
-→ Backend Signaling Engine → STOMP (/topic/user/{receiverId}/call)
-→ Receiver Browser → Generates SDP Answer → Backend → Caller Browser
-→ Direct Peer-to-Peer WebRTC Media Stream Established
-```
-
----
-
-## Architecture
-
-```mermaid
-graph TD
-    Client[Frontend - React/TS]
-    
-    subgraph Backend[Spring Boot Backend]
-        Auth[Auth/JWT/OAuth2]
-        APIs[REST APIs - Projects/Teams/Files]
-        WS[WebSocket Manager - STOMP/Raw]
-        Signaling[WebRTC Signaling - Calls]
-        Execution[Code Execution Service]
-        Gamification[Gamification/Presence]
-    end
-    
-    subgraph Storage[Data & Storage]
-        DB[(PostgreSQL/H2)]
-        FileSystem[Local File System]
-    end
-    
-    subgraph Infrastructure[Code Runners]
-        Docker[Docker Engine]
-        Runners[Python/Java/CPP/JS Containers]
-    end
-    
-    Client -- HTTP/REST --> Auth
-    Client -- WebSocket --> WS
-    Auth --> APIs
-    APIs --> DB
-    APIs --> FileSystem
-    WS --> Signaling
-    WS --> Gamification
-    Execution -- ProcessBuilder --> Docker
-    Docker --> Runners
-```
-
----
-
 ## Contribution Guidelines
 
 We welcome contributions to make Parallax even better! 
@@ -235,8 +207,7 @@ We welcome contributions to make Parallax even better!
 1. **Fork & Clone**: Fork the repository and clone it locally.
 2. **Branch**: Create a feature branch (`git checkout -b feature/amazing-feature`).
 3. **Commit**: Write descriptive commit messages.
-4. **Test**: Ensure your code passes all backend tests by running `mvn test` in the `backend/backend` directory. We currently have a robust suite of unit tests verifying core business logic.
-5. **Push & Pull Request**: Push your branch and open a PR against `main`.
+4. **Push & Pull Request**: Push your branch and open a PR against `main`.
 
 ### Code Style
 

@@ -64,10 +64,10 @@ export default function About() {
                                     <h2 className="text-2xl font-bold tracking-widest uppercase">The Foundational Gap</h2>
                                     <div className="space-y-4 text-[#CBD5E1] text-sm leading-relaxed max-w-2xl">
                                         <p>
-                                            Technical interviews and remote pair-programming often feel like disconnected simulations. Whiteboards lack execution, and screen-sharing lacks agency. 
+                                            Modern software engineering teams are increasingly distributed, yet the tools they use remain deeply fragmented. Context switching between VS Code, Slack, Zoom, and terminal environments breaks focus and slows down development.
                                         </p>
                                         <p>
-                                            <span className="text-white font-medium">Parallax</span> was engineered to bridge this divide—providing a high-fidelity environment where two minds can converge on a single source of truth, with instant execution and zero friction.
+                                            <span className="text-white font-medium">Parallax</span> was engineered to bridge this divide—providing a high-fidelity environment where two minds can converge on a single source of truth, with true PTY terminal execution, native Git, LSP intelligence, and zero friction.
                                         </p>
                                     </div>
                                 </div>

@@ -48,6 +48,8 @@ public class ScratchTest {
         f.setPath("main.py");
         f.setType("FILE");
         f.setContent("print('Hello from test')");
+        f.setCreatedAt(java.time.Instant.now());
+        f.setUpdatedAt(java.time.Instant.now());
         fr.save(f);
         
         String sessId = java.util.UUID.randomUUID().toString();

@@ -7,35 +7,35 @@ import { BookOpen, Terminal, Users, Zap, Code2, Play, ChevronRight, Settings } f
 const guides = [
     {
         icon: Play,
-        title: "Getting Started",
+        title: "Project Initialization",
         steps: [
             "Sign in with Google or GitHub",
-            "Create a new project from the dashboard",
-            "Set up your workspace",
+            "Clone a repository or start from scratch",
+            "Automatic container provisioning per language",
+            "Manage branches and commits via Native Git UI",
             "Share the session link with collaborators",
-            "Start collaborating in real time",
         ],
     },
     {
         icon: Code2,
-        title: "Editor",
+        title: "Editor & LSP",
         steps: [
             "Monaco engine utilization for high-fidelity code",
-            "Direct directory tree manipulation and registry",
-            "Syntax-aware automatic highlighting modules",
+            "Language Servers (LSP) for auto-complete & hover",
+            "Real-time syntax diagnostics and error linting",
             "Low-latency multi-cursor broadcast protocols",
-            "Persistence via manual or automatic state commit",
+            "Operational Transformation (OT) conflict resolution",
         ],
     },
     {
         icon: Terminal,
-        title: "Code Execution",
+        title: "Terminal & Web Previews",
         steps: [
             "Trigger containerized execution environments",
-            "Dockerized isolation per execution request",
-            "Integrated terminal output stream telemetry",
-            "Stateless runtime for consistent results",
-            "Native support for Python, Go, Java, and C++",
+            "True interactive PTY terminals (vim, nano, apt)",
+            "Integrated Full-Stack Web Previews (React/Next)",
+            "Live-reloading browser preview panel",
+            "Native support for Python, JS, Java, and C++",
         ],
     },
     {
@@ -45,18 +45,18 @@ const guides = [
             "Create multi-user collaboration rooms",
             "Guest access for immediate collaboration via link",
             "Built-in voice and video calling (WebRTC)",
-            "Real-time session state broadcasting",
-            "Live metadata updates across all participants",
+            "Role-Based Access Control (RBAC) across projects",
+            "Live Virtual File System (VFS) sync across clients",
         ],
     },
 ];
 
 const faqs = [
     { q: "Is local installation required?", a: "No. The entire platform runs in your browser — nothing to install." },
-    { q: "What languages are supported?", a: "Currently Python, Java, JS, TS, C++, and Go. More coming per our roadmap." },
-    { q: "What are the file size limits?", a: "Individual source files up to 1MB. Projects are scaled per platform tier." },
+    { q: "What languages are supported?", a: "Currently Python, Java, JS, TS, C++, and Go. You can also install tools via the terminal." },
+    { q: "Can I run interactive commands?", a: "Yes, our terminal is a true PTY. You can run top, vim, interactive python, and more." },
     { q: "Can guests join without an account?", a: "Yes, guests can join via an active link. Full project control requires an account." },
-    { q: "Is code execution safe?", a: "All code runs in isolated, ephemeral Docker containers with no platform access." },
+    { q: "Is code execution safe?", a: "All code runs in isolated, ephemeral Docker containers with strict security constraints." },
 ];
 
 export default function Documentation() {

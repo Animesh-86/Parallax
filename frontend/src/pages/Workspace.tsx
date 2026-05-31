@@ -47,7 +47,7 @@ export default function Workspace() {
 
   /* Left Panel Tools State */
   type LeftTool = "explorer" | "git" | "extensions" | "settings" | null;
-  const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("git");
+  const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("explorer");
 
   const toggleLeftTool = (tool: LeftTool) => {
     if (activeLeftTool === tool) {

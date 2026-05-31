@@ -16,11 +16,12 @@ const phases = [
         items: [
             "Real-time collaborative editor (Monaco + WebSockets)",
             "Google & GitHub OAuth authentication",
-            "Sandboxed code execution (Docker containers)",
-            "Session-based rooms with invite links",
-            "Integrated voice chat (WebRTC)",
-            "Project file tree management",
-            "Team workspaces and member management",
+            "True PTY Terminal access to Docker containers",
+            "Native Git Integration (Branch, Commit, Push)",
+            "LSP Intelligence (Java, Python, JS, C++)",
+            "Full-Stack Web Project Previews",
+            "Integrated WebRTC voice & video chat",
+            "Team workspaces and Virtual File System (VFS)",
         ],
     },
     {

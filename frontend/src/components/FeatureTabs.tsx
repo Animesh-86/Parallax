@@ -16,46 +16,74 @@ interface Tab {
 
 const tabs: Tab[] = [
     {
-        id: "collab",
-        label: "Real-Time",
-        icon: Users,
-        title: "Real-Time Collaboration",
-        description: "Code together like you're in the same room. Multi-user editing with sub-millisecond latency.",
+        id: "ide",
+        label: "LSP Intelligence",
+        icon: Code2,
+        title: "Full IDE Intelligence",
+        description: "True IDE capabilities running in the browser. Powered by Language Servers (LSP) in isolated containers.",
         features: [
-            "Multi-user live code editing (Google Docs-style)",
-            "Cursor presence and user indicators",
-            "Conflict-free collaborative editing (CRDT)",
-            "Role-based participation controls"
+            "Smart auto-complete and syntax highlighting",
+            "Real-time linting and error detection",
+            "Hover definitions and signature help",
+            "Supports Python, Java, C++, JS, and TS"
         ],
         image: "linear-gradient(135deg, #D4AF37 0%, #09090B 100%)"
     },
     {
-        id: "comms",
-        label: "Connect",
-        icon: Video,
-        title: "Voice & Video",
-        description: "Seamless communication built directly into your workspace. No external tools needed.",
+        id: "terminal",
+        label: "PTY Terminal",
+        icon: Activity,
+        title: "Interactive PTY Terminals",
+        description: "Not just a static output log. Connect directly to a fully interactive shell running inside your workspace container.",
         features: [
-            "Built-in voice chat & video conferencing",
-            "Active speaker detection",
-            "Screen sharing & presentation mode",
-            "Low-latency WebRTC peer connections"
+            "Raw WebSocket connection for zero-latency typing",
+            "Full PTY support (run vim, nano, htop)",
+            "Install custom packages via apt-get or curl",
+            "Persistent history and environment variables"
         ],
         image: "linear-gradient(135deg, #F8FAFC 0%, #D4AF37 100%)"
     },
     {
-        id: "workflows",
-        label: "Workflows",
+        id: "git",
+        label: "Git Control",
         icon: Share2,
-        title: "Collaboration Workflows",
-        description: "Structured workflows for pair programming, mentoring, and team collaboration.",
+        title: "Native Git Integration",
+        description: "Manage your source code directly from the IDE interface without ever opening a terminal.",
         features: [
-            "Dedicated pair programming sessions",
-            "Mentoring & managed classrooms",
-            "Live debugging with context sharing",
-            "Team collaboration rooms"
+            "Visual branch management and switching",
+            "Commit staging and history tracking",
+            "Push directly to connected GitHub repositories",
+            "Conflict resolution UI"
         ],
         image: "linear-gradient(135deg, #71717A 0%, #09090B 100%)"
+    },
+    {
+        id: "web",
+        label: "Web Previews",
+        icon: Shield,
+        title: "Full-Stack Web Previews",
+        description: "Spin up a development server and view the live results side-by-side with your code.",
+        features: [
+            "Support for React, Next.js, and Vite",
+            "Live-reloading browser preview panel",
+            "Port forwarding from secure Docker containers",
+            "Network request inspection"
+        ],
+        image: "linear-gradient(135deg, #D4AF37 0%, #09090B 100%)"
+    },
+    {
+        id: "collab",
+        label: "Real-Time",
+        icon: Users,
+        title: "Real-Time Collaboration",
+        description: "Code together like you're in the same room. Multi-user editing with WebRTC media.",
+        features: [
+            "Operational Transformation (OT) conflict resolution",
+            "Live cursor presence and user indicators",
+            "Built-in peer-to-peer Voice & Video calling",
+            "Persistent project and team chat"
+        ],
+        image: "linear-gradient(135deg, #F8FAFC 0%, #D4AF37 100%)"
     }
 ];
 
@@ -68,30 +96,30 @@ export const FeatureTabs = () => {
         offset: ["start start", "end end"]
     });
 
-    // Update active tab based on scroll position
+    // Update active tab based on scroll position (5 tabs)
     React.useEffect(() => {
         const unsubscribe = scrollYProgress.on("change", (latest) => {
-            if (latest < 0.33) {
+            if (latest < 0.2) {
                 setActiveTab(tabs[0]);
-            } else if (latest < 0.66) {
+            } else if (latest < 0.4) {
                 setActiveTab(tabs[1]);
-            } else {
+            } else if (latest < 0.6) {
                 setActiveTab(tabs[2]);
+            } else if (latest < 0.8) {
+                setActiveTab(tabs[3]);
+            } else {
+                setActiveTab(tabs[4]);
             }
         });
         return () => unsubscribe();
     }, [scrollYProgress]);
 
     const handleTabClick = (tab: Tab) => {
-        // Optional: Implement smooth scroll to the specific section if needed, 
-        // but for now we'll just set it (controlled by scroll mostly)
         setActiveTab(tab);
-        // Using scrollIntoView or window.scrollTo logic requires precise calculation 
-        // which can be complex with sticky positioning, so keeping it simple.
     };
 
     return (
-        <section ref={containerRef} className="relative h-[300vh] bg-transparent">
+        <section ref={containerRef} className="relative h-[500vh] bg-transparent">
             {/* Sticky Container */}
             <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
 
