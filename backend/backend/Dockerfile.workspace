@@ -17,6 +17,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# Create non-root user coder
+RUN groupadd -g 1000 coder \
+    && useradd -u 1000 -g coder -m -s /bin/bash coder \
+    && mkdir -p /workspace \
+    && chown -R coder:coder /workspace
+
 WORKDIR /workspace
+USER coder
 
 CMD ["tail", "-f", "/dev/null"]

@@ -64,6 +64,9 @@ public class User {
     @Column(name = "onboarding_complete", nullable = false)
     private boolean onboardingComplete = true;
 
+    @Column(name = "ide_settings", columnDefinition = "TEXT")
+    private String ideSettings;
+
     // Constructors
     protected User() {
         // JPA only
@@ -155,6 +158,14 @@ public class User {
 
     public void setOnboardingComplete(boolean onboardingComplete) {
         this.onboardingComplete = onboardingComplete;
+    }
+
+    public String getIdeSettings() {
+        return ideSettings;
+    }
+
+    public void setIdeSettings(String ideSettings) {
+        this.ideSettings = ideSettings;
     }
 
     // --------------------

@@ -121,6 +121,12 @@ public class SessionRegistry {
 
     // ================= LOOKUPS =================
 
+    public long getSessionCountForUser(UUID ownerUserId) {
+        return bySessionId.values().stream()
+                .filter(info -> ownerUserId.equals(info.getOwnerUserId()))
+                .count();
+    }
+
     public SessionInfo getBySessionId(String sessionId) {
         return bySessionId.get(sessionId);
     }

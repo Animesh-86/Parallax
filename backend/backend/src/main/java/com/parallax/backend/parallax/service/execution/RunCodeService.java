@@ -124,8 +124,6 @@ public class RunCodeService {
 
                 // Dynamic Language Detection based on filename
                 String detectedLanguage = detectLanguage(safePath, session.getLanguage());
-                sink.onOutput("[parallax-debug-v5] filename: " + safePath);
-                sink.onOutput("[parallax-debug-v5] detectedLanguage: " + detectedLanguage);
                 log.info("🔍 Detected language for {}: {}", safePath, detectedLanguage);
 
                 List<String> cmd = new ArrayList<>();
@@ -150,19 +148,24 @@ public class RunCodeService {
                     sink.onOutput("[parallax] Active Runner: Workspace GCC (C)");
                     cmd.add("sh");
                     cmd.add("-c");
-                    cmd.add("gcc " + safePath + " -o /tmp/out && /tmp/out");
+                    cmd.add("gcc \"$1\" -o /tmp/out && /tmp/out");
+                    cmd.add("--");
+                    cmd.add(safePath);
                 } else if ("cpp".equalsIgnoreCase(detectedLanguage)) {
                     sink.onOutput("[parallax] Active Runner: Workspace G++ (C++)");
                     cmd.add("sh");
                     cmd.add("-c");
-                    cmd.add("g++ " + safePath + " -o /tmp/out && /tmp/out");
+                    cmd.add("g++ \"$1\" -o /tmp/out && /tmp/out");
+                    cmd.add("--");
+                    cmd.add(safePath);
                 } else {
                     sink.onOutput("[parallax] Active Runner: Workspace Fallback (" + detectedLanguage + ")");
                     if (safePath.endsWith(".c")) {
-                        sink.onOutput("[parallax-debug-v5] CRITICAL: .c file hit fallback! Forcing GCC.");
                         cmd.add("sh");
                         cmd.add("-c");
-                        cmd.add("gcc " + safePath + " -o /tmp/out && /tmp/out");
+                        cmd.add("gcc \"$1\" -o /tmp/out && /tmp/out");
+                        cmd.add("--");
+                        cmd.add(safePath);
                     } else {
                         cmd.add("python3");
                         cmd.add(safePath);

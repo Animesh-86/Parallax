@@ -145,11 +145,13 @@ public class AuthService {
             String ip
     ) {
 
-        RefreshToken old =
-                refreshTokenRepo
-                        .findBySessionIdAndRevokedFalse(oldSessionId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException("invalid refresh session"));
+        RefreshToken old = refreshTokenRepo.findBySessionId(oldSessionId)
+                .orElseThrow(() -> new IllegalArgumentException("invalid refresh session"));
+
+        if (old.isRevoked()) {
+            refreshTokenRepo.revokeAllByUserId(old.getUserId());
+            throw new IllegalArgumentException("refresh token reuse detected; all sessions revoked");
+        }
 
         if (old.getExpiresAt().isBefore(Instant.now())) {
             throw new IllegalArgumentException("refresh token expired");

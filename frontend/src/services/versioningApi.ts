@@ -138,4 +138,10 @@ export const versioningApi = {
     });
     return res.data;
   },
+
+  // Utils
+  getDiff: async (projectId: string): Promise<{diff: string}> => {
+    const res = await api.get(`/api/projects/${projectId}/versioning/diff`);
+    return res.data;
+  }
 };

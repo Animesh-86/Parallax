@@ -19,6 +19,7 @@ const phases = [
             "True PTY Terminal access to Docker containers",
             "Native Git Integration (Branch, Commit, Push)",
             "LSP Intelligence (Java, Python, JS, C++)",
+            "AI-assisted code suggestions and chat",
             "Full-Stack Web Project Previews",
             "Docker-backed Virtual File System (VFS)",
             "Granular RBAC and Team Management",
@@ -31,7 +32,6 @@ const phases = [
         subtitle: "Expanding team workflows and richer session intelligence.",
         items: [
             "Integrated WebRTC voice & video chat",
-            "AI-assisted code suggestions and chat",
             "Notification system and activity feed",
             "Friends and social features",
             "Scalable deployment using Kubernetes",

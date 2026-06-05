@@ -107,4 +107,16 @@ public class ProfileController {
         
         return ResponseEntity.ok(profileQueryService.getMyProfile(userId));
     }
+
+    /**
+     * Update IDE Settings
+     */
+    @PutMapping("/me/settings")
+    public ResponseEntity<Void> updateIdeSettings(
+            @RequestBody UpdateIdeSettingsRequest request
+    ) {
+        UUID userId = AuthUtil.getCurrentUserId();
+        profileCommandService.updateIdeSettings(userId, request);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -35,6 +35,23 @@ export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelPr
     scrollToBottom();
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    const handleTrigger = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const prompt = customEvent.detail;
+      if (prompt) {
+        setInput(prompt);
+        // Delay send slightly so state sets first
+        setTimeout(() => {
+          const btn = document.getElementById("ai-send-btn");
+          if (btn) btn.click();
+        }, 50);
+      }
+    };
+    window.addEventListener("trigger-ai-chat", handleTrigger);
+    return () => window.removeEventListener("trigger-ai-chat", handleTrigger);
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -142,6 +159,7 @@ export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelPr
             rows={1}
           />
           <button
+            id="ai-send-btn"
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             className="absolute right-2 bottom-2 p-1.5 bg-[#D4AF37]/10 text-[#D4AF37] rounded-lg hover:bg-[#D4AF37]/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

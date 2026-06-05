@@ -54,6 +54,13 @@ public class LspWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
+        UUID sessionProjectId = (UUID) session.getAttributes().get("projectId");
+        UUID sessionUserId = (UUID) session.getAttributes().get("userId");
+        if (sessionProjectId == null || sessionUserId == null || !sessionProjectId.equals(projectId)) {
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Unauthorized project access"));
+            return;
+        }
+
         String containerName = sessionRegistry.getSessionIdForProject(projectId)
                 .map(sessionId -> sessionRegistry.getBySessionId(sessionId))
                 .map(SessionRegistry.SessionInfo::getContainerName)

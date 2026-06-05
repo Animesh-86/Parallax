@@ -1,6 +1,8 @@
 package com.parallax.backend.parallax.controller.project;
 
 import com.parallax.backend.parallax.security.AuthUtil;
+import com.parallax.backend.parallax.security.ProjectAccessManager;
+import com.parallax.backend.parallax.security.ProjectPermission;
 import com.parallax.backend.parallax.service.execution.WebProjectExecutionService;
 import com.parallax.backend.parallax.service.execution.WebProjectExecutionService.WebProjectStatus;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.util.UUID;
 public class WebProjectController {
 
     private final WebProjectExecutionService webProjectService;
+    private final ProjectAccessManager accessManager;
 
     @PostMapping("/start")
     public ResponseEntity<WebProjectStatus> startServer(
@@ -24,7 +27,7 @@ public class WebProjectController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
-        // Authorization should be added here similarly to RunCodeService
+        accessManager.require(projectId, userId, ProjectPermission.EXECUTE_CODE);
         WebProjectStatus status = webProjectService.startServer(projectId);
         return ResponseEntity.ok(status);
     }
@@ -35,6 +38,7 @@ public class WebProjectController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.STOP_SESSION);
         webProjectService.stopServer(projectId);
         return ResponseEntity.ok(Map.of("message", "Server stopped"));
     }
@@ -45,6 +49,7 @@ public class WebProjectController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
         WebProjectStatus status = webProjectService.getServerStatus(projectId);
         return ResponseEntity.ok(status);
     }

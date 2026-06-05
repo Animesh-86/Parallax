@@ -19,4 +19,14 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     int revokeBySessionId(String sessionId);
 
     Optional<RefreshToken> findBySessionIdAndRevokedFalse(String sessionId);
+
+    Optional<RefreshToken> findBySessionId(String sessionId);
+
+    @Modifying
+    @Query("""
+        update RefreshToken rt
+        set rt.revoked = true
+        where rt.userId = :userId
+    """)
+    int revokeAllByUserId(UUID userId);
 }

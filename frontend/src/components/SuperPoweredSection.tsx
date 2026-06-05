@@ -51,6 +51,18 @@ const features = [
         ],
         color: "#71717A", // Muted Zinc
     },
+    {
+        title: "Next-Gen AI Assistant",
+        description: "Supercharge your workflow with context-aware AI running on the lightning-fast Groq LPU engine. It writes, explains, and fixes code.",
+        details: [
+            "Real-time ghost text autocomplete",
+            "Context-aware codebase Q&A",
+            "1-click 'Explain this Code'",
+            "Automated bug finding",
+            "Smart AI commit message generation"
+        ],
+        color: "#10B981", // Emerald Green
+    },
 ];
 
 export const SuperPoweredSection = () => {

@@ -64,6 +64,12 @@ public class SessionService {
             return existing.get();
         }
 
+        // Limit maximum active sessions per user (MED-06)
+        long activeCount = sessionRegistry.getSessionCountForUser(userId);
+        if (activeCount >= 5) {
+            throw new IllegalStateException("Maximum limit of 5 active sessions reached. Stop an existing session before starting a new one.");
+        }
+
         synchronized (this) {
 
             Optional<String> second =
@@ -94,7 +100,16 @@ public class SessionService {
                             DOCKER_TIMEOUT_SEC,
                             "docker", "run", "-d",
                             "--name", containerName,
-                            "--network", "parallax-network",
+                            "--network", "parallax-workspace-network",
+                            "--memory", "512m",
+                            "--memory-swap", "512m",
+                            "--cpus", "0.5",
+                            "--pids-limit", "256",
+                            "--read-only",
+                            "--tmpfs", "/tmp:rw,noexec,nosuid,size=100m",
+                            "--security-opt", "no-new-privileges:true",
+                            "--cap-drop", "ALL",
+                            "--user", "1000:1000",
                             "-p", webPort + ":3000",
                             "-l", "traefik.enable=true",
                             "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",
@@ -112,7 +127,16 @@ public class SessionService {
                                 DOCKER_TIMEOUT_SEC,
                                 "docker", "run", "-d",
                                 "--name", containerName,
-                                "--network", "parallax-network",
+                                "--network", "parallax-workspace-network",
+                                "--memory", "512m",
+                                "--memory-swap", "512m",
+                                "--cpus", "0.5",
+                                "--pids-limit", "256",
+                                "--read-only",
+                                "--tmpfs", "/tmp:rw,noexec,nosuid,size=100m",
+                                "--security-opt", "no-new-privileges:true",
+                                "--cap-drop", "ALL",
+                                "--user", "1000:1000",
                                 "-p", webPort + ":3000",
                                 "-l", "traefik.enable=true",
                                 "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",

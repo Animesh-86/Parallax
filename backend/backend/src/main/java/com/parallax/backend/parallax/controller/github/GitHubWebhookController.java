@@ -32,29 +32,36 @@ public class GitHubWebhookController {
 
         log.info("Received GitHub Webhook Event: {}", githubEvent);
         
-        if (webhookSecret != null && !webhookSecret.isEmpty()) {
-            if (signature == null || signature.isEmpty()) {
-                log.warn("Missing X-Hub-Signature-256 header");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing signature");
+        if (webhookSecret == null || webhookSecret.isEmpty()) {
+            log.error("GitHub Webhook secret is not configured. Rejecting webhook request.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Webhook integration is disabled or not configured.");
+        }
+
+        if (signature == null || signature.isEmpty()) {
+            log.warn("Missing X-Hub-Signature-256 header");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing signature");
+        }
+
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            mac.init(secretKeySpec);
+            byte[] hmacBytes = mac.doFinal(rawPayload.getBytes(StandardCharsets.UTF_8));
+            StringBuilder expectedSignature = new StringBuilder("sha256=");
+            for (byte b : hmacBytes) {
+                expectedSignature.append(String.format("%02x", b));
             }
-            try {
-                Mac mac = Mac.getInstance("HmacSHA256");
-                SecretKeySpec secretKeySpec = new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-                mac.init(secretKeySpec);
-                byte[] hmacBytes = mac.doFinal(rawPayload.getBytes(StandardCharsets.UTF_8));
-                StringBuilder expectedSignature = new StringBuilder("sha256=");
-                for (byte b : hmacBytes) {
-                    expectedSignature.append(String.format("%02x", b));
-                }
-                
-                if (!expectedSignature.toString().equals(signature)) {
-                    log.warn("Invalid webhook signature. Expected {}, got {}", expectedSignature, signature);
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid signature");
-                }
-            } catch (Exception e) {
-                log.error("Error validating webhook signature", e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error validating signature");
+            
+            byte[] expectedBytes = expectedSignature.toString().getBytes(StandardCharsets.UTF_8);
+            byte[] actualBytes = signature.getBytes(StandardCharsets.UTF_8);
+
+            if (!java.security.MessageDigest.isEqual(expectedBytes, actualBytes)) {
+                log.warn("Invalid webhook signature.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid signature");
             }
+        } catch (Exception e) {
+            log.error("Error validating webhook signature", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error validating signature");
         }
 
         try {

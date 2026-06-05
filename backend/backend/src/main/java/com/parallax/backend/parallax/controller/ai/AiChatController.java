@@ -19,4 +19,14 @@ public class AiChatController {
         AiChatResponse response = aiChatService.chat(request);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/autocomplete")
+    public ResponseEntity<com.parallax.backend.parallax.dto.ai.AiAutocompleteResponse> autocomplete(@RequestBody com.parallax.backend.parallax.dto.ai.AiAutocompleteRequest request) {
+        return ResponseEntity.ok(aiChatService.autocomplete(request));
+    }
+
+    @PostMapping("/generate-commit-message")
+    public ResponseEntity<AiChatResponse> generateCommitMessage(@RequestBody com.parallax.backend.parallax.dto.ai.AiCommitMessageRequest request) {
+        return ResponseEntity.ok(aiChatService.generateCommitMessage(request));
+    }
 }

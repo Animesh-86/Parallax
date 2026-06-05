@@ -66,6 +66,28 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
     }
   };
 
+  const handleGenerateAiCommit = async () => {
+    try {
+      setSubmitting(true);
+      const { diff } = await versioningApi.getDiff(projectId);
+      if (!diff || diff.trim() === '') {
+        toast.info("No changes to commit.");
+        return;
+      }
+      
+      const { aiApi } = await import('../../services/aiApi');
+      const response = await aiApi.generateCommitMessage({ diff });
+      
+      setCommitMessage(response.reply);
+      toast.success("AI generated commit message.");
+    } catch (err: any) {
+      console.error("AI Commit Error:", err);
+      toast.error("Failed to generate AI commit message.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handlePush = async () => {
     if (!activeBranchId || submitting) return;
     try {
@@ -268,9 +290,17 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
                   className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs focus:outline-none focus:border-[#D4AF37]/50"
                 />
                 <button
+                  onClick={handleGenerateAiCommit}
+                  disabled={submitting}
+                  title="Generate with AI"
+                  className="px-3 py-2 bg-[#D4AF37]/10 text-[#D4AF37] rounded-lg text-xs font-medium disabled:opacity-50 hover:bg-[#D4AF37]/20 transition-colors"
+                >
+                  ✨
+                </button>
+                <button
                   onClick={handleCommit}
                   disabled={!commitMessage.trim() || submitting}
-                  className="px-4 py-2 bg-[#D4AF37] rounded-lg text-xs font-medium disabled:opacity-50 hover:bg-[#D4AF37]/90 transition-colors"
+                  className="px-4 py-2 bg-[#D4AF37] rounded-lg text-xs font-medium disabled:opacity-50 hover:bg-[#D4AF37]/90 transition-colors text-black"
                 >
                   Commit
                 </button>

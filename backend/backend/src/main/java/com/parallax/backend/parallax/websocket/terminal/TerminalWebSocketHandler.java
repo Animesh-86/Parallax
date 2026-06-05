@@ -9,6 +9,8 @@ import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
+import com.parallax.backend.parallax.security.ProjectAccessManager;
+import com.parallax.backend.parallax.security.ProjectPermission;
 import com.parallax.backend.parallax.store.SessionRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ import java.io.PipedOutputStream;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class TerminalWebSocketHandler extends TextWebSocketHandler {
@@ -31,13 +34,25 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
 
     private final SessionRegistry sessionRegistry;
     private final DockerClient dockerClient;
+    private final ProjectAccessManager accessManager;
 
     // Track output streams connected to docker stdin
     private final Map<String, PipedOutputStream> outputStreamMap = new ConcurrentHashMap<>();
 
-    public TerminalWebSocketHandler(SessionRegistry sessionRegistry, DockerClient dockerClient) {
+    // Scheduler for periodic re-authorization checks
+    private final java.util.concurrent.ScheduledExecutorService scheduler = 
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "terminal-reauth-scheduler");
+                t.setDaemon(true);
+                return t;
+            });
+
+    private final Map<String, java.util.concurrent.ScheduledFuture<?>> reauthTasks = new ConcurrentHashMap<>();
+
+    public TerminalWebSocketHandler(SessionRegistry sessionRegistry, DockerClient dockerClient, ProjectAccessManager accessManager) {
         this.sessionRegistry = sessionRegistry;
         this.dockerClient = dockerClient;
+        this.accessManager = accessManager;
     }
 
     @Override
@@ -55,6 +70,13 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
             projectId = UUID.fromString(projectIdStr);
         } catch (IllegalArgumentException e) {
             session.close(CloseStatus.BAD_DATA.withReason("Invalid project ID"));
+            return;
+        }
+
+        UUID sessionProjectId = (UUID) session.getAttributes().get("projectId");
+        UUID sessionUserId = (UUID) session.getAttributes().get("userId");
+        if (sessionProjectId == null || sessionUserId == null || !sessionProjectId.equals(projectId)) {
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Unauthorized project access"));
             return;
         }
 
@@ -113,6 +135,24 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                         }
                     });
 
+            // 4. Setup periodic permission checks
+            java.util.concurrent.ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    if (session.isOpen()) {
+                        accessManager.require(projectId, sessionUserId, ProjectPermission.EXECUTE_CODE);
+                    } else {
+                        cancelReauthTask(session.getId());
+                    }
+                } catch (Exception e) {
+                    log.warn("Permission check failed for terminal session {}, closing", session.getId(), e);
+                    cancelReauthTask(session.getId());
+                    try {
+                        session.close(CloseStatus.POLICY_VIOLATION.withReason("Access revoked"));
+                    } catch (Exception ignored) {}
+                }
+            }, 10, 10, TimeUnit.SECONDS);
+            reauthTasks.put(session.getId(), task);
+
         } catch (Exception e) {
             log.error("Failed to start terminal process", e);
             session.sendMessage(new TextMessage("Error: Failed to attach terminal.\r\n"));
@@ -122,6 +162,20 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        UUID projectId = (UUID) session.getAttributes().get("projectId");
+        UUID userId = (UUID) session.getAttributes().get("userId");
+        if (projectId == null || userId == null) {
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Unauthorized session"));
+            return;
+        }
+
+        try {
+            accessManager.require(projectId, userId, ProjectPermission.EXECUTE_CODE);
+        } catch (Exception e) {
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Access revoked"));
+            return;
+        }
+
         PipedOutputStream os = outputStreamMap.get(session.getId());
         if (os != null) {
             os.write(message.getPayload().getBytes());
@@ -131,11 +185,19 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        cancelReauthTask(session.getId());
         PipedOutputStream os = outputStreamMap.remove(session.getId());
         if (os != null) {
             try {
                 os.close();
             } catch (Exception ignored) {}
+        }
+    }
+
+    private void cancelReauthTask(String sessionId) {
+        java.util.concurrent.ScheduledFuture<?> task = reauthTasks.remove(sessionId);
+        if (task != null) {
+            task.cancel(true);
         }
     }
 

@@ -5,6 +5,8 @@ import com.parallax.backend.parallax.dto.project.ProjectBranchResponse;
 import com.parallax.backend.parallax.dto.project.ProjectCommitResponse;
 import com.parallax.backend.parallax.entity.project.MergeRequestStatus;
 import com.parallax.backend.parallax.security.AuthUtil;
+import com.parallax.backend.parallax.security.ProjectAccessManager;
+import com.parallax.backend.parallax.security.ProjectPermission;
 import com.parallax.backend.parallax.service.project.VersioningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class VersioningController {
 
     private final VersioningService versioningService;
+    private final ProjectAccessManager accessManager;
     private static final String BRANCH_NAME_REGEX = "^[a-zA-Z0-9_/-]+$";
 
     private boolean isValidBranchName(String name) {
@@ -31,7 +34,12 @@ public class VersioningController {
     // ========== BRANCHES ==========
 
     @GetMapping("/branches")
-    public ResponseEntity<List<ProjectBranchResponse>> getBranches(@PathVariable UUID projectId) {
+    public ResponseEntity<List<ProjectBranchResponse>> getBranches(
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
         // Ensure main branch exists
         var branches = versioningService.getBranches(projectId);
         return ResponseEntity.ok(branches);
@@ -44,6 +52,7 @@ public class VersioningController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         String name = body.getOrDefault("name", "").trim();
         if (!isValidBranchName(name)) {
             return ResponseEntity.badRequest().build();
@@ -62,6 +71,7 @@ public class VersioningController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         var main = versioningService.ensureMainBranch(projectId, userId);
         return ResponseEntity.ok(main);
     }
@@ -72,6 +82,8 @@ public class VersioningController {
             @PathVariable String branchName,
             Authentication authentication
     ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         if (!isValidBranchName(branchName)) {
             return ResponseEntity.badRequest().build();
         }
@@ -85,6 +97,8 @@ public class VersioningController {
             @PathVariable String branchName,
             Authentication authentication
     ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         if (!isValidBranchName(branchName)) {
             return ResponseEntity.badRequest().build();
         }
@@ -102,6 +116,8 @@ public class VersioningController {
             @PathVariable String branchName,
             Authentication authentication
     ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         try {
             versioningService.pushToRemote(projectId, branchName);
             return ResponseEntity.ok(Map.of("message", "Successfully pushed to GitHub"));
@@ -116,6 +132,8 @@ public class VersioningController {
             @RequestBody Map<String, String> body,
             Authentication authentication
     ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.MANAGE_SETTINGS);
         String url = body.get("url");
         if (url == null || url.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "URL is required"));
@@ -128,7 +146,12 @@ public class VersioningController {
     // ========== COMMITS ==========
 
     @GetMapping("/commits")
-    public ResponseEntity<List<ProjectCommitResponse>> getCommits(@PathVariable UUID projectId) {
+    public ResponseEntity<List<ProjectCommitResponse>> getCommits(
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
         var commits = versioningService.getCommits(projectId);
         return ResponseEntity.ok(commits);
     }
@@ -136,8 +159,11 @@ public class VersioningController {
     @GetMapping("/branches/{branchId}/commits")
     public ResponseEntity<List<ProjectCommitResponse>> getBranchCommits(
             @PathVariable UUID projectId,
-            @PathVariable String branchId
+            @PathVariable String branchId,
+            Authentication authentication
     ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
         var commits = versioningService.getBranchCommits(projectId, branchId);
         return ResponseEntity.ok(commits);
     }
@@ -149,6 +175,7 @@ public class VersioningController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         String branchIdStr = body.get("branchId");
         String message = body.getOrDefault("message", "").trim();
 
@@ -163,13 +190,23 @@ public class VersioningController {
     // ========== MERGE REQUESTS ==========
 
     @GetMapping("/merge-requests")
-    public ResponseEntity<List<MergeRequestResponse>> getMergeRequests(@PathVariable UUID projectId) {
+    public ResponseEntity<List<MergeRequestResponse>> getMergeRequests(
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
         var mrs = versioningService.getMergeRequests(projectId);
         return ResponseEntity.ok(mrs.stream().map(MergeRequestResponse::from).toList());
     }
 
     @GetMapping("/merge-requests/open")
-    public ResponseEntity<List<MergeRequestResponse>> getOpenMergeRequests(@PathVariable UUID projectId) {
+    public ResponseEntity<List<MergeRequestResponse>> getOpenMergeRequests(
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
         var mrs = versioningService.getOpenMergeRequests(projectId);
         return ResponseEntity.ok(mrs.stream().map(MergeRequestResponse::from).toList());
     }
@@ -181,6 +218,7 @@ public class VersioningController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         String sourceBranchId = body.get("sourceBranchId");
         String targetBranchId = body.get("targetBranchId");
         String title = body.getOrDefault("title", "").trim();
@@ -207,6 +245,7 @@ public class VersioningController {
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         String statusStr = body.get("status");
         if (statusStr == null) {
             return ResponseEntity.badRequest().build();
@@ -215,5 +254,18 @@ public class VersioningController {
         MergeRequestStatus newStatus = MergeRequestStatus.valueOf(statusStr.toUpperCase());
         var mr = versioningService.updateMergeRequestStatus(mrId, newStatus, userId);
         return ResponseEntity.ok(MergeRequestResponse.from(mr));
+    }
+
+    // ========== UTILS ==========
+
+    @GetMapping("/diff")
+    public ResponseEntity<Map<String, String>> getDiff(
+            @PathVariable UUID projectId,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
+        String diff = versioningService.getGitDiff(projectId);
+        return ResponseEntity.ok(Map.of("diff", diff != null ? diff : ""));
     }
 }

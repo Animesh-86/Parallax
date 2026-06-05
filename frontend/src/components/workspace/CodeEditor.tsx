@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import api from "../../services/api";
 import { useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Editor, { OnMount } from "@monaco-editor/react";
@@ -28,6 +29,8 @@ type CodeEditorProps = {
   minimap?: boolean;
   wordWrap?: "on" | "off";
   autoSave?: boolean;
+  ideSettings?: { enableAiAutocomplete: boolean; enableAiChat: boolean };
+  onAiAction?: (prompt: string) => void;
 };
 
 export default function CodeEditor({
@@ -42,6 +45,8 @@ export default function CodeEditor({
   minimap = true,
   wordWrap = "on",
   autoSave = true,
+  ideSettings = { enableAiAutocomplete: true, enableAiChat: true },
+  onAiAction,
 }: CodeEditorProps) {
   const { projectId } = useParams();
 
@@ -337,6 +342,36 @@ export default function CodeEditor({
       }
     });
 
+    // Add Explain Code Action
+    editor.addAction({
+      id: "ai-explain-code",
+      label: "✨ Explain this Code",
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 1.5,
+      run: function (ed: any) {
+        const selection = ed.getSelection();
+        const text = ed.getModel()?.getValueInRange(selection);
+        if (text && onAiAction) {
+          onAiAction(`Explain this code:\n\`\`\`\n${text}\n\`\`\``);
+        }
+      }
+    });
+
+    // Add Find Bugs Action
+    editor.addAction({
+      id: "ai-find-bugs",
+      label: "✨ Find Bugs",
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 1.6,
+      run: function (ed: any) {
+        const selection = ed.getSelection();
+        const text = ed.getModel()?.getValueInRange(selection);
+        if (text && onAiAction) {
+          onAiAction(`Find bugs in this code:\n\`\`\`\n${text}\n\`\`\``);
+        }
+      }
+    });
+
     // Language Client Setup
     if (projectId && filePath) {
       const lang = getLanguageFromPath(filePath);
@@ -367,6 +402,66 @@ export default function CodeEditor({
           });
         };
       }
+    }
+
+    // Register Inline Autocomplete Provider
+    if (ideSettings.enableAiAutocomplete) {
+      let autocompleteDebounceTimer: number;
+      const provider = monaco.languages.registerInlineCompletionsProvider('*', {
+        provideInlineCompletions: async (model: any, position: any) => {
+          return new Promise((resolve) => {
+            clearTimeout(autocompleteDebounceTimer);
+            autocompleteDebounceTimer = window.setTimeout(async () => {
+              try {
+                // Get prefix and suffix text around cursor
+                const textUntilPosition = model.getValueInRange({
+                  startLineNumber: 1,
+                  startColumn: 1,
+                  endLineNumber: position.lineNumber,
+                  endColumn: position.column
+                });
+                
+                const textAfterPosition = model.getValueInRange({
+                  startLineNumber: position.lineNumber,
+                  startColumn: position.column,
+                  endLineNumber: model.getLineCount(),
+                  endColumn: model.getLineMaxColumn(model.getLineCount())
+                });
+
+                // Dynamically import aiApi here or at the top of file
+                // I will assume it's imported or I can use fetch directly. 
+                // Let's use fetch directly to avoid import issues for now
+                const res = await api.post('/api/ai/autocomplete', {
+                  prefix: textUntilPosition,
+                  suffix: textAfterPosition
+                });
+                
+                if (res.status === 200) {
+                  const data = res.data;
+                  if (data.completion) {
+                    resolve({
+                      items: [{
+                        insertText: data.completion,
+                        range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column)
+                      }]
+                    });
+                    return;
+                  }
+                }
+                resolve({ items: [] });
+              } catch (e) {
+                console.error("Autocomplete failed:", e);
+                resolve({ items: [] });
+              }
+            }, 500); // 500ms debounce
+          });
+        },
+        freeInlineCompletions: () => {}
+      });
+
+      editor.onDidDispose(() => {
+        provider.dispose();
+      });
     }
   };
 

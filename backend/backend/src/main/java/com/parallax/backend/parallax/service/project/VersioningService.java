@@ -77,15 +77,21 @@ public class VersioningService {
     }
 
     private void ensureGitInitialized(UUID projectId) {
-        Path projectRoot = Paths.get(storageProperties.getProjects()).resolve(projectId.toString());
-        Path gitDir = projectRoot.resolve(".git");
-        if (!Files.exists(gitDir)) {
-            runGitCommand(projectId, "init");
-            runGitCommand(projectId, "config", "user.name", "Parallax IDE");
-            runGitCommand(projectId, "config", "user.email", "bot@parallax.local");
-            runGitCommand(projectId, "checkout", "-b", "main");
-            runGitCommand(projectId, "commit", "--allow-empty", "-m", "Initial commit from Parallax");
+        synchronized (getProjectLock(projectId)) {
+            Path projectRoot = Paths.get(storageProperties.getProjects()).resolve(projectId.toString());
+            Path gitDir = projectRoot.resolve(".git");
+            if (!Files.exists(gitDir)) {
+                runGitCommand(projectId, "init");
+                runGitCommand(projectId, "config", "user.name", "Parallax IDE");
+                runGitCommand(projectId, "config", "user.email", "bot@parallax.local");
+                runGitCommand(projectId, "checkout", "-b", "main");
+            }
         }
+    }
+
+    public String getGitDiff(UUID projectId) {
+        ensureGitInitialized(projectId);
+        return runGitCommand(projectId, "diff", "HEAD");
     }
 
     // ========== BRANCH OPERATIONS ==========
@@ -206,6 +212,15 @@ public class VersioningService {
         return response;
     }
 
+    private static final java.util.regex.Pattern GITHUB_URL_PATTERN =
+            java.util.regex.Pattern.compile("^https://github\\.com/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+(\\.git)?$");
+
+    private void validateGithubUrl(String url) {
+        if (url == null || !GITHUB_URL_PATTERN.matcher(url).matches()) {
+            throw new IllegalArgumentException("Invalid repository URL. Only standard https://github.com/owner/repo URLs are allowed.");
+        }
+    }
+
     public void pushToRemote(UUID projectId, String branchName) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
@@ -215,11 +230,18 @@ public class VersioningService {
             throw new IllegalStateException("Project is not linked to a GitHub repository. Please set a remote URL first.");
         }
         
-        // Remove trailing slash or .git
-        if (url.endsWith("/")) url = url.substring(0, url.length() - 1);
-        if (url.endsWith(".git")) url = url.substring(0, url.length() - 4);
+        validateGithubUrl(url.trim());
         
-        String[] parts = url.split("/");
+        if (githubPat == null || githubPat.isBlank() || "dummy-pat".equals(githubPat)) {
+            throw new IllegalStateException("GitHub integration is not configured on the server. Please contact the administrator.");
+        }
+        
+        // Remove trailing slash or .git
+        String cleanUrl = url.trim();
+        if (cleanUrl.endsWith("/")) cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 1);
+        if (cleanUrl.endsWith(".git")) cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 4);
+        
+        String[] parts = cleanUrl.split("/");
         if (parts.length < 2) throw new IllegalStateException("Invalid GitHub URL");
         String repo = parts[parts.length - 1];
         String owner = parts[parts.length - 2];
@@ -246,7 +268,11 @@ public class VersioningService {
     public void setRemoteUrl(UUID projectId, String url) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
-        project.setGithubRepoUrl(url);
+        if (url == null || url.trim().isEmpty()) {
+            throw new IllegalArgumentException("URL cannot be empty");
+        }
+        validateGithubUrl(url.trim());
+        project.setGithubRepoUrl(url.trim());
         projectRepository.save(project);
     }
 

@@ -120,7 +120,7 @@ class AuthServiceTest {
         rt.setExpiresAt(Instant.now().plusMillis(10000));
         rt.setRevoked(false);
 
-        when(refreshTokenRepo.findBySessionIdAndRevokedFalse(oldSession)).thenReturn(Optional.of(rt));
+        when(refreshTokenRepo.findBySessionId(oldSession)).thenReturn(Optional.of(rt));
         when(userRepo.findById(testUser.getId())).thenReturn(Optional.of(testUser));
         when(jwt.generateRefreshToken(eq(testUser.getId()), anyString())).thenReturn("newRefreshJwt");
         when(jwt.generateAccessToken(any(UUID.class), anyString(), anyString(), anyString(), anyBoolean())).thenReturn("newAccessJwt");

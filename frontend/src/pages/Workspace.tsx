@@ -20,6 +20,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
 import { ExtensionsPanel } from "../components/workspace/ExtensionsPanel";
+import { IdeSettingsPanel } from "../components/workspace/IdeSettingsPanel";
 
 type FileNode = {
   name: string;
@@ -46,7 +47,7 @@ export default function Workspace() {
   const { projectId } = useParams();
 
   /* Left Panel Tools State */
-  type LeftTool = "explorer" | "git" | "extensions" | "settings" | null;
+  type LeftTool = "explorer" | "git" | "extensions" | "settings" | "ide-settings" | null;
   const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("explorer");
 
   const toggleLeftTool = (tool: LeftTool) => {
@@ -70,7 +71,7 @@ export default function Workspace() {
   const [runExitCode, setRunExitCode] = useState<number | null>(null);
 
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(250);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(320);
   const [loadingTree, setLoadingTree] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
 
@@ -90,6 +91,27 @@ export default function Workspace() {
       prev.includes(tool) ? prev.filter(t => t !== tool) : [...prev, tool]
     );
   };
+
+  /* Global IDE Settings */
+  const [ideSettings, setIdeSettings] = useState({
+    enableAiAutocomplete: true,
+    enableAiChat: true,
+  });
+
+  useEffect(() => {
+    // Initial fetch of IDE settings
+    api.get("/profiles/me")
+      .then((res) => {
+        if (res.data.ideSettings) {
+          try {
+            setIdeSettings(JSON.parse(res.data.ideSettings));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const templates = [
     { value: 'javascript', label: 'JavaScript', color: '#F7DF1E' },
@@ -361,14 +383,15 @@ export default function Workspace() {
 
 
 
-                {projectId && (
-                  <div className={activeLeftTool === "settings" ? "flex flex-col h-full w-full" : "hidden"}>
-                    <div className="px-3 py-2 flex items-center justify-between border-b border-white/5">
-                      <span className="text-xs font-semibold tracking-wide text-white/60">PROJECT SETTINGS</span>
-                      <button onClick={() => setActiveLeftTool(null)} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
-                    </div>
-                    <ProjectSettingsPanel projectId={projectId} onUpdate={() => fetchProjectName()} />
-                  </div>
+                {activeLeftTool === "settings" && (
+                  <ProjectSettingsPanel projectSettings={projectSettings} onClose={() => setActiveLeftTool(null)} />
+                )}
+                
+                {activeLeftTool === "ide-settings" && (
+                  <IdeSettingsPanel 
+                    onClose={() => setActiveLeftTool(null)} 
+                    onSettingsChange={(newSettings) => setIdeSettings(newSettings)}
+                  />
                 )}
               </div>
               <div
@@ -437,6 +460,13 @@ export default function Workspace() {
                       autoSave: s.autoSave !== undefined ? s.autoSave : true,
                     };
                   })()}
+                  ideSettings={ideSettings}
+                  onAiAction={(prompt: string) => {
+                    if (!activeRightTools.includes("ai")) {
+                      toggleRightTool("ai");
+                    }
+                    window.dispatchEvent(new CustomEvent("trigger-ai-chat", { detail: prompt }));
+                  }}
                 />
               )}
             </div>
@@ -490,7 +520,9 @@ export default function Workspace() {
                       <button onClick={() => toggleRightTool("ai")} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile} />
+                      {ideSettings.enableAiChat && (
+                        <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile || undefined} />
+                      )}
                     </div>
                   </div>
                 )}

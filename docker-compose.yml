@@ -4,17 +4,17 @@ services:
   traefik:
     image: traefik:v2.10
     command:
-      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=parallax-workspace-network"
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
-      - "8081:8080" # Traefik Dashboard
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - parallax-network
+      - parallax-workspace-network
 
   redis:
     image: redis:7-alpine
@@ -27,3 +27,8 @@ networks:
   parallax-network:
     name: parallax-network
     driver: bridge
+  parallax-workspace-network:
+    name: parallax-workspace-network
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "false"

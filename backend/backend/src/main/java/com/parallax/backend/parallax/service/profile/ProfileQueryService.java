@@ -109,7 +109,7 @@ public class ProfileQueryService {
             response = new ProfileResponse(
                     user.getUsername(), user.getFullName(), user.getBio(),
                     user.getLocation(), user.getAvatarUrl(), user.getCreatedAt(), user.getEmail(),
-                    statsDto, badges, activities, graph
+                    user.getIdeSettings(), statsDto, badges, activities, graph
             );
         } else {
             response = new PublicProfileResponse(

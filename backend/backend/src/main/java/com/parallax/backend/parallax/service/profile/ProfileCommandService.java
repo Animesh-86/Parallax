@@ -68,6 +68,14 @@ public class ProfileCommandService {
         userRepository.save(user);
     }
 
+    // Update IDE settings
+    @Transactional
+    public void updateIdeSettings(UUID userId, com.parallax.backend.parallax.dto.profile.UpdateIdeSettingsRequest request) {
+        User user = getUserOrThrow(userId);
+        user.setIdeSettings(request.getIdeSettings());
+        userRepository.save(user);
+    }
+
     // Internal helper
     private User getUserOrThrow(UUID userId) {
         return userRepository.findById(userId)

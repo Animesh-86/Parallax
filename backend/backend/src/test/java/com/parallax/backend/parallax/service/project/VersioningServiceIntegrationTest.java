@@ -106,7 +106,7 @@ public class VersioningServiceIntegrationTest {
 
         // 4. List commits for the project
         List<ProjectCommitResponse> projectCommits = versioningService.getCommits(testProject.getId());
-        assertEquals(2, projectCommits.size());
+        assertEquals(1, projectCommits.size());
 
         // 5. Create a Merge Request
         MergeRequest mr = versioningService.createMergeRequest(
