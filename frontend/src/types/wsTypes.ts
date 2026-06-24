@@ -2,8 +2,10 @@ export interface CodeEditMessage {
     projectId: string;
     userId: string;
     path: string;
-    content: string;
+    content: string; // Used for full saves to backend
     token?: string | null;
+    isDelta?: boolean;
+    changes?: any[]; // Array of IModelContentChange from monaco
 }
 
 export interface RunCodeRequestWS {

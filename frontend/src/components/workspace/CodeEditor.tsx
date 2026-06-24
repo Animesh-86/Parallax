@@ -179,6 +179,8 @@ export default function CodeEditor({
     start();
   }, [projectId]);
 
+  const isApplyingRemoteEditRef = useRef(false);
+
   // --------------------------------------------------
   // Code WebSocket
   // --------------------------------------------------
@@ -191,14 +193,33 @@ export default function CodeEditor({
 
       // Only apply if it matches current open file
       if (msg.path === filePathRef.current) {
-        onChange(msg.content);
+        if (msg.isDelta && msg.changes && editorInstance && monacoInstance) {
+          isApplyingRemoteEditRef.current = true;
+          editorInstance.executeEdits('remote-sync', msg.changes.map((c: any) => ({
+            range: new monacoInstance.Range(
+              c.range.startLineNumber, 
+              c.range.startColumn, 
+              c.range.endLineNumber, 
+              c.range.endColumn
+            ),
+            text: c.text,
+            forceMoveMarkers: true
+          })));
+          onChange(editorInstance.getValue());
+          isApplyingRemoteEditRef.current = false;
+        } else if (!msg.isDelta && msg.content !== undefined) {
+          isApplyingRemoteEditRef.current = true;
+          onChange(msg.content);
+          // Assuming model swap handles the new content gracefully
+          isApplyingRemoteEditRef.current = false;
+        }
       }
     });
 
     return () => {
       codeWs.disconnect();
     };
-  }, [projectId, userId, onChange]);
+  }, [projectId, userId, onChange, editorInstance, monacoInstance]);
 
   // --------------------------------------------------
   // Run WebSocket (ONE TIME)
@@ -280,7 +301,9 @@ export default function CodeEditor({
   // Constants & Theme
   // --------------------------------------------------
 
-  const handleEditorChange = (value: string | undefined) => {
+  const handleEditorChange = (value: string | undefined, ev: any) => {
+    if (isApplyingRemoteEditRef.current) return;
+    
     const val = value || "";
     onChange(val);
 
@@ -289,7 +312,9 @@ export default function CodeEditor({
         projectId,
         userId,
         path: filePath,
-        content: val
+        content: val,
+        isDelta: true,
+        changes: ev.changes
       });
     }
   };

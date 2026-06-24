@@ -21,6 +21,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.Volume;
+import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ulimit;
+import com.github.dockerjava.api.model.Capability;
+import com.github.dockerjava.api.model.TmpfsOptions;
+import com.github.dockerjava.api.exception.NotFoundException;
 
 @Service
 public class SessionService {
@@ -37,6 +47,7 @@ public class SessionService {
     private final com.parallax.backend.parallax.config.StorageProperties storageProperties;
     private final com.parallax.backend.parallax.config.ContainerSecurityPolicy containerSecurityPolicy;
     private final com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger;
+    private final DockerClient dockerClient;
 
     @Value("${code.session.image-name:parallax-collab}")
     private String sessionImage;
@@ -54,7 +65,8 @@ public class SessionService {
             ProjectAccessManager accessManager,
             com.parallax.backend.parallax.config.StorageProperties storageProperties,
             com.parallax.backend.parallax.config.ContainerSecurityPolicy containerSecurityPolicy,
-            com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger
+            com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger,
+            DockerClient dockerClient
     ) {
         this.projectRepo = projectRepo;
         this.fileSyncService = fileSyncService;
@@ -63,6 +75,7 @@ public class SessionService {
         this.storageProperties = storageProperties;
         this.containerSecurityPolicy = containerSecurityPolicy;
         this.auditLogger = auditLogger;
+        this.dockerClient = dockerClient;
     }
 
     // START SESSION (IDEMPOTENT)
@@ -111,28 +124,49 @@ public class SessionService {
 
                 String hostMount = projectPath.toString().replace("\\", "/");
 
-                String output;
-                String[] dockerArgs = buildSecureDockerArgs(
-                        containerName, hostMount, webPort, projectId
-                );
-
-                // 🔒 Validate command against security policy before execution
-                containerSecurityPolicy.validateDockerCommand(dockerArgs);
-
+                // Ensure image is pulled
                 try {
-                    output = runCommand(DOCKER_TIMEOUT_SEC, dockerArgs);
-                } catch (RuntimeException e) {
-                    if (e.getMessage().contains("Unable to find image")) {
-                        LOG.info("Docker image missing. Pulling {}...", sessionImage);
-                        runCommand(DOCKER_TIMEOUT_SEC * 2,
-                                "docker", "pull", sessionImage);
-                        output = runCommand(DOCKER_TIMEOUT_SEC, dockerArgs);
-                    } else {
-                        throw e;
-                    }
+                    dockerClient.inspectImageCmd(sessionImage).exec();
+                } catch (NotFoundException e) {
+                    LOG.info("Docker image missing. Pulling {}...", sessionImage);
+                    dockerClient.pullImageCmd(sessionImage).start().awaitCompletion(DOCKER_TIMEOUT_SEC * 2, TimeUnit.SECONDS);
                 }
 
-                LOG.info("Docker container started: {}", output);
+                HostConfig hostConfig = HostConfig.newHostConfig()
+                    .withNetworkMode("parallax-workspace-network")
+                    .withMemory(512L * 1024 * 1024)
+                    .withMemorySwap(512L * 1024 * 1024)
+                    .withNanoCPUs(500000000L) // 0.5 CPU
+                    .withPidsLimit(256L)
+                    .withUlimits(java.util.Arrays.asList(
+                        new Ulimit("nofile", 1024, 2048),
+                        new Ulimit("nproc", 256, 256)
+                    ))
+                    .withReadonlyRootfs(true)
+                    .withTmpFs(java.util.Map.of(
+                        "/tmp", "rw,noexec,nosuid,size=100m",
+                        "/home/runner", "rw,nosuid,size=50m"
+                    ))
+                    .withSecurityOpts(java.util.Arrays.asList("no-new-privileges:true"))
+                    .withCapDrop(Capability.ALL)
+                    .withIpcMode("none")
+                    .withPortBindings(PortBinding.parse(webPort + ":3000"))
+                    .withBinds(Bind.parse(hostMount + ":/workspace"));
+
+                CreateContainerResponse container = dockerClient.createContainerCmd(sessionImage)
+                    .withName(containerName)
+                    .withUser("1000:1000")
+                    .withLabels(java.util.Map.of(
+                        "traefik.enable", "true",
+                        "traefik.http.routers.proj-" + projectId + ".rule", "Host(`" + projectId + ".parallax.run`)",
+                        "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port", "3000"
+                    ))
+                    .withHostConfig(hostConfig)
+                    .withCmd("tail", "-f", "/dev/null")
+                    .exec();
+
+                dockerClient.startContainerCmd(container.getId()).exec();
+                LOG.info("Docker container started: {}", container.getId());
 
                 sessionRegistry.register(
                         projectId,
@@ -176,8 +210,13 @@ public class SessionService {
                 ProjectPermission.STOP_SESSION
         );
 
-        runCommand(DOCKER_TIMEOUT_SEC,
-                "docker", "rm", "-f", info.getContainerName());
+        try {
+            dockerClient.removeContainerCmd(info.getContainerName())
+                .withForce(true)
+                .exec();
+        } catch (NotFoundException e) {
+            LOG.warn("Container {} already removed", info.getContainerName());
+        }
 
         // 🔒 Audit: container stopped
         auditLogger.log(
@@ -189,79 +228,11 @@ public class SessionService {
         sessionRegistry.remove(sessionId);
     }
 
-    // INTERNAL — Single source of truth for hardened Docker container configuration
-    private String[] buildSecureDockerArgs(
-            String containerName, String hostMount, int webPort, UUID projectId
-    ) {
-        return new String[]{
-                "docker", "run", "-d",
-                "--name", containerName,
-                "--network", "parallax-workspace-network",
-                // ── Resource Limits (cgroups v2) ──
-                "--memory", "512m",
-                "--memory-swap", "512m",        // No swap abuse
-                "--cpus", "0.5",
-                "--pids-limit", "256",           // Fork bomb protection
-                "--ulimit", "nofile=1024:2048",  // File descriptor limit
-                "--ulimit", "nproc=256:256",     // Redundant fork protection
-                // ── Security Hardening ──
-                "--read-only",                   // Immutable root filesystem
-                "--tmpfs", "/tmp:rw,noexec,nosuid,size=100m",
-                "--tmpfs", "/home/runner:rw,nosuid,size=50m",  // Writable home dir
-                "--security-opt", "no-new-privileges:true",    // No SUID escalation
-                "--cap-drop", "ALL",             // Drop all 38 Linux capabilities
-                "--user", "1000:1000",           // Non-root user
-                "--ipc", "none",                 // No shared memory with other containers
-                // ── Web Preview Port ──
-                "-p", webPort + ":3000",
-                // ── Traefik Labels ──
-                "-l", "traefik.enable=true",
-                "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",
-                "-l", "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port=3000",
-                // ── Volume ──
-                "-v", hostMount + ":/workspace",
-                sessionImage,
-                "tail", "-f", "/dev/null"
-        };
-    }
-
     private int findAvailablePort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
+        try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
             return socket.getLocalPort();
         } catch (Exception e) {
             throw new RuntimeException("Could not find an available port", e);
         }
-    }
-
-    private String runCommand(int timeoutSec, String... cmd) throws Exception {
-
-        Process p = new ProcessBuilder(cmd)
-                .redirectErrorStream(true)
-                .start();
-
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader r =
-                     new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-        }
-
-        boolean finished = p.waitFor(timeoutSec, TimeUnit.SECONDS);
-        if (!finished) {
-            p.destroyForcibly();
-            throw new RuntimeException("Command timed out: " + String.join(" ", cmd));
-        }
-
-        if (p.exitValue() != 0) {
-            throw new RuntimeException(
-                    "Command failed (" + p.exitValue() + "): "
-                            + String.join(" ", cmd)
-                            + "\nOutput:\n" + output
-            );
-        }
-
-        return output.toString().trim();
     }
 }

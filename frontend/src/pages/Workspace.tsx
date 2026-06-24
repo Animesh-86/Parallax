@@ -92,25 +92,18 @@ export default function Workspace() {
   };
 
   /* Global IDE Settings */
+  const [projectSettings, setProjectSettings] = useState<any>(null);
   const [ideSettings, setIdeSettings] = useState({
-    enableAiAutocomplete: true,
+    tabSize: 2,
+    fontSize: 14,
+    fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+    minimap: true,
+    wordWrap: "on" as "on" | "off",
+    autoSave: true,
+    formatOnSave: true,
+    enableAiReview: true,
     enableAiChat: true,
   });
-
-  useEffect(() => {
-    // Initial fetch of IDE settings
-    api.get("/profiles/me")
-      .then((res) => {
-        if (res.data.ideSettings) {
-          try {
-            setIdeSettings(JSON.parse(res.data.ideSettings));
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      })
-      .catch(console.error);
-  }, []);
 
   const templates = [
     { value: 'javascript', label: 'JavaScript', color: '#F7DF1E' },
@@ -125,53 +118,60 @@ export default function Workspace() {
   const [projectName, setProjectName] = useState<string>(state?.projectName || "");
   const [loadingName, setLoadingName] = useState(!state?.projectName);
 
-  const fetchProjectDetails = async (force: boolean = false) => {
+  const bootstrapWorkspace = async () => {
     if (!projectId) return;
     try {
-      if (!projectName || !state?.projectName || force) {
-        setLoadingName(true);
-        const res = await api.get(`/projects/${projectId}`);
-        setProjectName(res.data.name);
-        setProjectSettings(res.data);
-        if (res.data.teamId) {
-          setTeamId(res.data.teamId);
-          setTeamName(res.data.teamName || 'Team');
+      setLoadingName(true);
+      setLoadingTree(true);
+      
+      const res = await api.get(`/workspace/${projectId}/bootstrap`);
+      const data = res.data;
+
+      // 1. Project details
+      if (data.project) {
+        setProjectName(data.project.name);
+        setProjectSettings(data.project);
+        if (data.project.teamId) {
+          setTeamId(data.project.teamId);
+          setTeamName(data.project.teamName || 'Team');
         }
       }
+
+      // 2. IDE Settings
+      if (data.ideSettings) {
+        try {
+          setIdeSettings(JSON.parse(data.ideSettings));
+        } catch (e) {
+          console.error("Failed to parse IDE settings", e);
+        }
+      }
+
+      // 3. File tree
+      if (data.fileTree) {
+        setFileTree(data.fileTree);
+      }
+
+      // 4. Branches
+      if (data.mainBranch && data.branches) {
+        const savedBranchId = localStorage.getItem(`activeBranch_${projectId}`);
+        let targetBranch = data.mainBranch;
+        if (savedBranchId) {
+          const found = data.branches.find((b: any) => b.id === savedBranchId);
+          if (found) targetBranch = found;
+        }
+        setActiveBranch(targetBranch);
+      }
     } catch (err) {
-      console.error("Failed to fetch project details", err);
+      console.error("Failed to bootstrap workspace", err);
       setProjectName("Parallax Workspace");
     } finally {
       setLoadingName(false);
+      setLoadingTree(false);
     }
   };
 
   useEffect(() => {
-    fetchProjectDetails();
-  }, [projectId]);
-
-  /* Initialize versioning main branch */
-  useEffect(() => {
-    if (!projectId) return;
-    const initVersioning = async () => {
-      try {
-        const mainBranch = await versioningApi.ensureMainBranch(projectId);
-        const allBranches = await versioningApi.getBranches(projectId);
-        const savedBranchId = localStorage.getItem(`activeBranch_${projectId}`);
-        
-        let targetBranch = mainBranch;
-        if (savedBranchId) {
-          const found = allBranches.find(b => b.id === savedBranchId);
-          if (found) targetBranch = found;
-        }
-        
-        setActiveBranch(targetBranch);
-      } catch (err) {
-        console.error('Failed to init versioning:', err);
-      }
-    };
-
-    initVersioning();
+    bootstrapWorkspace();
   }, [projectId]);
 
   // ---------------- API calls ----------------
@@ -246,9 +246,7 @@ export default function Workspace() {
     await loadTree();
   };
 
-  useEffect(() => {
-    loadTree();
-  }, [projectId]);
+
 
   // Resize handler - RIGHT
   const handleRightDragMouseDown = (e: React.MouseEvent) => {

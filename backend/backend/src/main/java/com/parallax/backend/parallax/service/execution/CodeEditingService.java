@@ -64,15 +64,19 @@ public class CodeEditingService {
         );
 
         // REAL-TIME BROADCAST
+        CodeEditMessage broadcastMsg = new CodeEditMessage(
+                projectId.toString(),
+                userId.toString(),
+                path,
+                msg.getIsDelta() ? null : content, // STRIP full content if it's a delta to save bandwidth!
+                null,
+                msg.getIsDelta(),
+                msg.getChanges()
+        );
+
         messagingTemplate.convertAndSend(
                 "/topic/projects/" + projectId + "/code",
-                new CodeEditMessage(
-                        projectId.toString(),
-                        userId.toString(),
-                        path,
-                        content,
-                        null
-                )
+                broadcastMsg
         );
     }
 
