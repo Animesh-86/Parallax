@@ -249,7 +249,8 @@ export function VideoPanel({ mode, onModeChange, onClose }: VideoPanelProps) {
         )}
       </div>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-[#0D0D0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl z-20">
+      {/* Static Bottom Controls */}
+      <div className="shrink-0 flex items-center justify-center gap-2 p-3 bg-[#0D0D0F] border-t border-white/5 z-20 w-full">
         <button
           onClick={toggleMute}
           disabled={!isConnected}

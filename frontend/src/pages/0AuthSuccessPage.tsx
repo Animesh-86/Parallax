@@ -13,8 +13,6 @@ const OAuthSuccessPage = () => {
       params.get("access_token") ||
       params.get("token");
 
-    console.log("OAuth access token from backend:", accessToken);
-
     if (accessToken) {
       try {
         localStorage.setItem("access_token", accessToken);

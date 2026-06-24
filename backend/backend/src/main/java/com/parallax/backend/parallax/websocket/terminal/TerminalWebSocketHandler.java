@@ -35,6 +35,7 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
     private final SessionRegistry sessionRegistry;
     private final DockerClient dockerClient;
     private final ProjectAccessManager accessManager;
+    private final com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger;
 
     // Track output streams connected to docker stdin
     private final Map<String, PipedOutputStream> outputStreamMap = new ConcurrentHashMap<>();
@@ -49,10 +50,16 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
 
     private final Map<String, java.util.concurrent.ScheduledFuture<?>> reauthTasks = new ConcurrentHashMap<>();
 
-    public TerminalWebSocketHandler(SessionRegistry sessionRegistry, DockerClient dockerClient, ProjectAccessManager accessManager) {
+    public TerminalWebSocketHandler(
+            SessionRegistry sessionRegistry,
+            DockerClient dockerClient,
+            ProjectAccessManager accessManager,
+            com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger
+    ) {
         this.sessionRegistry = sessionRegistry;
         this.dockerClient = dockerClient;
         this.accessManager = accessManager;
+        this.auditLogger = auditLogger;
     }
 
     @Override
@@ -102,6 +109,13 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                     .withEnv(java.util.Arrays.asList("TERM=xterm"))
                     .exec();
 
+            // 🔒 Audit log: terminal session opened
+            auditLogger.log(
+                    com.parallax.backend.parallax.config.SecurityAuditLogger.AuditEvent.TERMINAL_SESSION_OPENED,
+                    sessionUserId, projectId,
+                    java.util.Map.of("containerName", containerName, "wsSessionId", session.getId())
+            );
+
             // 2. Setup Stdin Pipe
             PipedInputStream in = new PipedInputStream(8192);
             PipedOutputStream out = new PipedOutputStream(in);
@@ -130,7 +144,9 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                                 if (session.isOpen()) {
                                     session.close();
                                 }
-                            } catch (Exception ignored) {}
+                            } catch (Exception e) {
+                                log.error("Error reading from PTY output", e);
+                            }
                             super.onComplete();
                         }
                     });
@@ -148,7 +164,9 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                     cancelReauthTask(session.getId());
                     try {
                         session.close(CloseStatus.POLICY_VIOLATION.withReason("Access revoked"));
-                    } catch (Exception ignored) {}
+                    } catch (Exception ex) {
+                        log.error("Error managing PTY process", ex);
+                    }
                 }
             }, 10, 10, TimeUnit.SECONDS);
             reauthTasks.put(session.getId(), task);
@@ -186,11 +204,25 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         cancelReauthTask(session.getId());
+
+        // 🔒 Audit log: terminal session closed
+        UUID projectId = (UUID) session.getAttributes().get("projectId");
+        UUID userId = (UUID) session.getAttributes().get("userId");
+        if (projectId != null && userId != null) {
+            auditLogger.log(
+                    com.parallax.backend.parallax.config.SecurityAuditLogger.AuditEvent.TERMINAL_SESSION_CLOSED,
+                    userId, projectId,
+                    java.util.Map.of("wsSessionId", session.getId(), "closeReason", status.toString())
+            );
+        }
+
         PipedOutputStream os = outputStreamMap.remove(session.getId());
         if (os != null) {
             try {
                 os.close();
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                log.error("Error sending output to terminal WebSocket", e);
+            }
         }
     }
 
@@ -209,5 +241,18 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @jakarta.annotation.PreDestroy
+    public void cleanup() {
+        scheduler.shutdownNow();
+        outputStreamMap.values().forEach(os -> {
+            try {
+                os.close();
+            } catch (Exception e) {
+                log.error("Error closing stream during cleanup", e);
+            }
+        });
+        outputStreamMap.clear();
     }
 }

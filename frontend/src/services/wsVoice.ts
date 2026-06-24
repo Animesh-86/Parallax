@@ -196,6 +196,21 @@ class VoiceWebSocketService {
             body: JSON.stringify({ ...payload, senderId: this.userId! }),
         });
     }
+
+    // --- RUN OUTPUT SYNC ---
+    subscribeRunOutput(onOutput: (payload: any) => void) {
+        if (!this.client?.connected || !this.channelId) return;
+        const topicUrl = this.channelType === "room" ? `/topic/rooms/${this.channelId}/run-output` : `/topic/project/${this.channelId}/run-output`;
+        
+        return this.client.subscribe(topicUrl, (message: IMessage) => {
+            try {
+                const payload = JSON.parse(message.body);
+                onOutput(payload);
+            } catch (e) {
+                console.error("Error parsing run output payload", e);
+            }
+        });
+    }
 }
 
 export const voiceWs = new VoiceWebSocketService();

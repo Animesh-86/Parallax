@@ -30,6 +30,7 @@ public class MeetingRoomController {
     private final MeetingRoomService meetingRoomService;
     private final UserRepository userRepository;
     private final InviteWebSocketPublisher inviteWsPublisher;
+    private final com.parallax.backend.parallax.service.execution.MeetingRoomExecutionService meetingRoomExecutionService;
 
     @PostMapping
     public ResponseEntity<RoomResponse> createRoom(
@@ -141,6 +142,35 @@ public class MeetingRoomController {
                 return updateRoomSettingsByCode(roomCode, request, authentication);
         }
 
+    // TRANSFER HOST
+    @PostMapping("/{roomId}/transfer-host")
+    public ResponseEntity<RoomResponse> transferHost(
+            @PathVariable UUID roomId,
+            @RequestBody Map<String, String> request,
+            Authentication authentication
+    ) {
+        UUID currentUserId = AuthUtil.requireUserId(authentication);
+        String newHostIdStr = request.get("newHostId");
+        if (newHostIdStr == null || newHostIdStr.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        UUID newHostId = UUID.fromString(newHostIdStr);
+        RoomResponse response = meetingRoomService.transferHost(roomId, currentUserId, newHostId);
+        return ResponseEntity.ok(response);
+    }
+
+    // RUN CODE IN ROOM
+    @PostMapping("/{roomId}/run")
+    public ResponseEntity<?> runCode(
+            @PathVariable UUID roomId,
+            @Valid @RequestBody com.parallax.backend.parallax.dto.execution.MeetingRoomRunCodeRequest request,
+            Authentication authentication
+    ) {
+        UUID currentUserId = AuthUtil.requireUserId(authentication);
+        meetingRoomExecutionService.runCodeInRoom(roomId, request, currentUserId);
+        return ResponseEntity.ok().build();
+    }
+
     // INVITE USER TO ROOM BY EMAIL
     @PostMapping("/{roomId}/invite")
     public ResponseEntity<?> inviteToRoom(
@@ -160,7 +190,7 @@ public class MeetingRoomController {
 
         if (invitee == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "User not found with email: " + request.getEmail()));
+                    .body(Map.of("error", "Cannot invite user"));
         }
 
         if (invitee.getId().equals(requesterId)) {

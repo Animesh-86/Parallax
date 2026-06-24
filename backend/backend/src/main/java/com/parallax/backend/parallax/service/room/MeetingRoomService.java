@@ -82,15 +82,15 @@ public class MeetingRoomService {
     @Transactional
     public RoomResponse joinRoomByCode(String roomCode, UUID userId) {
         MeetingRoom room = meetingRoomRepository.findByRoomCode(roomCode.trim().toUpperCase(Locale.ROOT))
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found or access denied"));
 
         if (!room.isActive()) {
-            throw new IllegalStateException("Room is no longer active");
+            throw new ResourceNotFoundException("Room not found or access denied");
         }
 
         boolean alreadyMember = roomParticipantRepository.existsByRoomIdAndUserId(room.getId(), userId);
         if (!room.isCodeOpen() && !alreadyMember && !room.getCreatedBy().equals(userId)) {
-            throw new SecurityException("This room is invite-only. Ask the host for access.");
+            throw new ResourceNotFoundException("Room not found or access denied");
         }
 
         if (!alreadyMember) {
@@ -356,6 +356,23 @@ public class MeetingRoomService {
         meetingRoomRepository.deleteById(roomId);
     }
 
+    @Transactional
+    public RoomResponse transferHost(UUID roomId, UUID currentUserId, UUID newHostId) {
+        requireRoomOwner(roomId, currentUserId);
+        MeetingRoom room = findRoom(roomId);
+        
+        // Optional: verify the new host is actually a participant in the room
+        boolean isParticipant = roomParticipantRepository.existsByRoomIdAndUserId(roomId, newHostId);
+        if (!isParticipant) {
+            throw new IllegalArgumentException("New host must be an active participant in the room");
+        }
+
+        room.setCreatedBy(newHostId);
+        meetingRoomRepository.save(room);
+        
+        return mapToResponse(room);
+    }
+
     private RoomResponse mapToResponse(MeetingRoom room) {
         return new RoomResponse(
                 room.getId(),
@@ -391,7 +408,6 @@ public class MeetingRoomService {
 
     private void applyInterviewModeDefaults(MeetingRoom room) {
         room.setCodeOpen(false);
-        room.setWhiteboardEnabled(true);
         room.setWhiteboardVisibility("PUBLIC");
         room.setWhiteboardEditPolicy("HOST_ONLY");
         room.setCodeVisibility("PUBLIC");
@@ -403,9 +419,8 @@ public class MeetingRoomService {
 
     private void applyTeamModeDefaults(MeetingRoom room) {
         room.setCodeOpen(true);
-        room.setWhiteboardEnabled(true);
         room.setWhiteboardVisibility("PUBLIC");
-        room.setWhiteboardEditPolicy("HOST_ONLY");
+        room.setWhiteboardEditPolicy("EVERYONE");
         room.setCodeVisibility("PUBLIC");
         room.setTaskVisibility("PUBLIC");
         room.setTaskEditPolicy("EVERYONE");
@@ -420,7 +435,14 @@ public class MeetingRoomService {
         return Arrays.stream(csv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .map(UUID::fromString)
+                .map(s -> {
+                    try {
+                        return UUID.fromString(s);
+                    } catch (IllegalArgumentException e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
     }

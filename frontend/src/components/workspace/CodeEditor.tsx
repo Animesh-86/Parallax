@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
+import { apiBaseUrl, apiWsUrl } from '../../services/env';
 import { useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Editor, { OnMount } from "@monaco-editor/react";
@@ -59,6 +60,14 @@ export default function CodeEditor({
   const [monacoInstance, setMonacoInstance] = useState<any>(null);
   const decorationsCollection = useRef<any>(null);
 
+  useEffect(() => {
+    return () => {
+      if (editorInstance) {
+        editorInstance.dispose();
+      }
+    };
+  }, [editorInstance]);
+
   const runTimeoutRef = useRef<number | null>(null);
   const runSocketConnected = useRef(false);
 
@@ -68,7 +77,32 @@ export default function CodeEditor({
 
   useEffect(() => {
     filePathRef.current = filePath;
-  }, [filePath]);
+    filePathRef.current = filePath;
+    if (editorInstance && monacoInstance && filePath) {
+      const uri = monacoInstance.Uri.parse(`file:///${filePath}`);
+      let model = monacoInstance.editor.getModel(uri);
+      const lang = getLanguageFromPath(filePath);
+      
+      if (!model) {
+        model = monacoInstance.editor.createModel(content, lang, uri);
+      } else if (model.getValue() !== content) {
+        // Only set value if it's different to preserve undo stack
+        model.setValue(content);
+      }
+      editorInstance.setModel(model);
+      monacoInstance.editor.setModelLanguage(model, lang);
+    }
+  }, [filePath, editorInstance, monacoInstance]);
+
+  // Update model content if it changes externally
+  useEffect(() => {
+    if (editorInstance && filePath) {
+      const model = editorInstance.getModel();
+      if (model && model.getValue() !== content) {
+        model.setValue(content);
+      }
+    }
+  }, [content, editorInstance, filePath]);
 
   // --------------------------------------------------
   // Decode JWT
@@ -90,8 +124,9 @@ export default function CodeEditor({
   // --------------------------------------------------
   useEffect(() => {
     if (!projectId || !filePath) return;
-    fetch(`http://localhost:8080/api/projects/${projectId}/comments?filePath=${encodeURIComponent(filePath)}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+    const token = localStorage.getItem("access_token");
+    fetch(`${apiBaseUrl}/api/projects/${projectId}/comments?filePath=${encodeURIComponent(filePath)}`, {
+      headers: { Authorization: `Bearer ${token}` }
     })
     .then(r => r.json())
     .then(data => setComments(data))
@@ -321,7 +356,7 @@ export default function CodeEditor({
         if (!position) return;
         const text = prompt("Enter your comment for line " + position.lineNumber);
         if (text) {
-          fetch(`http://localhost:8080/api/projects/${projectId}/comments`, {
+          fetch(`${apiBaseUrl}/api/projects/${projectId}/comments`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -377,7 +412,7 @@ export default function CodeEditor({
       const lang = getLanguageFromPath(filePath);
       const token = localStorage.getItem("access_token");
       if (token) {
-        const wsUrl = `ws://localhost:8080/ws/lsp/${projectId}/${lang}?token=${token}`;
+        const wsUrl = `${apiWsUrl}/ws/lsp/${projectId}/${lang}?token=${token}`;
         const socket = new WebSocket(wsUrl);
         socket.onopen = () => {
           const socketConnection = toSocket(socket);
@@ -518,12 +553,10 @@ export default function CodeEditor({
           </div>
 
           <Editor
-            key={filePath} // FORCE REMOUNT on file change to ensure language/content load correctly
             height="100%"
             path={filePath} // Helps Monaco with intellisense model URI
             defaultLanguage="plaintext"
             language={getLanguageFromPath(filePath)}
-            value={content}
             onChange={handleEditorChange}
             theme="Parallax-dark"
             onMount={handleEditorMount}

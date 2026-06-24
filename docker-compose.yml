@@ -27,8 +27,10 @@ networks:
   parallax-network:
     name: parallax-network
     driver: bridge
+    internal: true  # Infrastructure-only — not routable to external network
   parallax-workspace-network:
     name: parallax-workspace-network
     driver: bridge
     driver_opts:
-      com.docker.network.bridge.enable_icc: "false"
+      com.docker.network.bridge.enable_icc: "false"  # Block inter-container communication
+      com.docker.network.bridge.enable_ip_masquerade: "true"  # Allow internet egress (filtered by iptables)

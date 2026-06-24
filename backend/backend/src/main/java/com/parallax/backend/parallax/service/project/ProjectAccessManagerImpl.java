@@ -13,12 +13,30 @@ import org.springframework.stereotype.Component;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 @Component
 @RequiredArgsConstructor
 public class ProjectAccessManagerImpl implements ProjectAccessManager {
 
     private final ProjectCollaboratorRepository collaboratorRepository;
+
+    private final Cache<String, Optional<ProjectCollaborator>> collaboratorCache = Caffeine.newBuilder()
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .maximumSize(5000)
+            .build();
+
+    private ProjectCollaborator getCollaborator(UUID projectId, UUID userId) {
+        String key = projectId.toString() + ":" + userId.toString();
+        Optional<ProjectCollaborator> opt = collaboratorCache.get(key, k -> 
+            collaboratorRepository.findByProjectIdAndUserId(projectId, userId)
+        );
+        return opt.orElseThrow(() -> new ForbiddenException("No access to project"));
+    }
 
     // GENERIC PERMISSION CHECK
     @Override
@@ -27,11 +45,7 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
             UUID userId,
             ProjectPermission permission
     ) {
-        ProjectCollaborator collaborator =
-                collaboratorRepository
-                        .findByProjectIdAndUserId(projectId, userId)
-                        .orElseThrow(() ->
-                                new ForbiddenException("No access to project"));
+        ProjectCollaborator collaborator = getCollaborator(projectId, userId);
 
         // Check status first (cheaper, short-circuits for pending collaborators)
         if (collaborator.getStatus() != CollaboratorStatus.ACCEPTED) {
@@ -53,11 +67,7 @@ public class ProjectAccessManagerImpl implements ProjectAccessManager {
     // OWNER SHORTCUT
     @Override
     public void requireOwner(UUID projectId, UUID userId) {
-        ProjectCollaborator collaborator =
-                collaboratorRepository
-                        .findByProjectIdAndUserId(projectId, userId)
-                        .orElseThrow(() ->
-                                new ForbiddenException("No access to project"));
+        ProjectCollaborator collaborator = getCollaborator(projectId, userId);
 
         // Check status first (cheaper, short-circuits for pending collaborators)
         if (collaborator.getStatus() != CollaboratorStatus.ACCEPTED) {

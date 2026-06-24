@@ -58,6 +58,20 @@ export default defineConfig({
     build: {
         target: 'esnext',
         outDir: 'build',
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'monaco-core': ['monaco-editor'],
+                    'monaco-react': ['@monaco-editor/react'],
+                    'monaco-lsp': ['monaco-languageclient', 'vscode-ws-jsonrpc'],
+                    'tldraw': ['@tldraw/tldraw'],
+                    'xterm': ['@xterm/xterm', '@xterm/addon-fit'],
+                    'three': ['three'],
+                    'framer': ['framer-motion'],
+                    'recharts': ['recharts'],
+                }
+            }
+        }
     },
     server: {
         port: 3000,

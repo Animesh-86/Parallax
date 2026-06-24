@@ -4,40 +4,35 @@ import com.parallax.backend.parallax.entity.team.TeamMemberStatus;
 import com.parallax.backend.parallax.repository.UserRepository;
 import com.parallax.backend.parallax.repository.team.TeamMemberRepository;
 import com.parallax.backend.parallax.security.JwtUtils;
+import com.parallax.backend.parallax.websocket.BaseAuthHandshakeInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
 @Component
-public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
+public class TeamChatHandshakeInterceptor extends BaseAuthHandshakeInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(TeamChatHandshakeInterceptor.class);
 
-    private final JwtUtils jwtUtils;
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
 
     public TeamChatHandshakeInterceptor(JwtUtils jwtUtils, TeamMemberRepository teamMemberRepository, UserRepository userRepository) {
-        this.jwtUtils = jwtUtils;
+        super(jwtUtils);
         this.teamMemberRepository = teamMemberRepository;
         this.userRepository = userRepository;
     }
 
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
-            WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-
-        URI uri = request.getURI();
-        String path = uri.getPath();
-        String query = uri.getQuery();
+    protected boolean authorize(ServerHttpRequest request, ServerHttpResponse response,
+                                WebSocketHandler wsHandler, Map<String, Object> attributes,
+                                UUID userId, String path) {
 
         UUID teamId = extractTeamId(path);
         if (teamId == null) {
@@ -51,21 +46,7 @@ public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
             return false;
         }
 
-        String token = extractToken(query);
-        if (token == null) {
-            log.warn("Team chat handshake failed: No token provided");
-            return false;
-        }
-
         try {
-            if (!jwtUtils.validate(token)) {
-                log.warn("Team chat handshake failed: Invalid token");
-                return false;
-            }
-
-            UUID userId = jwtUtils.getUserIdFromToken(token);
-
-            // Verify team membership
             var membership = teamMemberRepository.findByTeam_IdAndUser_Id(teamId, userId);
             if (membership.isEmpty() || membership.get().getStatus() != TeamMemberStatus.ACTIVE) {
                 log.warn("Team chat handshake failed: User {} not an active member of team {}", userId, teamId);
@@ -78,24 +59,17 @@ public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
 
             attributes.put("teamId", teamId);
             attributes.put("channelId", channelId);
-            attributes.put("userId", userId);
             attributes.put("username", username);
 
             return true;
         } catch (Exception e) {
-            log.error("Team chat handshake error", e);
+            log.error("Team chat authorization error", e);
             return false;
         }
     }
 
-    @Override
-    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
-            WebSocketHandler wsHandler, Exception exception) {
-    }
-
     private UUID extractTeamId(String path) {
         try {
-            // Expected: /ws/team-chat/<teamId>/<channelId>
             String[] parts = path.split("/");
             if (parts.length >= 5 && "team-chat".equals(parts[2])) {
                 return UUID.fromString(parts[3]);
@@ -108,24 +82,12 @@ public class TeamChatHandshakeInterceptor implements HandshakeInterceptor {
 
     private UUID extractChannelId(String path) {
         try {
-            // Expected: /ws/team-chat/<teamId>/<channelId>
             String[] parts = path.split("/");
             if (parts.length >= 5 && "team-chat".equals(parts[2])) {
                 return UUID.fromString(parts[4]);
             }
         } catch (Exception e) {
             return null;
-        }
-        return null;
-    }
-
-    private String extractToken(String query) {
-        if (query == null) return null;
-        for (String param : query.split("&")) {
-            String[] pair = param.split("=");
-            if (pair.length == 2 && "token".equals(pair[0])) {
-                return pair[1];
-            }
         }
         return null;
     }

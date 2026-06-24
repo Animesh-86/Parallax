@@ -5,40 +5,35 @@ import GlobalLoader from "./components/GlobalLoader";
 import LandingPage from "./pages/LandingPage";
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const Workspace = React.lazy(() => import("./pages/Workspace"));
-import MeetingRoom from "./pages/MeetingRoom";
-import TeamWorkspace from "./pages/TeamWorkspace";
-import Profile from "./pages/Profile";
+const MeetingRoom = React.lazy(() => import("./pages/MeetingRoom"));
+const TeamWorkspace = React.lazy(() => import("./pages/TeamWorkspace"));
+const Profile = React.lazy(() => import("./pages/Profile"));
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import About from "./pages/About";
-import Features from "./pages/Features";
-import Security from "./pages/Security";
-import Roadmap from "./pages/Roadmap";
-import Documentation from "./pages/Documentation";
-import ApiDocs from "./pages/ApiDocs";
-import Support from "./pages/Support";
-import Status from "./pages/Status";
-import Contact from "./pages/Contact";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
+const About = React.lazy(() => import("./pages/About"));
+const Features = React.lazy(() => import("./pages/Features"));
+const Security = React.lazy(() => import("./pages/Security"));
+const Roadmap = React.lazy(() => import("./pages/Roadmap"));
+const Documentation = React.lazy(() => import("./pages/Documentation"));
+const ApiDocs = React.lazy(() => import("./pages/ApiDocs"));
+const Support = React.lazy(() => import("./pages/Support"));
+const Status = React.lazy(() => import("./pages/Status"));
+const Contact = React.lazy(() => import("./pages/Contact"));
+const Privacy = React.lazy(() => import("./pages/Privacy"));
+const Terms = React.lazy(() => import("./pages/Terms"));
 import RequireAuth from "./auth/RequireAuth";
 import OAuthSuccessPage from "./pages/0AuthSuccessPage";
 import OAuthFailurePage from "./pages/OAuthFailurePage";
 import Onboarding from "./pages/Onboarding";
-import CodeEditor from "./components/workspace/CodeEditor";
 import { Outlet } from "react-router-dom";
 import { CollaborationProvider } from "./context/CollaborationContext";
 import { VoiceProvider } from "./context/VoiceContext";
-import MyProjects from "./pages/MyProjects";
-import Rooms from "./pages/Rooms";
-import Teams from "./pages/Teams";
-import Friends from "./pages/Friends";
+const MyProjects = React.lazy(() => import("./pages/MyProjects"));
+const Rooms = React.lazy(() => import("./pages/Rooms"));
+const Teams = React.lazy(() => import("./pages/Teams"));
+const Friends = React.lazy(() => import("./pages/Friends"));
 import DashboardLayout from "./components/layouts/DashboardLayout";
 import { ProfileProvider } from "./context/ProfileContext";
-
-
-
-
 import { Toaster } from "sonner";
 import SmoothScroll from "./components/SmoothScroll";
 
@@ -70,25 +65,26 @@ export default function App() {
           <RequireAuth>
             <ProfileProvider>
               <CollaborationProvider>
-                <VoiceProvider>
-                  <DashboardLayout />
-                </VoiceProvider>
+                <DashboardLayout />
               </CollaborationProvider>
             </ProfileProvider>
           </RequireAuth>
         }>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/workspace" element={<Workspace />} />
-          <Route path="/workspace/:projectId" element={<Workspace />} />
-          <Route path="/room" element={<Navigate to="/rooms" replace />} />
-          <Route path="/room/:roomCode" element={<MeetingRoom />} />
-          <Route path="/team/:teamId" element={<TeamWorkspace />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/editor/:projectId" element={<Workspace />} />
           <Route path="/my-projects" element={<MyProjects />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/teams" element={<Teams />} />
           <Route path="/friends" element={<Friends />} />
+          
+          <Route element={<VoiceProvider><Outlet /></VoiceProvider>}>
+            <Route path="/workspace" element={<Workspace />} />
+            <Route path="/workspace/:projectId" element={<Workspace />} />
+            <Route path="/room/:roomCode" element={<MeetingRoom />} />
+            <Route path="/team/:teamId" element={<TeamWorkspace />} />
+            <Route path="/editor/:projectId" element={<Workspace />} />
+          </Route>
+          <Route path="/room" element={<Navigate to="/rooms" replace />} />
         </Route>
 
         {/* Auth (public) */}

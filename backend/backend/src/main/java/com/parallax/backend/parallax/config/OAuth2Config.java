@@ -9,7 +9,7 @@ public class OAuth2Config {
     private final String frontendBaseUrl;
 
     public OAuth2Config(
-            @Value("${app.frontend.url:http://localhost:3000}")
+            @Value("${app.frontend.url}")
             String frontendBaseUrl
     ) {
         this.frontendBaseUrl = frontendBaseUrl;

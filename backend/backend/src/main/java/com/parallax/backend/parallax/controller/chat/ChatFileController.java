@@ -21,7 +21,11 @@ public class ChatFileController {
     private final ChatFileStorageService chatFileStorageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<MessageAttachment> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<MessageAttachment> uploadFile(@RequestParam("file") MultipartFile file, org.springframework.security.core.Authentication authentication) {
+        java.util.UUID userId = com.parallax.backend.parallax.security.AuthUtil.requireUserId(authentication);
+        // We log the uploader for audit purposes
+        org.slf4j.LoggerFactory.getLogger(ChatFileController.class).info("User {} uploaded file {}", userId, file.getOriginalFilename());
+        
         String url = chatFileStorageService.storeFile(file);
         
         MessageAttachment attachment = MessageAttachment.builder()
@@ -35,7 +39,8 @@ public class ChatFileController {
     }
 
     @GetMapping("/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, org.springframework.security.core.Authentication authentication) {
+        java.util.UUID userId = com.parallax.backend.parallax.security.AuthUtil.requireUserId(authentication);
         try {
             Path filePath = chatFileStorageService.loadFile(fileName);
             Resource resource = new UrlResource(filePath.toUri());

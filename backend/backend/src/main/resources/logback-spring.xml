@@ -16,9 +16,27 @@
             </encoder>
         </appender>
 
+        <!-- Security Audit File Appender (tamper-resistant, separate from app logs) -->
+        <appender name="SECURITY_AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/security-audit.log</file>
+            <append>true</append>
+            <encoder>
+                <pattern>%msg%n</pattern> <!-- Raw JSON lines -->
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/security-audit.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>90</maxHistory>
+            </rollingPolicy>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
         </root>
+
+        <!-- Security Audit Logger — writes to dedicated file, NOT console -->
+        <logger name="SECURITY_AUDIT" level="INFO" additivity="false">
+            <appender-ref ref="SECURITY_AUDIT_FILE" />
+        </logger>
 
         <!-- Suppress noisy Hibernate SQL in dev (show-sql=false handles JPA layer) -->
         <logger name="org.hibernate.SQL" level="WARN" />
@@ -45,9 +63,27 @@
             </encoder>
         </appender>
 
+        <!-- Security Audit File Appender (production — longer retention) -->
+        <appender name="SECURITY_AUDIT_FILE_PROD" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/security-audit.log</file>
+            <append>true</append>
+            <encoder>
+                <pattern>%msg%n</pattern>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/security-audit.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+                <maxHistory>365</maxHistory>
+            </rollingPolicy>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="JSON_CONSOLE" />
         </root>
+
+        <!-- Security Audit Logger (production) -->
+        <logger name="SECURITY_AUDIT" level="INFO" additivity="false">
+            <appender-ref ref="SECURITY_AUDIT_FILE_PROD" />
+        </logger>
 
         <!-- Suppress noisy loggers in production -->
         <logger name="org.hibernate.SQL" level="WARN" />

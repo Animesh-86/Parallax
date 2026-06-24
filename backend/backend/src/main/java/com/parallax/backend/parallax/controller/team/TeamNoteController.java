@@ -64,11 +64,9 @@ public class TeamNoteController {
         note.setCreatedByName(body.getOrDefault("createdByName", "Unknown"));
         note.setLastEditedBy(note.getCreatedByName());
         
-        try {
             if (body.containsKey("visibility")) {
                 note.setVisibility(NoteVisibility.valueOf(body.get("visibility")));
             }
-        } catch (IllegalArgumentException ignored) {}
 
         return ResponseEntity.ok(noteRepository.save(note));
     }
@@ -100,11 +98,9 @@ public class TeamNoteController {
         if (body.containsKey("content")) {
             note.setContent(body.get("content"));
         }
-        try {
-            if (body.containsKey("visibility")) {
-                note.setVisibility(NoteVisibility.valueOf(body.get("visibility")));
-            }
-        } catch (IllegalArgumentException ignored) {}
+        if (body.containsKey("visibility")) {
+            note.setVisibility(NoteVisibility.valueOf(body.get("visibility")));
+        }
 
         note.setLastEditedBy(body.getOrDefault("editedByName", "Unknown"));
         return ResponseEntity.ok(noteRepository.save(note));

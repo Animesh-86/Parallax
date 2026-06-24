@@ -163,5 +163,16 @@ export const collabApi = {
     inviteToRoom: async (roomId: string, email: string): Promise<{ message: string; inviteeName: string }> => {
         const response = await api.post(`/api/rooms/${roomId}/invite`, { email });
         return response.data;
+    },
+
+    // Transfer host privileges
+    transferHost: async (roomId: string, newHostId: string): Promise<MeetingRoom> => {
+        const response = await api.post(`/api/rooms/${roomId}/transfer-host`, { newHostId });
+        return response.data;
+    },
+
+    // Run code in meeting room
+    runMeetingRoomCode: async (roomId: string, code: string, language: string): Promise<void> => {
+        await api.post(`/api/rooms/${roomId}/run`, { code, language });
     }
 };

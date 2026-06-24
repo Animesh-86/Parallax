@@ -190,7 +190,6 @@ export default function Dashboard() {
 
             // 2️⃣ Get token
             const token = localStorage.getItem("access_token");
-            console.log("🔑 Retrieved token:", token ? token.slice(0, 30) + "..." : "❌ No token found");
 
             // 3️⃣ Check token presence
             if (!token) {

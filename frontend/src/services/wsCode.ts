@@ -62,7 +62,7 @@ class CodeWebSocketService {
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
             },
-            debug: (str) => console.log(`[CodeWS]: ${str}`),
+            debug: () => {},
         });
 
         this.client.onConnect = () => {

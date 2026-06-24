@@ -14,7 +14,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketPermissionInterceptor permissionInterceptor;
 
-    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:3000}")
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
     private String frontendUrl;
 
     public WebSocketConfig(WebSocketPermissionInterceptor permissionInterceptor) {
@@ -60,7 +60,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Configuration
     static class RawWebSocketConfig implements org.springframework.web.socket.config.annotation.WebSocketConfigurer {
 
-        @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:3000}")
+        @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
         private String frontendUrl;
 
         private final com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler;

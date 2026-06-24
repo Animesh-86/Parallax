@@ -98,17 +98,25 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
 
         UUID projectId = extractProjectId(destination);
         UUID roomId = extractRoomId(destination);
+        
+        Principal principal = accessor.getUser();
+        if (principal == null) {
+            throw new IllegalStateException("Unauthenticated WebSocket user");
+        }
+        UUID userId = UUID.fromString(principal.getName());
+
         if (projectId == null) {
             if (roomId == null) {
-                return message; // non-project, non-room topic
+                // For non-project, non-room topics (like /topic/user/{userId} or /topic/direct/{channelId})
+                if (destination.contains("/user/")) {
+                    if (!destination.contains(userId.toString())) {
+                        throw new SecurityException("Cannot subscribe to another user's topic");
+                    }
+                }
+                return message;
             }
 
-            Principal principal = accessor.getUser();
-            if (principal == null) {
-                throw new IllegalStateException("Unauthenticated WebSocket user");
-            }
-
-            UUID userId = UUID.fromString(principal.getName());
+            // Room authentication handled above
             meetingRoomService.requireRoomMember(roomId, userId);
 
             if (destination.contains("/whiteboard")
@@ -118,12 +126,7 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
             return message;
         }
 
-        Principal principal = accessor.getUser();
-        if (principal == null) {
-            throw new IllegalStateException("Unauthenticated WebSocket user");
-        }
-
-        UUID userId = UUID.fromString(principal.getName());
+        // At this point, we have a projectId and a userId.
 
         // ---------------- SUBSCRIBE ----------------
         if (command == StompCommand.SUBSCRIBE) {
@@ -194,7 +197,7 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
         String[] parts = destination.split("/");
 
         for (int i = 0; i < parts.length; i++) {
-            if ("projects".equals(parts[i]) && i + 1 < parts.length) {
+            if (("projects".equals(parts[i]) || "project".equals(parts[i])) && i + 1 < parts.length) {
                 try {
                     return UUID.fromString(parts[i + 1]);
                 } catch (IllegalArgumentException ignored) {

@@ -590,8 +590,9 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         speakingFramesRef.current.set(userId, 0);
     };
 
+    const rafRef = useRef<number>();
+
     useEffect(() => {
-        let animationFrameId: number;
         const detectSpeaking = () => {
             if (!isConnected) return;
             const speaking: string[] = [];
@@ -613,10 +614,10 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 const isSame = prev.length === speaking.length && prev.every(id => speaking.includes(id));
                 return isSame ? prev : speaking;
             });
-            animationFrameId = requestAnimationFrame(detectSpeaking);
+            rafRef.current = requestAnimationFrame(detectSpeaking);
         };
-        const raf = requestAnimationFrame(detectSpeaking);
-        return () => { cancelAnimationFrame(raf); };
+        rafRef.current = requestAnimationFrame(detectSpeaking);
+        return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
     }, [isConnected]);
 
     return (

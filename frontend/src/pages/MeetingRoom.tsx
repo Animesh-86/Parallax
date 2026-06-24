@@ -44,6 +44,9 @@ import {
   Camera,
   PhoneOff,
   Power,
+  LayoutTemplate,
+  Maximize,
+  PanelRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CosmicStars } from "../components/workspace/CosmicStars";
@@ -53,6 +56,7 @@ import { voiceWs } from '../services/wsVoice';
 import Whiteboard from '../components/workspace/Whiteboard';
 import { StompSubscription } from '@stomp/stompjs';
 import { getAvatarInitials, getDisplayName, getUserId } from '../services/userUtils';
+import { ConfirmModal } from '../components/modals/ConfirmModal';
 
 // ─── TYPES ───────────────────────────────────────────────
 
@@ -196,7 +200,8 @@ function VideoTile({
             style={{ 
               background: `linear-gradient(135deg, ${color}40, ${color}20)`,
               color,
-              border: `1px solid ${color}30`
+              border: `1px solid ${color}30`,
+              boxShadow: `0 0 20px ${color}20`
             }}
           >
             {getAvatarInitials(label)}
@@ -220,15 +225,23 @@ function VideoTile({
       )}
 
       {/* Bottom label bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-white truncate">{label}</span>
-            {isLocal && <span className="text-xs text-white/50">(You)</span>}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-10">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-sm font-semibold text-white drop-shadow-md truncate block">{label}</span>
+            {isLocal && <span className="text-xs text-white/70 font-medium drop-shadow-md whitespace-nowrap flex-shrink-0">(You)</span>}
           </div>
-          <div className="flex items-center gap-1.5">
-            {hasHandRaised && <span className="text-base animate-bounce">✋</span>}
-            {tileMuted && <MicOff className="w-3.5 h-3.5 text-[#EF6461]" />}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {hasHandRaised && <span className="text-lg animate-bounce">✋</span>}
+            {tileMuted ? (
+              <div className="p-1.5 rounded-full bg-[#EF6461]/20 backdrop-blur-sm border border-[#EF6461]/30">
+                <MicOff className="w-4 h-4 text-[#EF6461]" />
+              </div>
+            ) : (
+              <div className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10">
+                <Mic className="w-4 h-4 text-white/80" />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -412,11 +425,23 @@ export default function MeetingRoom() {
   
   // Security Controls State
   const [isUpdatingRoomConfig, setIsUpdatingRoomConfig] = useState(false);
+  const [pendingModeSwitch, setPendingModeSwitch] = useState<'INTERVIEW' | 'TEAM' | null>(null);
+
+  // Execution State
+  const [isRunning, setIsRunning] = useState(false);
+  const [runOutput, setRunOutput] = useState<string[]>([]);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const terminalEndRef = useRef<HTMLDivElement>(null);
 
   // Device & Hardware State
   const [devices, setDevices] = useState<{ audioIn: MediaDeviceInfo[]; videoIn: MediaDeviceInfo[]; audioOut: MediaDeviceInfo[] }>({ audioIn: [], videoIn: [], audioOut: [] });
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
   const [selectedCamera, setSelectedCamera] = useState<string>('');
+
+  // Layout State
+  type LayoutMode = 'auto' | 'grid' | 'spotlight' | 'sidebar';
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('auto');
+  const [isLayoutMenuOpen, setIsLayoutMenuOpen] = useState(false);
 
   // Monaco & Tasks State
   const [editorLanguage, setEditorLanguage] = useState('javascript');
@@ -445,6 +470,7 @@ export default function MeetingRoom() {
   const screenStreamRef = useRef<MediaStream | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement>(null);
   const chatSubscriptionRef = useRef<StompSubscription | null>(null);
+  const runSubscriptionRef = useRef<StompSubscription | null>(null);
   const isDragging = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -594,6 +620,22 @@ export default function MeetingRoom() {
     }
   };
 
+  const handleTransferHost = async (newHostId: string) => {
+    if (!isHost || !roomData) return;
+    try {
+      const updated = await collabApi.transferHost(roomData.id, newHostId);
+      setRoomData(updated);
+      addNotification('Host role transferred successfully.', 'success');
+      // If we are no longer host, we should probably close controls panel if open
+      if (activePanel === 'controls') {
+        setActivePanel('none');
+      }
+    } catch (err) {
+      console.error('Failed to transfer host:', err);
+      addNotification('Failed to transfer host', 'error');
+    }
+  };
+
   const handleToggleSetting = (type: 'chat' | 'screenShare') => {
     if (!isAdmin || !roomData) return;
 
@@ -662,6 +704,19 @@ export default function MeetingRoom() {
       mode === 'INTERVIEW' ? 'Interview mode enabled (chat on, screen share off, host-controlled edits/tasks)' : 'Team mode enabled (open join, chat on, screen share on)'
     );
   }, [handleUpdateRoomConfig]);
+
+  const handleRun = useCallback(async () => {
+    if (!roomData?.id || isRunning) return;
+    setIsRunning(true);
+    setIsTerminalOpen(true);
+    setRunOutput(['Executing code...', '----------------------------------------']);
+    try {
+      await collabApi.runMeetingRoomCode(roomData.id, editorCode, editorLanguage);
+    } catch (err: any) {
+      setRunOutput(prev => [...prev, `[System Error]: ${err?.response?.data?.message || err.message}`]);
+      setIsRunning(false);
+    }
+  }, [roomData?.id, editorCode, editorLanguage, isRunning]);
 
   const handleToggleEditorGrant = useCallback((tool: 'whiteboard' | 'code', userId: string) => {
     if (!roomData || !isHost) return;
@@ -1048,12 +1103,32 @@ export default function MeetingRoom() {
     });
 
     chatSubscriptionRef.current = subscription || null;
+
+    const runSub = voiceWs.subscribeRunOutput((payload: any) => {
+      if (payload.type === 'RUN_STARTED') {
+        setIsRunning(true);
+        setIsTerminalOpen(true);
+      } else if (payload.type === 'RUN_OUTPUT') {
+        setRunOutput(prev => [...prev, payload.output]);
+      } else if (payload.type === 'RUN_FINISHED' || payload.type === 'RUN_ERROR') {
+        setIsRunning(false);
+        if (payload.type === 'RUN_ERROR') {
+          setRunOutput(prev => [...prev, `[Error]: ${payload.output}`]);
+        }
+      }
+    });
+    runSubscriptionRef.current = runSub || null;
+
     voiceWs.publishChat({ displayName: getDisplayName(), message: '', isPresence: true });
 
     return () => {
       if (chatSubscriptionRef.current) {
         chatSubscriptionRef.current.unsubscribe();
         chatSubscriptionRef.current = null;
+      }
+      if (runSubscriptionRef.current) {
+        runSubscriptionRef.current.unsubscribe();
+        runSubscriptionRef.current = null;
       }
     };
   }, [isConnected, roomData, leaveCall, navigate, currentUserId, phase, peerNames, isHost, isMuteAllActive, voiceMuted, toggleMute]);
@@ -1390,11 +1465,24 @@ export default function MeetingRoom() {
               <div className="flex-1 min-h-0 overflow-hidden">
                 {activePanel === 'code' ? (
                   <div className="h-full flex flex-col">
-                    <div className="flex items-center gap-2 px-3 py-2 border-b border-white/5 flex-shrink-0 bg-[#09090B]/70">
-                      {!canEditCode && (
-                        <span className="text-[11px] px-2 py-1 rounded bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30">View only (host grant required)</span>
-                      )}
-                      <div className="relative">
+                    <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 flex-shrink-0 bg-[#09090B]/70">
+                      <div className="flex items-center gap-3">
+                        {!canEditCode && (
+                          <span className="text-[11px] px-2 py-1 rounded bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30">View only</span>
+                        )}
+                        {isConnected && roomData?.codeVisibility === 'PUBLIC' && (
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#4ADE80]/10 border border-[#4ADE80]/20">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
+                            <span className="text-[10px] text-[#4ADE80] font-medium uppercase tracking-wider">Live Sync</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={handleRun} disabled={isRunning} className="px-3 py-1 bg-[#D4AF37] text-black font-semibold border border-[#D4AF37]/50 rounded text-xs hover:bg-[#D4AF37]/90 flex items-center gap-1.5 transition-colors shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+                          {isRunning ? <span className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" /> : <Code2 className="w-3.5 h-3.5" />}
+                          {isRunning ? 'Running' : 'Run'}
+                        </button>
+                        <div className="relative">
                         <button onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)} className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/80 hover:bg-white/[0.07]">
                           <span>{selectedLang?.label || 'Language'}</span>
                           <ChevronDown className={`w-3 h-3 text-white/40 ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
@@ -1406,7 +1494,27 @@ export default function MeetingRoom() {
                         )}
                       </div>
                     </div>
-                    <div className="flex-1"><Editor height="100%" language={editorLanguage} value={editorCode} onChange={v => setEditorCode(v || '')} theme="vs-dark" options={{ fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 8 }, lineNumbers: 'on', wordWrap: 'on', tabSize: 2, automaticLayout: true, readOnly: !canEditCode }} /></div>
+                  </div>
+                    <div className="flex-1 flex flex-col min-h-0">
+                      <div className="flex-1 min-h-0"><Editor height="100%" language={editorLanguage} value={editorCode} onChange={v => setEditorCode(v || '')} theme="vs-dark" options={{ fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 8 }, lineNumbers: 'on', wordWrap: 'on', tabSize: 2, automaticLayout: true, readOnly: !canEditCode }} /></div>
+                      {isTerminalOpen && (
+                        <div className="h-48 flex-shrink-0 bg-[#09090B] border-t border-white/10 flex flex-col font-mono text-xs overflow-hidden">
+                          <div className="flex items-center justify-between px-3 py-1.5 bg-[#121214] border-b border-white/5">
+                            <span className="text-white/60 font-semibold flex items-center gap-1.5"><Code2 className="w-3.5 h-3.5" /> Terminal {isRunning && <span className="ml-2 w-2 h-2 bg-[#D4AF37] rounded-full animate-pulse" />}</span>
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => setRunOutput([])} className="p-1 hover:bg-white/10 rounded text-white/50 hover:text-white" title="Clear"><Ban className="w-3 h-3" /></button>
+                              <button onClick={() => setIsTerminalOpen(false)} className="p-1 hover:bg-white/10 rounded text-white/50 hover:text-white" title="Close"><X className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </div>
+                          <div className="flex-1 overflow-y-auto p-2 space-y-1 text-white/80">
+                            {runOutput.map((out, idx) => (
+                              <div key={idx} className="whitespace-pre-wrap break-all">{out}</div>
+                            ))}
+                            <div ref={terminalEndRef} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   roomData?.whiteboardEnabled ? (
@@ -1458,23 +1566,87 @@ export default function MeetingRoom() {
                   </div>
                 </div>
               ) : (
-                /* GRID LAYOUT */
-                <div
-                  className="flex-1 grid gap-3 min-h-0"
-                  style={{
-                    gridTemplateColumns: `repeat(${remoteParticipants.length > 0 ? Math.max(1, Math.min(3, remoteParticipants.length)) : gridCols}, 1fr)`,
-                    gridAutoRows: '1fr'
-                  }}
-                >
-                  {(remoteParticipants.length > 0 ? remoteParticipants : participants).map(p => (
-                    <div key={p.id} className="min-w-0 min-h-0">
-                      {renderParticipantTile(p)}
+                /* FLEXIBLE LAYOUTS */
+                (() => {
+                  if (layoutMode === 'sidebar') {
+                     const mainPeer = pinnedPeer ? participants.find(p => p.id === pinnedPeer) : (remoteParticipants.length > 0 ? remoteParticipants[0] : localParticipant);
+                     const sidebarPeers = participants.filter(p => p.id !== mainPeer?.id);
+                     return (
+                        <div className="flex-1 flex gap-3 min-h-0">
+                          <div className="flex-1 min-w-0">
+                             {mainPeer && renderParticipantTile(mainPeer)}
+                          </div>
+                          {sidebarPeers.length > 0 && (
+                             <div className="w-48 sm:w-64 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar">
+                                {sidebarPeers.map(p => (
+                                  <div key={p.id} className="h-32 sm:h-40 min-h-[120px] sm:min-h-[160px] flex-shrink-0">
+                                    {renderParticipantTile(p, true)}
+                                  </div>
+                                ))}
+                             </div>
+                          )}
+                        </div>
+                     );
+                  }
+                  
+                  if (layoutMode === 'spotlight') {
+                     const mainPeer = pinnedPeer ? participants.find(p => p.id === pinnedPeer) : (remoteParticipants.length > 0 ? remoteParticipants[0] : localParticipant);
+                     return (
+                       <div className="flex-1 w-full h-full min-h-0">
+                         {mainPeer && renderParticipantTile(mainPeer)}
+                       </div>
+                     );
+                  }
+
+                  if (layoutMode === 'grid') {
+                     const gridCount = participants.length;
+                     const cols = gridCount <= 1 ? 1 : gridCount <= 4 ? 2 : gridCount <= 9 ? 3 : 4;
+                     return (
+                        <div
+                          className="flex-1 grid gap-3 min-h-0"
+                          style={{
+                            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                            gridAutoRows: '1fr'
+                          }}
+                        >
+                          {participants.map(p => (
+                            <div key={p.id} className="min-w-0 min-h-0">
+                              {renderParticipantTile(p)}
+                            </div>
+                          ))}
+                        </div>
+                     );
+                  }
+
+                  // Auto (Default)
+                  const cols = remoteParticipants.length > 0 ? Math.max(1, Math.min(3, remoteParticipants.length)) : gridCols;
+                  return (
+                    <div
+                      className="flex-1 grid gap-3 min-h-0"
+                      style={{
+                        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                        gridAutoRows: '1fr'
+                      }}
+                    >
+                      {(remoteParticipants.length > 0 ? remoteParticipants : participants).map(p => (
+                        <div key={p.id} className="min-w-0 min-h-0">
+                          {renderParticipantTile(p)}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()
               )}
 
-              {remoteParticipants.length > 0 && localParticipant && !isLocalScreenSharing && (
+              {/* Local PIP */}
+              {localParticipant && !isLocalScreenSharing && layoutMode !== 'grid' && remoteParticipants.length > 0 && (() => {
+                 if (layoutMode === 'sidebar') return false; // Handled in sidebar list
+                 if (layoutMode === 'spotlight') {
+                    const mainPeer = pinnedPeer ? participants.find(p => p.id === pinnedPeer) : (remoteParticipants.length > 0 ? remoteParticipants[0] : localParticipant);
+                    return mainPeer?.id !== 'local';
+                 }
+                 return true; // Auto mode
+              })() && (
                 <div className="absolute bottom-4 right-4 w-[220px] sm:w-[250px] max-w-[42%] z-30 rounded-2xl shadow-2xl ring-2 ring-white/20 bg-[#09090B]/80 backdrop-blur-sm p-1">
                   {renderParticipantTile(localParticipant, true)}
                 </div>
@@ -1593,11 +1765,24 @@ export default function MeetingRoom() {
               {(activePanel as string) === 'code' && (
                 canViewCode ? (
                 <div className="flex-1 flex flex-col">
-                  <div className="flex items-center gap-2 px-3 py-2 border-b border-white/5 flex-shrink-0">
-                    {!canEditCode && (
-                      <span className="text-[11px] px-2 py-1 rounded bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30">View only (host grant required)</span>
-                    )}
-                    <div className="relative">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                      {!canEditCode && (
+                        <span className="text-[11px] px-2 py-1 rounded bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30">View only</span>
+                      )}
+                      {isConnected && roomData?.codeVisibility === 'PUBLIC' && (
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#4ADE80]/10 border border-[#4ADE80]/20">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
+                          <span className="text-[10px] text-[#4ADE80] font-medium uppercase tracking-wider">Live Sync</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button disabled title="Code execution coming soon" className="px-3 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/40 cursor-not-allowed hover:bg-white/5 flex items-center gap-1.5">
+                        Run
+                        <span className="text-[9px] px-1 py-0.5 rounded bg-white/10 text-white/30 uppercase">Soon</span>
+                      </button>
+                      <div className="relative">
                       <button onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)} className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/80 hover:bg-white/[0.07]">
                         <span>{selectedLang?.label || 'Language'}</span>
                         <ChevronDown className={`w-3 h-3 text-white/40 ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
@@ -1609,6 +1794,7 @@ export default function MeetingRoom() {
                       )}
                     </div>
                   </div>
+                </div>
                   <div className="flex-1"><Editor height="100%" language={editorLanguage} value={editorCode} onChange={v => setEditorCode(v || '')} theme="vs-dark" options={{ fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 8 }, lineNumbers: 'on', wordWrap: 'on', tabSize: 2, automaticLayout: true, readOnly: !canEditCode }} /></div>
                 </div>
                 ) : (
@@ -1759,12 +1945,15 @@ export default function MeetingRoom() {
                       <div key={p.id} className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/5 transition-colors group relative">
                         <div
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold flex-shrink-0 relative"
-                          style={{ backgroundColor: `${getColor(p.label)}25`, color: getColor(p.label) }}
+                          style={{ backgroundColor: `${getColor(p.label)}25`, color: getColor(p.label), boxShadow: `0 0 10px ${getColor(p.label)}20` }}
                         >
                           {getAvatarInitials(p.label)}
+                          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#09090B] rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-[#4ADE80] rounded-full" />
+                          </div>
                           {p.isAdmin && (
-                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#F59E0B] rounded-full flex items-center justify-center">
-                              <Crown className="w-2 h-2 text-black" />
+                            <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#F59E0B] rounded-full flex items-center justify-center shadow-sm">
+                              <Crown className="w-2.5 h-2.5 text-black" />
                             </div>
                           )}
                         </div>
@@ -1820,6 +2009,20 @@ export default function MeetingRoom() {
                                 Make Admin
                               </button>
                             )}
+                            {isHost && (
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to transfer host privileges to ${p.label}? You will become a regular admin.`)) {
+                                    handleTransferHost(p.id);
+                                    setActionMenuPeerId(null);
+                                  }
+                                }}
+                                className="w-full px-3 py-2 text-left text-xs flex items-center gap-2 hover:bg-white/5 text-white/80"
+                              >
+                                <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
+                                Make Host
+                              </button>
+                            )}
                             <button
                               onClick={() => handleKickPeer(p.id, p.label)}
                               className="w-full px-3 py-2 text-left text-xs flex items-center gap-2 hover:bg-[#EF6461]/10 text-[#EF6461]"
@@ -1854,43 +2057,52 @@ export default function MeetingRoom() {
                       </div>
 
                       <div className="space-y-2 pb-2">
-                        <label className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-1">Room Security</label>
+                        <label className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-1">Room Mode</label>
 
                         <div className="grid grid-cols-2 gap-2">
                           <button
-                            onClick={() => handleSetMode('INTERVIEW')}
-                            disabled={isUpdatingRoomConfig}
-                            className={`flex items-center justify-center px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 ${roomData?.collaborationMode === 'INTERVIEW' ? 'bg-[#D4AF37]/20 border-[#D4AF37]/40 text-[#D4AF37]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
+                            onClick={() => setPendingModeSwitch('INTERVIEW')}
+                            disabled={isUpdatingRoomConfig || roomData?.collaborationMode === 'INTERVIEW'}
+                            className={`flex items-center justify-center px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 disabled:cursor-not-allowed ${roomData?.collaborationMode === 'INTERVIEW' ? 'bg-[#D4AF37]/20 border-[#D4AF37]/40 text-[#D4AF37]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
                           >
-                            <span className="text-xs font-medium">Interview</span>
+                            <span className="text-xs font-medium">{roomData?.collaborationMode === 'INTERVIEW' ? '✓ Interview' : 'Interview'}</span>
                           </button>
                           <button
-                            onClick={() => handleSetMode('TEAM')}
-                            disabled={isUpdatingRoomConfig}
-                            className={`flex items-center justify-center px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 ${roomData?.collaborationMode === 'TEAM' ? 'bg-[#D4AF37]/20 border-[#D4AF37]/40 text-[#D4AF37]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
+                            onClick={() => setPendingModeSwitch('TEAM')}
+                            disabled={isUpdatingRoomConfig || roomData?.collaborationMode === 'TEAM'}
+                            className={`flex items-center justify-center px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 disabled:cursor-not-allowed ${roomData?.collaborationMode === 'TEAM' ? 'bg-[#D4AF37]/20 border-[#D4AF37]/40 text-[#D4AF37]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
                           >
-                            <span className="text-xs font-medium">Team</span>
+                            <span className="text-xs font-medium">{roomData?.collaborationMode === 'TEAM' ? '✓ Team' : 'Team'}</span>
                           </button>
                         </div>
 
+                        <label className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-1 pt-1">Feature Controls</label>
+
                         <div className="grid grid-cols-2 gap-2">
+                          {/* Open Join — Interview locks this OFF, host can toggle in Team */}
                           <button
-                            onClick={() => handleToggleRoomConfig('codeOpen', !(roomData?.codeOpen ?? false))}
-                            disabled={isUpdatingRoomConfig}
-                            className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 ${roomData?.codeOpen ? 'bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
+                            onClick={() => !isInterviewMode && handleToggleRoomConfig('codeOpen', !(roomData?.codeOpen ?? false))}
+                            disabled={isUpdatingRoomConfig || isInterviewMode}
+                            title={isInterviewMode ? 'Locked off in Interview mode (invite-only)' : (roomData?.codeOpen ? 'Anyone with the code can join' : 'Invite-only')}
+                            className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isInterviewMode ? 'bg-white/[0.03] border-white/10 text-white/40' : (roomData?.codeOpen ? 'bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10')}`}
                           >
                             <div className="flex items-center gap-2 text-xs">
-                              <LockIcon className="w-3.5 h-3.5" />
+                              {isInterviewMode ? <LockIcon className="w-3.5 h-3.5 text-white/30" /> : <LockIcon className="w-3.5 h-3.5" />}
                               Open Join
                             </div>
-                            <div className={`w-8 h-4 rounded-full relative transition-colors ${roomData?.codeOpen ? 'bg-[#F59E0B]' : 'bg-white/20'}`}>
-                              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${roomData?.codeOpen ? 'right-0.5' : 'left-0.5'}`} />
-                            </div>
+                            {isInterviewMode ? (
+                              <span className="text-[9px] text-white/30 uppercase">Locked</span>
+                            ) : (
+                              <div className={`w-8 h-4 rounded-full relative transition-colors ${roomData?.codeOpen ? 'bg-[#F59E0B]' : 'bg-white/20'}`}>
+                                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${roomData?.codeOpen ? 'right-0.5' : 'left-0.5'}`} />
+                              </div>
+                            )}
                           </button>
 
+                          {/* Whiteboard on/off — host can toggle in both modes */}
                           <button
                             onClick={() => handleToggleRoomConfig('whiteboardEnabled', !(roomData?.whiteboardEnabled ?? true))}
-                            disabled={isUpdatingRoomConfig || roomData?.collaborationMode === 'INTERVIEW'}
+                            disabled={isUpdatingRoomConfig}
                             className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 ${roomData?.whiteboardEnabled ? 'bg-[#4ADE80]/10 border-[#4ADE80]/30 text-[#4ADE80]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
                           >
                             <div className="flex items-center gap-2 text-xs">
@@ -1902,23 +2114,31 @@ export default function MeetingRoom() {
                             </div>
                           </button>
 
+                          {/* Chat — Interview locks this ON, host can toggle in Team */}
                           <button
-                            onClick={() => handleToggleSetting('chat')}
-                            disabled={isUpdatingRoomConfig || roomData?.collaborationMode === 'INTERVIEW'}
-                            className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 ${!isChatDisabled ? 'bg-[#4ADE80]/10 border-[#4ADE80]/30 text-[#4ADE80]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
+                            onClick={() => !isInterviewMode && handleToggleSetting('chat')}
+                            disabled={isUpdatingRoomConfig || isInterviewMode}
+                            title={isInterviewMode ? 'Chat is always enabled in Interview mode' : undefined}
+                            className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isInterviewMode ? 'bg-[#4ADE80]/5 border-[#4ADE80]/15 text-[#4ADE80]/60' : (!isChatDisabled ? 'bg-[#4ADE80]/10 border-[#4ADE80]/30 text-[#4ADE80]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10')}`}
                           >
                             <div className="flex items-center gap-2 text-xs">
-                              <MessageSquareOff className="w-3.5 h-3.5" />
+                              {isInterviewMode ? <LockIcon className="w-3.5 h-3.5 text-[#4ADE80]/40" /> : <MessageSquareOff className="w-3.5 h-3.5" />}
                               Chat
                             </div>
-                            <div className={`w-8 h-4 rounded-full relative transition-colors ${!isChatDisabled ? 'bg-[#4ADE80]' : 'bg-white/20'}`}>
-                              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${!isChatDisabled ? 'right-0.5' : 'left-0.5'}`} />
-                            </div>
+                            {isInterviewMode ? (
+                              <span className="text-[9px] text-[#4ADE80]/50 uppercase">Always On</span>
+                            ) : (
+                              <div className={`w-8 h-4 rounded-full relative transition-colors ${!isChatDisabled ? 'bg-[#4ADE80]' : 'bg-white/20'}`}>
+                                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${!isChatDisabled ? 'right-0.5' : 'left-0.5'}`} />
+                              </div>
+                            )}
                           </button>
 
+                          {/* Screen Share — Interview defaults OFF but host can override */}
                           <button
                             onClick={() => handleToggleSetting('screenShare')}
                             disabled={isUpdatingRoomConfig}
+                            title={isInterviewMode && isScreenShareDisabled ? 'Defaulted off by Interview mode — click to override' : undefined}
                             className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all disabled:opacity-60 ${!isScreenShareDisabled ? 'bg-[#4ADE80]/10 border-[#4ADE80]/30 text-[#4ADE80]' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
                           >
                             <div className="flex items-center gap-2 text-xs">
@@ -1931,21 +2151,43 @@ export default function MeetingRoom() {
                           </button>
                         </div>
 
-                        {roomData?.collaborationMode === 'TEAM' && (
-                          <div className="grid grid-cols-2 gap-2 pt-1">
+                        {/* Fine-grained visibility/policy controls */}
+                        <label className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-1 pt-1">Visibility & Permissions</label>
+
+                        {isInterviewMode ? (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between px-3 py-2 rounded-xl border bg-white/[0.03] border-white/8">
+                              <span className="text-xs text-white/50">Whiteboard</span>
+                              <span className="text-[10px] text-white/35">Public · Host-only edit + grants</span>
+                            </div>
+                            <div className="flex items-center justify-between px-3 py-2 rounded-xl border bg-white/[0.03] border-white/8">
+                              <span className="text-xs text-white/50">Code</span>
+                              <span className="text-[10px] text-white/35">Public · Host-only edit + grants</span>
+                            </div>
+                            <div className="flex items-center justify-between px-3 py-2 rounded-xl border bg-white/[0.03] border-white/8">
+                              <span className="text-xs text-white/50">Tasks</span>
+                              <span className="text-[10px] text-white/35">Public · Host-only edits</span>
+                            </div>
+                            <p className="text-[10px] text-white/30 px-1 pt-1">
+                              🔒 Interview mode enforces restrictive defaults. Use the People panel to grant individual edit access.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2">
                             <button
                               onClick={() => handleUpdateRoomConfig({ whiteboardVisibility: roomData?.whiteboardVisibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC' }, `Whiteboard visibility set to ${roomData?.whiteboardVisibility === 'PUBLIC' ? 'private' : 'public'}`)}
                               disabled={isUpdatingRoomConfig}
                               className="flex items-center justify-between px-3 py-2.5 rounded-xl border bg-white/5 border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-60"
                             >
-                              <span className="text-xs">Whiteboard {roomData?.whiteboardVisibility === 'PUBLIC' ? 'Public' : 'Private'}</span>
+                              <span className="text-xs">WB {roomData?.whiteboardVisibility === 'PUBLIC' ? 'Public' : 'Private'}</span>
                               <MousePointer2 className="w-3.5 h-3.5" />
                             </button>
                             <button
-                              disabled={true}
-                              className="flex items-center justify-between px-3 py-2.5 rounded-xl border bg-white/5 border-white/10 text-white/50 opacity-70"
+                              onClick={() => handleUpdateRoomConfig({ whiteboardEditPolicy: roomData?.whiteboardEditPolicy === 'EVERYONE' ? 'HOST_ONLY' : 'EVERYONE' }, `Whiteboard edit set to ${roomData?.whiteboardEditPolicy === 'EVERYONE' ? 'host-only' : 'everyone'}`)}
+                              disabled={isUpdatingRoomConfig}
+                              className="flex items-center justify-between px-3 py-2.5 rounded-xl border bg-white/5 border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-60"
                             >
-                              <span className="text-xs">WB Edit Host + user grants</span>
+                              <span className="text-xs">WB Edit {roomData?.whiteboardEditPolicy === 'EVERYONE' ? 'All' : 'Host'}</span>
                               <Shield className="w-3.5 h-3.5" />
                             </button>
                             <button
@@ -1965,12 +2207,6 @@ export default function MeetingRoom() {
                               <ListTodo className="w-3.5 h-3.5" />
                             </button>
                           </div>
-                        )}
-
-                        {roomData?.collaborationMode === 'INTERVIEW' && (
-                          <p className="text-[11px] text-white/40 px-1 whitespace-nowrap overflow-hidden text-ellipsis">
-                            🔒 Restrictive: Invite-only join • Chat enabled • Screen share disabled • Whiteboard/Code view-only (host grants edit) • Tasks host-only edits.
-                          </p>
                         )}
                       </div>
                     </>
@@ -1996,37 +2232,54 @@ export default function MeetingRoom() {
 
           {/* Center: main controls */}
           <div className="flex items-center gap-2">
-            <button onClick={handleMicToggle} className={`p-3 rounded-full transition-all ${voiceMuted ? 'bg-[#EF6461] text-white' : 'bg-white/10 hover:bg-white/15'}`} title={voiceMuted ? 'Unmute' : 'Mute'}>
-              {voiceMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </button>
+            <div className="flex flex-col items-center gap-1">
+              <button onClick={handleMicToggle} className={`p-3 rounded-full transition-all ${voiceMuted ? 'bg-[#EF6461] text-white' : 'bg-white/10 hover:bg-white/15'}`} title={voiceMuted ? 'Unmute' : 'Mute'}>
+                {voiceMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+              <span className="text-[10px] text-white/50 font-medium">{voiceMuted ? 'Unmute' : 'Mute'}</span>
+            </div>
 
-            <button onClick={toggleVideo} className={`p-3 rounded-full transition-all ${!isVideoEnabled ? 'bg-[#EF6461] text-white' : 'bg-white/10 hover:bg-white/15'}`} title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}>
-              {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-            </button>
+            <div className="flex flex-col items-center gap-1">
+              <button onClick={toggleVideo} className={`p-3 rounded-full transition-all ${!isVideoEnabled ? 'bg-[#EF6461] text-white' : 'bg-white/10 hover:bg-white/15'}`} title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}>
+                {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+              </button>
+              <span className="text-[10px] text-white/50 font-medium">{isVideoEnabled ? 'Stop Video' : 'Start Video'}</span>
+            </div>
 
-            <button onClick={() => setIsSpeakerOn(!isSpeakerOn)} className={`p-3 rounded-full transition-all ${!isSpeakerOn ? 'bg-[#EF6461] text-white' : 'bg-white/10 hover:bg-white/15'}`} title={isSpeakerOn ? 'Deafen' : 'Undeafen'}>
-              {isSpeakerOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-            </button>
+            <div className="flex flex-col items-center gap-1">
+              <button onClick={() => setIsSpeakerOn(!isSpeakerOn)} className={`p-3 rounded-full transition-all ${!isSpeakerOn ? 'bg-[#EF6461] text-white' : 'bg-white/10 hover:bg-white/15'}`} title={isSpeakerOn ? 'Deafen' : 'Undeafen'}>
+                {isSpeakerOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              </button>
+              <span className="text-[10px] text-white/50 font-medium">{isSpeakerOn ? 'Deafen' : 'Undeafen'}</span>
+            </div>
 
-            <div className="w-px h-8 bg-white/10 mx-1" />
+            <div className="w-px h-8 bg-white/10 mx-1 mb-4" />
 
-            <button 
-              onClick={handleScreenShare} 
-              className={`p-3 rounded-xl transition-all ${isLocalScreenSharing ? 'bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20' : 'bg-white/5 text-white/70 hover:bg-white/10'} ${isScreenShareDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title={isScreenShareDisabled ? "Disabled by host setting" : (isLocalScreenSharing ? "Stop sharing" : "Share screen")}
-            >
-              {isLocalScreenSharing ? <MonitorUp className="w-5 h-5" /> : <ScreenShare className="w-5 h-5" />}
-            </button>
+            <div className="flex flex-col items-center gap-1">
+              <button 
+                onClick={handleScreenShare} 
+                disabled={isScreenShareDisabled}
+                className={`p-3 rounded-xl transition-all ${isLocalScreenSharing ? 'bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20' : 'bg-white/5 text-white/70 hover:bg-white/10'} ${isScreenShareDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                title={isScreenShareDisabled ? "Screen sharing disabled by admin" : (isLocalScreenSharing ? "Stop sharing" : "Share screen")}
+              >
+                {isLocalScreenSharing ? <MonitorUp className="w-5 h-5" /> : <ScreenShare className="w-5 h-5" />}
+              </button>
+              <span className={`text-[10px] font-medium ${isScreenShareDisabled ? 'text-[#EF6461]/60' : 'text-white/50'}`}>{isScreenShareDisabled ? 'Share Off' : 'Share'}</span>
+            </div>
 
-            <button onClick={handleRaiseHand} className={`p-3 rounded-full transition-all ${isHandRaised ? 'bg-[#F59E0B] text-black' : 'bg-white/10 hover:bg-white/15'}`} title={isHandRaised ? 'Lower hand' : 'Raise hand'}>
-              <Hand className="w-5 h-5" />
-            </button>
+            <div className="flex flex-col items-center gap-1">
+              <button onClick={handleRaiseHand} className={`p-3 rounded-full transition-all ${isHandRaised ? 'bg-[#F59E0B] text-black' : 'bg-white/10 hover:bg-white/15'}`} title={isHandRaised ? 'Lower hand' : 'Raise hand'}>
+                <Hand className="w-5 h-5" />
+              </button>
+              <span className="text-[10px] text-white/50 font-medium">Raise Hand</span>
+            </div>
 
             {/* Reactions */}
-            <div className="relative">
+            <div className="flex flex-col items-center gap-1 relative">
               <button onClick={() => setShowReactionPicker(!showReactionPicker)} className="p-3 rounded-full bg-white/10 hover:bg-white/15 transition-all" title="Send a reaction">
                 <SmilePlus className="w-5 h-5" />
               </button>
+              <span className="text-[10px] text-white/50 font-medium">React</span>
               {showReactionPicker && (
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0D0D0F]/95 border border-white/10 rounded-2xl shadow-2xl p-2 flex gap-1">
                   {REACTIONS.map(emoji => (
@@ -2034,6 +2287,33 @@ export default function MeetingRoom() {
                       {emoji}
                     </button>
                   ))}
+                </div>
+              )}
+            </div>
+
+            <div className="w-px h-8 bg-white/10 mx-1 mb-4" />
+
+            {/* Layout Mode Selection */}
+            <div className="flex flex-col items-center gap-1 relative">
+              <button onClick={() => setIsLayoutMenuOpen(!isLayoutMenuOpen)} className={`p-3 rounded-xl transition-all ${isLayoutMenuOpen ? 'bg-white/20' : 'bg-white/5 hover:bg-white/10'} text-white/70`} title="Change Layout">
+                <LayoutTemplate className="w-5 h-5" />
+              </button>
+              <span className="text-[10px] text-white/50 font-medium">Layout</span>
+              {isLayoutMenuOpen && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0D0D0F]/95 border border-white/10 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 w-40 z-50">
+                  <div className="px-3 py-1.5 text-xs font-semibold text-white/50 uppercase tracking-wider mb-1">Layout Mode</div>
+                  <button onClick={() => { setLayoutMode('auto'); setIsLayoutMenuOpen(false); }} className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 rounded-xl transition-colors ${layoutMode === 'auto' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'hover:bg-white/10 text-white/80'}`}>
+                    <LayoutTemplate className="w-4 h-4" /> Auto
+                  </button>
+                  <button onClick={() => { setLayoutMode('grid'); setIsLayoutMenuOpen(false); }} className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 rounded-xl transition-colors ${layoutMode === 'grid' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'hover:bg-white/10 text-white/80'}`}>
+                    <LayoutGrid className="w-4 h-4" /> Tiled Grid
+                  </button>
+                  <button onClick={() => { setLayoutMode('spotlight'); setIsLayoutMenuOpen(false); }} className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 rounded-xl transition-colors ${layoutMode === 'spotlight' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'hover:bg-white/10 text-white/80'}`}>
+                    <Maximize className="w-4 h-4" /> Spotlight
+                  </button>
+                  <button onClick={() => { setLayoutMode('sidebar'); setIsLayoutMenuOpen(false); }} className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 rounded-xl transition-colors ${layoutMode === 'sidebar' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'hover:bg-white/10 text-white/80'}`}>
+                    <PanelRight className="w-4 h-4" /> Sidebar
+                  </button>
                 </div>
               )}
             </div>
@@ -2082,6 +2362,26 @@ export default function MeetingRoom() {
           animation: slide-in 0.3s ease-out forwards;
         }
       `}</style>
+
+      <ConfirmModal
+        isOpen={pendingModeSwitch !== null}
+        onClose={() => setPendingModeSwitch(null)}
+        onConfirm={() => {
+          if (pendingModeSwitch) {
+            handleSetMode(pendingModeSwitch);
+            setPendingModeSwitch(null);
+          }
+        }}
+        title={`Switch to ${pendingModeSwitch === 'INTERVIEW' ? 'Interview' : 'Team'} Mode?`}
+        message={
+          pendingModeSwitch === 'INTERVIEW'
+            ? "This will set the room to invite-only, disable screen sharing, restrict task/whiteboard/code editing to host + granted users, and enable chat."
+            : "This will open the room for anyone with the code, enable screen sharing, allow everyone to edit tasks, and enable chat."
+        }
+        confirmText="Confirm Change"
+        cancelText="Cancel"
+        isDanger={true}
+      />
     </div>
   );
 }

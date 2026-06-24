@@ -74,12 +74,24 @@ public class LspWebSocketHandler extends TextWebSocketHandler {
         String[] lspCommand = getLspCommand(language);
 
         try {
+            // 🔒 LSP runs with restricted user and sanitized environment
+            // to prevent malicious code execution during static analysis.
+            // - nobody:nogroup (65534) has minimal filesystem privileges
+            // - PYTHONDONTWRITEBYTECODE prevents .pyc side-effects
+            // - Cleared PYTHONPATH prevents malicious module injection
             ExecCreateCmdResponse execResponse = dockerClient.execCreateCmd(containerName)
                     .withAttachStdout(true)
                     .withAttachStderr(true)
                     .withAttachStdin(true)
                     .withTty(false)
+                    .withUser("65534:65534")  // nobody:nogroup — minimal privileges
                     .withCmd(lspCommand)
+                    .withEnv(java.util.Arrays.asList(
+                            "TERM=dumb",
+                            "HOME=/tmp/lsp-home",
+                            "PYTHONDONTWRITEBYTECODE=1",
+                            "PYTHONPATH="
+                    ))
                     .exec();
 
             PipedInputStream in = new PipedInputStream(8192);
@@ -107,7 +119,9 @@ public class LspWebSocketHandler extends TextWebSocketHandler {
                                 if (session.isOpen()) {
                                     session.close();
                                 }
-                            } catch (Exception ignored) {}
+                            } catch (Exception e) {
+                                log.error("Error reading from LSP output stream", e);
+                            }
                             super.onComplete();
                         }
                     });
@@ -133,7 +147,9 @@ public class LspWebSocketHandler extends TextWebSocketHandler {
         if (os != null) {
             try {
                 os.close();
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                log.error("Error sending LSP output to client", e);
+            }
         }
         sessionExecIdMap.remove(session.getId());
     }

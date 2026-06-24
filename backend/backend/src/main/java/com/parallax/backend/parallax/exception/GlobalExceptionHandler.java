@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
         @ExceptionHandler(IllegalArgumentException.class)
         public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+                log.warn("Bad Request: {}", ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(Map.of(
@@ -24,6 +28,7 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(IllegalStateException.class)
         public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
+                log.warn("Conflict: {}", ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.CONFLICT)
                                 .body(Map.of(
@@ -34,6 +39,7 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(ResourceNotFoundException.class)
         public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+                log.warn("Not Found: {}", ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.NOT_FOUND)
                                 .body(Map.of(
@@ -44,6 +50,7 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(SecurityException.class)
         public ResponseEntity<Map<String, Object>> handleSecurity(SecurityException ex) {
+                log.warn("Forbidden: {}", ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.FORBIDDEN)
                                 .body(Map.of(
@@ -53,11 +60,23 @@ public class GlobalExceptionHandler {
         }
         @ExceptionHandler(RuntimeException.class)
         public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
+                log.error("Unhandled runtime exception", ex);
                 return ResponseEntity
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(Map.of(
                                                 "error", "internal_server_error",
                                                 "message", ex.getMessage(),
+                                                "timestamp", Instant.now().toString()));
+        }
+
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
+                log.error("Unhandled exception", ex);
+                return ResponseEntity
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of(
+                                                "error", "internal_server_error",
+                                                "message", "An unexpected error occurred",
                                                 "timestamp", Instant.now().toString()));
         }
 }

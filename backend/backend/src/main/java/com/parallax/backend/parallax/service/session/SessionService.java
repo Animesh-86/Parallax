@@ -18,6 +18,9 @@ import java.net.ServerSocket;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class SessionService {
@@ -32,22 +35,34 @@ public class SessionService {
     private final SessionRegistry sessionRegistry;
     private final ProjectAccessManager accessManager;
     private final com.parallax.backend.parallax.config.StorageProperties storageProperties;
+    private final com.parallax.backend.parallax.config.ContainerSecurityPolicy containerSecurityPolicy;
+    private final com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger;
 
     @Value("${code.session.image-name:parallax-collab}")
     private String sessionImage;
+
+    private final ConcurrentHashMap<UUID, Lock> projectLocks = new ConcurrentHashMap<>();
+
+    private Lock getProjectLock(UUID projectId) {
+        return projectLocks.computeIfAbsent(projectId, k -> new ReentrantLock());
+    }
 
     public SessionService(
             ProjectRepository projectRepo,
             FileSyncService fileSyncService,
             SessionRegistry sessionRegistry,
             ProjectAccessManager accessManager,
-            com.parallax.backend.parallax.config.StorageProperties storageProperties
+            com.parallax.backend.parallax.config.StorageProperties storageProperties,
+            com.parallax.backend.parallax.config.ContainerSecurityPolicy containerSecurityPolicy,
+            com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger
     ) {
         this.projectRepo = projectRepo;
         this.fileSyncService = fileSyncService;
         this.sessionRegistry = sessionRegistry;
         this.accessManager = accessManager;
         this.storageProperties = storageProperties;
+        this.containerSecurityPolicy = containerSecurityPolicy;
+        this.auditLogger = auditLogger;
     }
 
     // START SESSION (IDEMPOTENT)
@@ -70,7 +85,9 @@ public class SessionService {
             throw new IllegalStateException("Maximum limit of 5 active sessions reached. Stop an existing session before starting a new one.");
         }
 
-        synchronized (this) {
+        Lock lock = getProjectLock(projectId);
+        lock.lock();
+        try {
 
             Optional<String> second =
                     sessionRegistry.getSessionIdForProject(projectId);
@@ -95,56 +112,21 @@ public class SessionService {
                 String hostMount = projectPath.toString().replace("\\", "/");
 
                 String output;
+                String[] dockerArgs = buildSecureDockerArgs(
+                        containerName, hostMount, webPort, projectId
+                );
+
+                // 🔒 Validate command against security policy before execution
+                containerSecurityPolicy.validateDockerCommand(dockerArgs);
+
                 try {
-                    output = runCommand(
-                            DOCKER_TIMEOUT_SEC,
-                            "docker", "run", "-d",
-                            "--name", containerName,
-                            "--network", "parallax-workspace-network",
-                            "--memory", "512m",
-                            "--memory-swap", "512m",
-                            "--cpus", "0.5",
-                            "--pids-limit", "256",
-                            "--read-only",
-                            "--tmpfs", "/tmp:rw,noexec,nosuid,size=100m",
-                            "--security-opt", "no-new-privileges:true",
-                            "--cap-drop", "ALL",
-                            "--user", "1000:1000",
-                            "-p", webPort + ":3000",
-                            "-l", "traefik.enable=true",
-                            "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",
-                            "-l", "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port=3000",
-                            "-v", hostMount + ":/workspace",
-                            sessionImage,
-                            "tail", "-f", "/dev/null"
-                    );
+                    output = runCommand(DOCKER_TIMEOUT_SEC, dockerArgs);
                 } catch (RuntimeException e) {
                     if (e.getMessage().contains("Unable to find image")) {
                         LOG.info("Docker image missing. Pulling {}...", sessionImage);
                         runCommand(DOCKER_TIMEOUT_SEC * 2,
                                 "docker", "pull", sessionImage);
-                        output = runCommand(
-                                DOCKER_TIMEOUT_SEC,
-                                "docker", "run", "-d",
-                                "--name", containerName,
-                                "--network", "parallax-workspace-network",
-                                "--memory", "512m",
-                                "--memory-swap", "512m",
-                                "--cpus", "0.5",
-                                "--pids-limit", "256",
-                                "--read-only",
-                                "--tmpfs", "/tmp:rw,noexec,nosuid,size=100m",
-                                "--security-opt", "no-new-privileges:true",
-                                "--cap-drop", "ALL",
-                                "--user", "1000:1000",
-                                "-p", webPort + ":3000",
-                                "-l", "traefik.enable=true",
-                                "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",
-                                "-l", "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port=3000",
-                                "-v", hostMount + ":/workspace",
-                                sessionImage,
-                                "tail", "-f", "/dev/null"
-                        );
+                        output = runCommand(DOCKER_TIMEOUT_SEC, dockerArgs);
                     } else {
                         throw e;
                     }
@@ -161,13 +143,22 @@ public class SessionService {
                         webPort
                 );
 
+                // 🔒 Audit: container started
+                auditLogger.log(
+                        com.parallax.backend.parallax.config.SecurityAuditLogger.AuditEvent.CONTAINER_STARTED,
+                        userId, projectId,
+                        java.util.Map.of("containerName", containerName, "sessionId", sessionId, "webPort", webPort)
+                );
+
                 return sessionId;
 
             } catch (Exception e) {
                 LOG.error("Session start failed for project {}", projectId, e);
-                try { runCommand(10, "docker", "rm", "-f", containerName); } catch (Exception ignored) {}
+                try { runCommand(10, "docker", "rm", "-f", containerName); } catch (Exception ex) { LOG.warn("Failed to aggressively clean up container: " + containerName, ex); }
                 throw e;
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -188,10 +179,52 @@ public class SessionService {
         runCommand(DOCKER_TIMEOUT_SEC,
                 "docker", "rm", "-f", info.getContainerName());
 
+        // 🔒 Audit: container stopped
+        auditLogger.log(
+                com.parallax.backend.parallax.config.SecurityAuditLogger.AuditEvent.CONTAINER_STOPPED,
+                requesterId, info.getProjectId(),
+                java.util.Map.of("containerName", info.getContainerName(), "sessionId", sessionId)
+        );
+
         sessionRegistry.remove(sessionId);
     }
 
-    // INTERNAL
+    // INTERNAL — Single source of truth for hardened Docker container configuration
+    private String[] buildSecureDockerArgs(
+            String containerName, String hostMount, int webPort, UUID projectId
+    ) {
+        return new String[]{
+                "docker", "run", "-d",
+                "--name", containerName,
+                "--network", "parallax-workspace-network",
+                // ── Resource Limits (cgroups v2) ──
+                "--memory", "512m",
+                "--memory-swap", "512m",        // No swap abuse
+                "--cpus", "0.5",
+                "--pids-limit", "256",           // Fork bomb protection
+                "--ulimit", "nofile=1024:2048",  // File descriptor limit
+                "--ulimit", "nproc=256:256",     // Redundant fork protection
+                // ── Security Hardening ──
+                "--read-only",                   // Immutable root filesystem
+                "--tmpfs", "/tmp:rw,noexec,nosuid,size=100m",
+                "--tmpfs", "/home/runner:rw,nosuid,size=50m",  // Writable home dir
+                "--security-opt", "no-new-privileges:true",    // No SUID escalation
+                "--cap-drop", "ALL",             // Drop all 38 Linux capabilities
+                "--user", "1000:1000",           // Non-root user
+                "--ipc", "none",                 // No shared memory with other containers
+                // ── Web Preview Port ──
+                "-p", webPort + ":3000",
+                // ── Traefik Labels ──
+                "-l", "traefik.enable=true",
+                "-l", "traefik.http.routers.proj-" + projectId + ".rule=Host(`" + projectId + ".parallax.run`)",
+                "-l", "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port=3000",
+                // ── Volume ──
+                "-v", hostMount + ":/workspace",
+                sessionImage,
+                "tail", "-f", "/dev/null"
+        };
+    }
+
     private int findAvailablePort() {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();

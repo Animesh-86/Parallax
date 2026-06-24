@@ -31,7 +31,8 @@ public class AiChatService {
                     .replace("</git_diff>", "[/git_diff]");
     }
 
-    public AiChatResponse chat(AiChatRequest request) {
+    public AiChatResponse chat(AiChatRequest request, java.util.UUID userId) {
+        log.info("AI Chat requested by user {}", userId);
         try {
             String systemPrompt = "You are Parallax AI, an expert programming assistant built into the Parallax Cloud IDE. " +
                     "Your goal is to help the user write, debug, and understand code. " +
@@ -69,7 +70,8 @@ public class AiChatService {
         }
     }
 
-    public com.parallax.backend.parallax.dto.ai.AiAutocompleteResponse autocomplete(com.parallax.backend.parallax.dto.ai.AiAutocompleteRequest request) {
+    public com.parallax.backend.parallax.dto.ai.AiAutocompleteResponse autocomplete(com.parallax.backend.parallax.dto.ai.AiAutocompleteRequest request, java.util.UUID userId) {
+        log.info("AI Autocomplete requested by user {}", userId);
         try {
             String systemPrompt = "You are an expert programming autocomplete AI. " +
                     "Your ONLY task is to output the exact, raw code that continues from the prefix to the suffix. " +
@@ -99,7 +101,8 @@ public class AiChatService {
         }
     }
 
-    public AiChatResponse generateCommitMessage(com.parallax.backend.parallax.dto.ai.AiCommitMessageRequest request) {
+    public AiChatResponse generateCommitMessage(com.parallax.backend.parallax.dto.ai.AiCommitMessageRequest request, java.util.UUID userId) {
+        log.info("AI Commit Gen requested by user {}", userId);
         try {
             String systemPrompt = "You are an expert software engineer. " +
                     "Your task is to write a concise, conventional commit message based on the provided git diff. " +

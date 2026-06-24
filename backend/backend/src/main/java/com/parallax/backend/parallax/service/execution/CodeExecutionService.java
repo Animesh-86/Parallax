@@ -22,6 +22,7 @@ public class CodeExecutionService {
     private final SessionFacade sessionFacade;
     private final SimpMessagingTemplate messagingTemplate;
     private final ProjectAccessManager accessManager;
+    private final com.parallax.backend.parallax.config.SecurityAuditLogger auditLogger;
 
     public void run(UUID projectId, RunCodeRequestWS msg, UUID userId) {
 
@@ -33,6 +34,12 @@ public class CodeExecutionService {
                     ProjectPermission.EXECUTE_CODE
             );
         } catch (ForbiddenException e) {
+            // 🔒 Audit: execution denied
+            auditLogger.log(
+                    com.parallax.backend.parallax.config.SecurityAuditLogger.AuditEvent.CODE_EXECUTION_DENIED,
+                    userId, projectId,
+                    java.util.Map.of("reason", "Not authorized", "filename", String.valueOf(msg.getFilename()))
+            );
             send(projectId, new RunCodeBroadcastMessage(
                     null,
                     "RUN_ERROR",
@@ -72,6 +79,12 @@ public class CodeExecutionService {
                         : msg.getFilename();
 
         // 🔥 RUN STARTED (single authoritative signal)
+        // 🔒 Audit: code execution started
+        auditLogger.log(
+                com.parallax.backend.parallax.config.SecurityAuditLogger.AuditEvent.CODE_EXECUTED,
+                userId, projectId,
+                java.util.Map.of("filename", filename, "sessionId", session.getSessionId())
+        );
         send(projectId, new RunCodeBroadcastMessage(
                 session.getSessionId(),
                 "RUN_STARTED",

@@ -110,6 +110,7 @@ public class MeetingRoom {
     public boolean isScreenShareDisabled() { return screenShareDisabled; }
 
     public void setName(String name) { this.name = name; }
+    public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }
     public void setActive(boolean active) { isActive = active; }
     public void setCodeOpen(boolean codeOpen) { this.codeOpen = codeOpen; }
     public void setWhiteboardEnabled(boolean whiteboardEnabled) { this.whiteboardEnabled = whiteboardEnabled; }

@@ -21,7 +21,7 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:3000}")
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
     private String frontendUrl;
 
     private final JwtUtils jwt;

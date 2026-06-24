@@ -40,8 +40,7 @@ export default function Login() {
                 ? rawToken.slice(7)
                 : rawToken;
 
-            console.log("🔑 login token from backend:", rawToken);
-            console.log("🔑 normalized accessToken:", accessToken);
+            // Store only the bare JWT (no "Bearer ")
 
             // Store only the bare JWT (no "Bearer ")
             localStorage.setItem("access_token", accessToken);

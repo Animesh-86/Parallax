@@ -3,6 +3,7 @@ import { RefreshCw, ExternalLink, Play, Square, Loader } from 'lucide-react';
 import { webProjectApi, WebProjectStatus } from '../../services/webProjectApi';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { previewDomain } from '../../services/env';
 
 interface BrowserPreviewPanelProps {
   projectId: string;
@@ -28,7 +29,7 @@ export function BrowserPreviewPanel({ projectId }: BrowserPreviewPanelProps) {
 
   useEffect(() => {
     if (status.status === 'RUNNING' && status.port && !waitingForReady) {
-      setUrl(`http://localhost:${status.port}`);
+      setUrl(`http://${previewDomain}:${status.port}`);
     } else if (status.status === 'STOPPED') {
       setUrl('');
     }
@@ -44,7 +45,7 @@ export function BrowserPreviewPanel({ projectId }: BrowserPreviewPanelProps) {
   };
 
   const waitForServerReady = useCallback((port: number) => {
-    const targetUrl = `http://localhost:${port}`;
+    const targetUrl = `http://${previewDomain}:${port}`;
     setWaitingForReady(true);
     setReadyMessage('Installing dependencies & starting dev server...');
     setUrl('');
@@ -228,7 +229,8 @@ export function BrowserPreviewPanel({ projectId }: BrowserPreviewPanelProps) {
             src={url}
             className="w-full h-full border-none"
             title="Browser Preview"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            sandbox="allow-scripts allow-forms allow-popups allow-modals"
+            referrerPolicy="no-referrer"
           />
         ) : (
           /* Stopped state */

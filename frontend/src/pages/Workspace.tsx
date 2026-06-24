@@ -6,12 +6,11 @@ import { IntegrationsSidebar } from "../components/workspace/IntegrationsSidebar
 import { FileExplorer } from "../components/workspace/FileExplorer";
 import { EditorTabs } from "../components/workspace/EditorTabs";
 import CodeEditor from "../components/workspace/CodeEditor";
-import { Terminal } from "../components/workspace/Terminal";
-import { VideoPanel } from "../components/workspace/VideoPanel";
-import { ParticipantsList } from "../components/workspace/ParticipantsList";
-import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
-import { AiChatPanel } from "../components/chat/AiChatPanel";
-import { BrowserPreviewPanel } from "../components/workspace/BrowserPreviewPanel";
+import React, { useMemo } from "react";
+const Terminal = React.lazy(() => import("../components/workspace/Terminal").then(m => ({ default: m.Terminal })));
+const VideoPanel = React.lazy(() => import("../components/workspace/VideoPanel").then(m => ({ default: m.VideoPanel })));
+const AiChatPanel = React.lazy(() => import("../components/chat/AiChatPanel").then(m => ({ default: m.AiChatPanel })));
+const BrowserPreviewPanel = React.lazy(() => import("../components/workspace/BrowserPreviewPanel").then(m => ({ default: m.BrowserPreviewPanel })));
 import { projectChatWs } from "../services/wsChatClient";
 import { ActivityPanel } from "../components/workspace/ActivityPanel";
 import { versioningApi, ProjectBranch } from "../services/versioningApi";
@@ -134,6 +133,10 @@ export default function Workspace() {
         const res = await api.get(`/projects/${projectId}`);
         setProjectName(res.data.name);
         setProjectSettings(res.data);
+        if (res.data.teamId) {
+          setTeamId(res.data.teamId);
+          setTeamName(res.data.teamName || 'Team');
+        }
       }
     } catch (err) {
       console.error("Failed to fetch project details", err);
@@ -168,21 +171,7 @@ export default function Workspace() {
       }
     };
 
-    const fetchTeamContext = async () => {
-      try {
-        const res = await api.get(`/projects/${projectId}`);
-        setProjectSettings(res.data);
-        if (res.data.teamId) {
-          setTeamId(res.data.teamId);
-          setTeamName(res.data.teamName || 'Team');
-        }
-      } catch (err) {
-        // Non-critical
-      }
-    };
-
     initVersioning();
-    fetchTeamContext();
   }, [projectId]);
 
   // ---------------- API calls ----------------
@@ -238,14 +227,7 @@ export default function Workspace() {
   const saveFile = async (content: string) => {
     if (!projectId || !activeFile) return;
     setFileContent(content);
-    await api.put(
-      `/projects/${projectId}/file`,
-      content,
-      {
-        params: { path: activeFile },
-        headers: { "Content-Type": "text/plain" },
-      }
-    );
+    // Server-side debounced save handled by WebSocket.
   };
 
   const createEntry = async (path: string, type: "FILE" | "FOLDER") => {
@@ -305,6 +287,22 @@ export default function Workspace() {
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
   };
+
+  const editorSettings = useMemo(() => {
+    try {
+      const s = JSON.parse(projectSettings?.settingsJson || '{}');
+      return {
+        tabSize: s.tabSize || 2,
+        fontSize: s.fontSize || 14,
+        fontFamily: s.fontFamily || "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+        minimap: s.minimap !== undefined ? s.minimap : true,
+        wordWrap: s.wordWrap || "on",
+        autoSave: s.autoSave !== undefined ? s.autoSave : true,
+      };
+    } catch {
+      return { tabSize: 2, fontSize: 14, fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace", minimap: true, wordWrap: "on", autoSave: true };
+    }
+  }, [projectSettings?.settingsJson]);
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white overflow-hidden relative">
@@ -438,7 +436,9 @@ export default function Workspace() {
                 </div>
               )}
               {activeFile === "browser-preview" ? (
-                <BrowserPreviewPanel projectId={projectId!} />
+                <React.Suspense fallback={<div className="p-4 text-white/50">Loading preview...</div>}>
+                  <BrowserPreviewPanel projectId={projectId!} />
+                </React.Suspense>
               ) : (
                 <CodeEditor
                   filePath={activeFile}
@@ -449,17 +449,7 @@ export default function Workspace() {
                     setRunOutput(out);
                     setRunExitCode(code);
                   }}
-                  {...(() => {
-                    const s = JSON.parse(projectSettings?.settingsJson || '{}');
-                    return {
-                      tabSize: s.tabSize || 2,
-                      fontSize: s.fontSize || 14,
-                      fontFamily: s.fontFamily || "'Fira Code', 'JetBrains Mono', Consolas, monospace",
-                      minimap: s.minimap !== undefined ? s.minimap : true,
-                      wordWrap: s.wordWrap || "on",
-                      autoSave: s.autoSave !== undefined ? s.autoSave : true,
-                    };
-                  })()}
+                  {...editorSettings}
                   ideSettings={ideSettings}
                   onAiAction={(prompt: string) => {
                     if (!activeRightTools.includes("ai")) {
@@ -471,13 +461,15 @@ export default function Workspace() {
               )}
             </div>
 
-            <Terminal
-              isOpen={terminalOpen}
-              onToggle={() => setTerminalOpen(!terminalOpen)}
-              output={runOutput}
-              exitCode={runExitCode}
-              projectId={projectId}
-            />
+            <React.Suspense fallback={null}>
+              <Terminal
+                isOpen={terminalOpen}
+                onToggle={() => setTerminalOpen(!terminalOpen)}
+                output={runOutput}
+                exitCode={runExitCode}
+                projectId={projectId}
+              />
+            </React.Suspense>
           </div>
         </div>
 
@@ -499,7 +491,11 @@ export default function Workspace() {
                 key={tool} 
                 className={`flex-1 overflow-hidden flex flex-col min-h-[250px] ${index > 0 ? 'border-t border-white/10' : ''}`}
               >
-                {tool === "video" && <VideoPanel mode="video" onModeChange={() => { }} onClose={() => toggleRightTool("video")} />}
+                {tool === "video" && (
+                  <React.Suspense fallback={<div className="p-4 text-white/50">Loading video...</div>}>
+                    <VideoPanel mode="video" onModeChange={() => { }} onClose={() => toggleRightTool("video")} />
+                  </React.Suspense>
+                )}
                 
                 {tool === "chat" && projectId && (
                   <UnifiedChatPanel 
@@ -521,7 +517,9 @@ export default function Workspace() {
                     </div>
                     <div className="flex-1 overflow-hidden">
                       {ideSettings.enableAiChat && (
-                        <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile || undefined} />
+                        <React.Suspense fallback={<div className="p-4 text-white/50">Loading AI...</div>}>
+                          <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile || undefined} />
+                        </React.Suspense>
                       )}
                     </div>
                   </div>

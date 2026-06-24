@@ -50,10 +50,8 @@ public class TeamTaskController {
 
         String assigneeIdStr = (String) body.get("assigneeId");
         if (assigneeIdStr != null && !assigneeIdStr.isBlank()) {
-            try {
-                task.setAssigneeId(UUID.fromString(assigneeIdStr));
-                task.setAssigneeName((String) body.get("assigneeName"));
-            } catch (IllegalArgumentException ignored) {}
+            task.setAssigneeId(UUID.fromString(assigneeIdStr));
+            task.setAssigneeName((String) body.get("assigneeName"));
         }
 
         return ResponseEntity.ok(taskRepository.save(task));
@@ -76,9 +74,7 @@ public class TeamTaskController {
             task.setDescription((String) body.get("description"));
         }
         if (body.containsKey("status")) {
-            try {
-                task.setStatus(TeamTask.TaskStatus.valueOf((String) body.get("status")));
-            } catch (IllegalArgumentException ignored) {}
+            task.setStatus(TeamTask.TaskStatus.valueOf((String) body.get("status")));
         }
         if (body.containsKey("assigneeId")) {
             String assigneeIdStr = (String) body.get("assigneeId");
@@ -86,10 +82,8 @@ public class TeamTaskController {
                 task.setAssigneeId(null);
                 task.setAssigneeName(null);
             } else {
-                try {
                     task.setAssigneeId(UUID.fromString(assigneeIdStr));
                     task.setAssigneeName((String) body.get("assigneeName"));
-                } catch (IllegalArgumentException ignored) {}
             }
         }
 
