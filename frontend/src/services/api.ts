@@ -44,7 +44,7 @@ api.interceptors.response.use(
         if (
             error.response?.status === 401 &&
             !originalRequest._retry &&
-            !originalRequest.url?.includes("/api/auth/")
+            !originalRequest.url?.includes("/api/v1/auth/")
         ) {
             if (isRefreshing) {
                 // Queue this request until the refresh completes
@@ -62,7 +62,7 @@ api.interceptors.response.use(
             try {
                 // Call the backend refresh endpoint (reads refresh_token from HttpOnly cookie)
                 const response = await axios.post(
-                    `${apiBaseUrl}/api/auth/refresh`,
+                    `${apiBaseUrl}/api/v1/auth/refresh`,
                     {},
                     { withCredentials: true }
                 );

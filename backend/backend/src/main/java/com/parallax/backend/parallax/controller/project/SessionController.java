@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/session")
+@RequestMapping("/sessions")
 public class SessionController {
 
     private static final Logger LOG =
@@ -26,7 +26,7 @@ public class SessionController {
     }
 
     // START SESSION
-    @PostMapping("/{projectId}/start")
+    @PostMapping("/{projectId}")
     public ResponseEntity<Map<String, String>> start(
             @PathVariable UUID projectId,
             Authentication auth
@@ -43,7 +43,7 @@ public class SessionController {
 
 
     // STOP SESSION
-    @PostMapping("/{sessionId}/stop")
+    @DeleteMapping("/{sessionId}")
     public ResponseEntity<Void> stop(
             @PathVariable String sessionId,
             Authentication auth

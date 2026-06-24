@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/workspace")
+@RequestMapping("/projects")
 @RequiredArgsConstructor
 public class WorkspaceBootstrapController {
 

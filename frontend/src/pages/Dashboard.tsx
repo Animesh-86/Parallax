@@ -198,7 +198,7 @@ export default function Dashboard() {
             }
 
             // 4️⃣ Make request
-            const res = await fetch(`${apiBaseUrl}/api/projects`, {
+            const res = await fetch(`${apiBaseUrl}/api/v1/projects`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -267,7 +267,7 @@ export default function Dashboard() {
                 return;
             }
 
-            const res = await fetch(`${apiBaseUrl}/api/projects`, {
+            const res = await fetch(`${apiBaseUrl}/api/v1/projects`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

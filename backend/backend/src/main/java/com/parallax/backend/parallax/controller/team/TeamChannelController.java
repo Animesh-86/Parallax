@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/teams/{teamId}/channels")
+@RequestMapping("/teams/{teamId}/channels")
 @RequiredArgsConstructor
 public class TeamChannelController {
 

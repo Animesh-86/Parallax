@@ -124,7 +124,7 @@ function TeamWorkspaceContent() {
       const token = localStorage.getItem('access_token');
       if (!token) throw new Error('No access token');
 
-      const res = await fetch(`${apiBaseUrl}/api/projects`, {
+      const res = await fetch(`${apiBaseUrl}/api/v1/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

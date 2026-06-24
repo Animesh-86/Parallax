@@ -14,7 +14,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Path;
 
 @RestController
-@RequestMapping("/api/chat/files")
+@RequestMapping("/chat/files")
 @RequiredArgsConstructor
 public class ChatFileController {
 

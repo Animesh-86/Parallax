@@ -55,7 +55,7 @@ export default function Onboarding() {
     const timeout = setTimeout(async () => {
       try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch(`${apiBaseUrl}/api/onboarding/check-username?username=${encodeURIComponent(username)}`, {
+        const res = await fetch(`${apiBaseUrl}/api/v1/onboarding/check-username?username=${encodeURIComponent(username)}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -80,7 +80,7 @@ export default function Onboarding() {
 
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch(`${apiBaseUrl}/api/onboarding/complete`, {
+      const res = await fetch(`${apiBaseUrl}/api/v1/onboarding`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

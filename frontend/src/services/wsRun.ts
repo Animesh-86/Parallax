@@ -14,7 +14,7 @@ const maxReconnectAttempts = 5;
  */
 async function refreshAccessToken(): Promise<string | null> {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/auth/refresh`, {
+        const response = await fetch(`${apiBaseUrl}/api/v1/auth/refresh`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/me/collaborations")
+@RequestMapping("/me/collaborations")
 @RequiredArgsConstructor
 public class UserCollaborationController {
 

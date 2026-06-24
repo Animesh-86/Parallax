@@ -48,7 +48,7 @@ export function LinkProjectModal({
       const token = localStorage.getItem('access_token');
       if (!token) throw new Error('Not authenticated');
 
-      const res = await fetch(`${apiBaseUrl}/api/projects`, {
+      const res = await fetch(`${apiBaseUrl}/api/v1/projects`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to fetch projects');

@@ -188,15 +188,13 @@ public class SessionService {
 
             } catch (Exception e) {
                 LOG.error("Session start failed for project {}", projectId, e);
-                try { runCommand(10, "docker", "rm", "-f", containerName); } catch (Exception ex) { LOG.warn("Failed to aggressively clean up container: " + containerName, ex); }
+                try { dockerClient.removeContainerCmd(containerName).withForce(true).exec(); } catch (Exception ex) { LOG.warn("Failed to aggressively clean up container: " + containerName, ex); }
                 throw e;
             }
         } finally {
             lock.unlock();
         }
     }
-
-    // STOP SESSION
     public void stopSession(String sessionId, UUID requesterId) throws Exception {
 
         SessionRegistry.SessionInfo info =

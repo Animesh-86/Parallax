@@ -21,6 +21,7 @@ import com.parallax.backend.parallax.dto.team.CreateTeamRequest;
 import com.parallax.backend.parallax.dto.team.InviteTeamMemberRequest;
 import com.parallax.backend.parallax.dto.team.TeamMemberResponse;
 import com.parallax.backend.parallax.dto.team.TeamResponse;
+import com.parallax.backend.parallax.dto.team.UpdateAutoAddSettingDto;
 import com.parallax.backend.parallax.entity.file.ProjectFile;
 import com.parallax.backend.parallax.entity.project.Project;
 import com.parallax.backend.parallax.repository.file.ProjectFileRepository;
@@ -32,7 +33,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/teams")
+@RequestMapping("/teams")
 @RequiredArgsConstructor
 public class TeamController {
 
@@ -82,7 +83,7 @@ public class TeamController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         TeamMemberResponse response = teamService.inviteMember(teamId, userId, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/{teamId}/members/accept")
@@ -102,7 +103,7 @@ public class TeamController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         teamService.rejectInvite(teamId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{teamId}/members/{memberId}")
@@ -113,7 +114,7 @@ public class TeamController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         teamService.removeMember(teamId, userId, memberId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{teamId}")
@@ -133,7 +134,7 @@ public class TeamController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         teamService.deleteTeam(teamId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     // ===== NEW ENDPOINTS: Team <-> Project relationship =====
@@ -160,11 +161,11 @@ public class TeamController {
     @PatchMapping("/{teamId}/settings/auto-add")
     public ResponseEntity<TeamResponse> updateAutoAddSetting(
             @PathVariable UUID teamId,
-            @RequestBody Map<String, Boolean> body,
+            @Valid @RequestBody UpdateAutoAddSettingDto body,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
-        boolean autoAdd = body.getOrDefault("autoAddMembersToProjects", true);
+        boolean autoAdd = body.autoAddMembersToProjects();
         return ResponseEntity.ok(teamService.updateAutoAddSetting(teamId, userId, autoAdd));
     }
 
@@ -176,6 +177,6 @@ public class TeamController {
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         teamService.unlinkProjectFromTeam(teamId, projectId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

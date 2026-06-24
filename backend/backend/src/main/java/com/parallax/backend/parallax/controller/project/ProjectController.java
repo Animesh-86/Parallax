@@ -2,6 +2,9 @@ package com.parallax.backend.parallax.controller.project;
 
 import com.parallax.backend.parallax.dto.project.CreateProjectRequest;
 import com.parallax.backend.parallax.dto.project.ProjectResponse;
+import com.parallax.backend.parallax.dto.project.CreatePullRequestDto;
+import com.parallax.backend.parallax.dto.project.LinkProjectTeamDto;
+import com.parallax.backend.parallax.dto.project.ToggleExtensionDto;
 import com.parallax.backend.parallax.security.AuthUtil;
 import com.parallax.backend.parallax.service.project.ProjectService;
 import com.parallax.backend.parallax.service.project.ProjectServiceImpl;
@@ -17,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -62,16 +65,15 @@ public class ProjectController {
     @PatchMapping("/{projectId}/team")
     public ResponseEntity<ProjectResponse> linkProjectToTeam(
             @PathVariable UUID projectId,
-            @RequestBody Map<String, String> body,
+            @RequestBody LinkProjectTeamDto body,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
-        String teamIdStr = body.get("teamId"); // null means unlink
-        UUID teamId = teamIdStr != null && !teamIdStr.isBlank() ? UUID.fromString(teamIdStr) : null;
+        UUID teamId = body.teamId();
         ProjectResponse response = projectService.linkProjectToTeam(projectId, userId, teamId);
         return ResponseEntity.ok(response);
     }
-    @PutMapping("/{projectId}/settings")
+    @PatchMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> updateProjectSettings(
             @PathVariable UUID projectId,
             @RequestBody com.parallax.backend.parallax.dto.project.UpdateProjectSettingsRequest request,
@@ -82,19 +84,15 @@ public class ProjectController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{projectId}/extensions/toggle")
+    @PatchMapping("/{projectId}/extensions")
     public ResponseEntity<ProjectResponse> toggleExtension(
             @PathVariable UUID projectId,
-            @RequestBody Map<String, Object> body,
+            @Valid @RequestBody ToggleExtensionDto body,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
-        String extensionId = (String) body.get("extensionId");
-        Boolean enabled = (Boolean) body.get("enabled");
-        
-        if (extensionId == null || enabled == null) {
-            return ResponseEntity.badRequest().build();
-        }
+        String extensionId = body.extensionId();
+        Boolean enabled = body.enabled();
 
         ProjectResponse response = projectService.toggleExtension(projectId, userId, extensionId, enabled);
         return ResponseEntity.ok(response);
@@ -103,20 +101,16 @@ public class ProjectController {
     @PostMapping("/{projectId}/github/pr")
     public ResponseEntity<Void> createPullRequest(
             @PathVariable UUID projectId,
-            @RequestBody Map<String, String> body,
+            @Valid @RequestBody CreatePullRequestDto body,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
-        String branchName = body.get("branchName");
-        String prTitle = body.get("title");
-        String commitMessage = body.get("message");
-        
-        if (branchName == null || prTitle == null || commitMessage == null) {
-            return ResponseEntity.badRequest().build();
-        }
+        String branchName = body.branchName();
+        String prTitle = body.title();
+        String commitMessage = body.message();
 
         projectService.createPullRequest(projectId, userId, branchName, prTitle, commitMessage);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/{projectId}")
@@ -129,7 +123,7 @@ public class ProjectController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{projectId}/archive")
+    @PatchMapping("/{projectId}/archive")
     public ResponseEntity<ProjectResponse> archiveProject(
             @PathVariable UUID projectId,
             Authentication authentication
@@ -139,7 +133,7 @@ public class ProjectController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{projectId}/unarchive")
+    @PatchMapping("/{projectId}/unarchive")
     public ResponseEntity<ProjectResponse> unarchiveProject(
             @PathVariable UUID projectId,
             Authentication authentication

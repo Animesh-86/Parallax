@@ -14,7 +14,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 @RestController
-@RequestMapping("/api/github/webhooks")
+@RequestMapping("/github/webhooks")
 @RequiredArgsConstructor
 @Slf4j
 public class GitHubWebhookController {

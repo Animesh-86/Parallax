@@ -14,14 +14,14 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/web")
+@RequestMapping("/projects/{projectId}/web-server")
 @RequiredArgsConstructor
 public class WebProjectController {
 
     private final WebProjectExecutionService webProjectService;
     private final ProjectAccessManager accessManager;
 
-    @PostMapping("/start")
+    @PostMapping
     public ResponseEntity<WebProjectStatus> startServer(
             @PathVariable UUID projectId,
             Authentication authentication
@@ -32,7 +32,7 @@ public class WebProjectController {
         return ResponseEntity.ok(status);
     }
 
-    @PostMapping("/stop")
+    @DeleteMapping
     public ResponseEntity<Map<String, String>> stopServer(
             @PathVariable UUID projectId,
             Authentication authentication
@@ -43,7 +43,7 @@ public class WebProjectController {
         return ResponseEntity.ok(Map.of("message", "Server stopped"));
     }
 
-    @GetMapping("/status")
+    @GetMapping
     public ResponseEntity<WebProjectStatus> getServerStatus(
             @PathVariable UUID projectId,
             Authentication authentication

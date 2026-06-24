@@ -125,7 +125,7 @@ export default function CodeEditor({
   useEffect(() => {
     if (!projectId || !filePath) return;
     const token = localStorage.getItem("access_token");
-    fetch(`${apiBaseUrl}/api/projects/${projectId}/comments?filePath=${encodeURIComponent(filePath)}`, {
+    fetch(`${apiBaseUrl}/api/v1/projects/${projectId}/comments?filePath=${encodeURIComponent(filePath)}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(r => r.json())
@@ -381,7 +381,7 @@ export default function CodeEditor({
         if (!position) return;
         const text = prompt("Enter your comment for line " + position.lineNumber);
         if (text) {
-          fetch(`${apiBaseUrl}/api/projects/${projectId}/comments`, {
+          fetch(`${apiBaseUrl}/api/v1/projects/${projectId}/comments`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -491,7 +491,7 @@ export default function CodeEditor({
                 // Dynamically import aiApi here or at the top of file
                 // I will assume it's imported or I can use fetch directly. 
                 // Let's use fetch directly to avoid import issues for now
-                const res = await api.post('/api/ai/autocomplete', {
+                const res = await api.post('/api/v1/ai/autocomplete', {
                   prefix: textUntilPosition,
                   suffix: textAfterPosition
                 });

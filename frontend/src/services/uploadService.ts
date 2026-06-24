@@ -13,9 +13,9 @@ export const uploadService = {
         try {
             // Assuming a standard upload endpoint. 
             // If the backend requires a specific endpoint for avatars, we might need to adjust.
-            // For now, using a generic /api/uploads endpoint which is common.
+            // For now, using a generic /api/v1/uploads endpoint which is common.
             // Axios automatically sets Content-Type to multipart/form-data with correct boundary
-            const response = await api.post('/api/uploads', formData);
+            const response = await api.post('/api/v1/uploads', formData);
             return response.data.url;
         } catch (error) {
             throw handleApiError(error);

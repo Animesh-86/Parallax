@@ -49,66 +49,66 @@ export interface MergeRequestData {
 export const versioningApi = {
   // Remote
   addRemote: async (projectId: string, url: string): Promise<{message: string}> => {
-    const res = await api.post(`/api/projects/${projectId}/versioning/remote`, { url });
+    const res = await api.post(`/api/v1/projects/${projectId}/versioning/remote`, { url });
     return res.data;
   },
 
   // Branches
   getBranches: async (projectId: string): Promise<ProjectBranch[]> => {
-    const res = await api.get(`/api/projects/${projectId}/versioning/branches`);
+    const res = await api.get(`/api/v1/projects/${projectId}/versioning/branches`);
     return res.data;
   },
 
   createBranch: async (projectId: string, name: string): Promise<ProjectBranch> => {
-    const res = await api.post(`/api/projects/${projectId}/versioning/branches`, { name });
+    const res = await api.post(`/api/v1/projects/${projectId}/versioning/branches`, { name });
     return res.data;
   },
 
   deleteBranch: async (projectId: string, name: string): Promise<void> => {
-    await api.delete(`/api/projects/${projectId}/versioning/branches/${encodeURIComponent(name)}`);
+    await api.delete(`/api/v1/projects/${projectId}/versioning/branches/${encodeURIComponent(name)}`);
   },
 
   ensureMainBranch: async (projectId: string): Promise<ProjectBranch> => {
-    const res = await api.post(`/api/projects/${projectId}/versioning/branches/ensure-main`);
+    const res = await api.post(`/api/v1/projects/${projectId}/versioning/branches/ensure-main`);
     return res.data;
   },
 
   checkoutBranch: async (projectId: string, branchName: string): Promise<void> => {
-    await api.post(`/api/projects/${projectId}/versioning/branches/${branchName}/checkout`);
+    await api.post(`/api/v1/projects/${projectId}/versioning/branches/${branchName}/checkout`);
   },
 
   pushBranch: async (projectId: string, branchName: string): Promise<{message: string}> => {
-    const res = await api.post(`/api/projects/${projectId}/versioning/branches/${branchName}/push`);
+    const res = await api.post(`/api/v1/projects/${projectId}/versioning/branches/${branchName}/push`);
     return res.data;
   },
 
   // Commits
   getCommits: async (projectId: string, branchId?: string): Promise<ProjectCommit[]> => {
     const url = branchId 
-      ? `/api/projects/${projectId}/versioning/branches/${encodeURIComponent(branchId)}/commits`
-      : `/api/projects/${projectId}/versioning/commits`;
+      ? `/api/v1/projects/${projectId}/versioning/branches/${encodeURIComponent(branchId)}/commits`
+      : `/api/v1/projects/${projectId}/versioning/commits`;
     const res = await api.get(url);
     return res.data;
   },
 
   getBranchCommits: async (projectId: string, branchId: string): Promise<ProjectCommit[]> => {
-    const res = await api.get(`/api/projects/${projectId}/versioning/branches/${branchId}/commits`);
+    const res = await api.get(`/api/v1/projects/${projectId}/versioning/branches/${branchId}/commits`);
     return res.data;
   },
 
   createCommit: async (projectId: string, branchId: string, message: string): Promise<ProjectCommit> => {
-    const res = await api.post(`/api/projects/${projectId}/versioning/commits`, { branchId, message });
+    const res = await api.post(`/api/v1/projects/${projectId}/versioning/commits`, { branchId, message });
     return res.data;
   },
 
   // Merge Requests
   getMergeRequests: async (projectId: string): Promise<MergeRequestData[]> => {
-    const res = await api.get(`/api/projects/${projectId}/versioning/merge-requests`);
+    const res = await api.get(`/api/v1/projects/${projectId}/versioning/merge-requests`);
     return res.data;
   },
 
   getOpenMergeRequests: async (projectId: string): Promise<MergeRequestData[]> => {
-    const res = await api.get(`/api/projects/${projectId}/versioning/merge-requests/open`);
+    const res = await api.get(`/api/v1/projects/${projectId}/versioning/merge-requests/open`);
     return res.data;
   },
 
@@ -119,7 +119,7 @@ export const versioningApi = {
     title: string,
     description?: string
   ): Promise<MergeRequestData> => {
-    const res = await api.post(`/api/projects/${projectId}/versioning/merge-requests`, {
+    const res = await api.post(`/api/v1/projects/${projectId}/versioning/merge-requests`, {
       sourceBranchId,
       targetBranchId,
       title,
@@ -133,7 +133,7 @@ export const versioningApi = {
     mrId: string,
     status: MergeRequestStatus
   ): Promise<MergeRequestData> => {
-    const res = await api.patch(`/api/projects/${projectId}/versioning/merge-requests/${mrId}`, {
+    const res = await api.patch(`/api/v1/projects/${projectId}/versioning/merge-requests/${mrId}`, {
       status,
     });
     return res.data;
@@ -141,7 +141,7 @@ export const versioningApi = {
 
   // Utils
   getDiff: async (projectId: string): Promise<{diff: string}> => {
-    const res = await api.get(`/api/projects/${projectId}/versioning/diff`);
+    const res = await api.get(`/api/v1/projects/${projectId}/versioning/diff`);
     return res.data;
   }
 };

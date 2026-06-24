@@ -5,6 +5,7 @@ import com.parallax.backend.parallax.dto.room.CreateRoomRequest;
 import com.parallax.backend.parallax.dto.room.RoomInviteRequest;
 import com.parallax.backend.parallax.dto.room.RoomResponse;
 import com.parallax.backend.parallax.dto.room.RoomSettingsUpdateRequest;
+import com.parallax.backend.parallax.dto.room.TransferHostDto;
 import com.parallax.backend.parallax.entity.auth.User;
 import com.parallax.backend.parallax.entity.room.MeetingRoom;
 import com.parallax.backend.parallax.repository.UserRepository;
@@ -23,7 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/rooms")
+@RequestMapping("/rooms")
 @RequiredArgsConstructor
 public class MeetingRoomController {
 
@@ -52,7 +53,7 @@ public class MeetingRoomController {
         return ResponseEntity.ok(rooms);
     }
 
-    @PostMapping("/join/{roomCode}")
+    @PostMapping("/{roomCode}/participants")
     public ResponseEntity<RoomResponse> joinRoom(
             @PathVariable String roomCode,
             Authentication authentication
@@ -93,25 +94,7 @@ public class MeetingRoomController {
         return ResponseEntity.ok(response);
     }
 
-    // Compatibility route for clients/environments that cannot issue PATCH
-    @PutMapping("/{roomId}/settings")
-    public ResponseEntity<RoomResponse> updateRoomSettingsPut(
-            @PathVariable UUID roomId,
-            @RequestBody RoomSettingsUpdateRequest request,
-            Authentication authentication
-    ) {
-        return updateRoomSettings(roomId, request, authentication);
-    }
 
-    // Compatibility route for clients/environments that cannot issue PATCH/PUT
-    @PostMapping("/{roomId}/settings")
-    public ResponseEntity<RoomResponse> updateRoomSettingsPost(
-            @PathVariable UUID roomId,
-            @RequestBody RoomSettingsUpdateRequest request,
-            Authentication authentication
-    ) {
-        return updateRoomSettings(roomId, request, authentication);
-    }
 
         @PatchMapping("/by-code/{roomCode}/settings")
         public ResponseEntity<RoomResponse> updateRoomSettingsByCode(
@@ -124,37 +107,17 @@ public class MeetingRoomController {
                 return ResponseEntity.ok(response);
         }
 
-        @PutMapping("/by-code/{roomCode}/settings")
-        public ResponseEntity<RoomResponse> updateRoomSettingsByCodePut(
-                        @PathVariable String roomCode,
-                        @RequestBody RoomSettingsUpdateRequest request,
-                        Authentication authentication
-        ) {
-                return updateRoomSettingsByCode(roomCode, request, authentication);
-        }
 
-        @PostMapping("/by-code/{roomCode}/settings")
-        public ResponseEntity<RoomResponse> updateRoomSettingsByCodePost(
-                        @PathVariable String roomCode,
-                        @RequestBody RoomSettingsUpdateRequest request,
-                        Authentication authentication
-        ) {
-                return updateRoomSettingsByCode(roomCode, request, authentication);
-        }
 
     // TRANSFER HOST
     @PostMapping("/{roomId}/transfer-host")
     public ResponseEntity<RoomResponse> transferHost(
             @PathVariable UUID roomId,
-            @RequestBody Map<String, String> request,
+            @Valid @RequestBody TransferHostDto body,
             Authentication authentication
     ) {
         UUID currentUserId = AuthUtil.requireUserId(authentication);
-        String newHostIdStr = request.get("newHostId");
-        if (newHostIdStr == null || newHostIdStr.isBlank()) {
-            return ResponseEntity.badRequest().build();
-        }
-        UUID newHostId = UUID.fromString(newHostIdStr);
+        UUID newHostId = body.newHostId();
         RoomResponse response = meetingRoomService.transferHost(roomId, currentUserId, newHostId);
         return ResponseEntity.ok(response);
     }

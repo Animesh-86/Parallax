@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/onboarding")
+@RequestMapping("/onboarding")
 public class OnboardingController {
 
     private final UserRepository userRepo;
@@ -33,7 +33,7 @@ public class OnboardingController {
      * Complete onboarding — user picks username and confirms display name.
      * Returns a fresh JWT with onboardingComplete=true.
      */
-    @PostMapping("/complete")
+    @PostMapping
     public ResponseEntity<?> completeOnboarding(
             @RequestBody OnboardingRequest request,
             Authentication authentication

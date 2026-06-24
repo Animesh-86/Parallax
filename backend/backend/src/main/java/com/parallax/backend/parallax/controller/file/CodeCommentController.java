@@ -5,6 +5,7 @@ import com.parallax.backend.parallax.entity.auth.User;
 import com.parallax.backend.parallax.repository.CodeCommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.parallax.backend.parallax.security.ProjectAccessManager;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/comments")
+@RequestMapping("/projects/{projectId}/comments")
 @RequiredArgsConstructor
 public class CodeCommentController {
 
@@ -50,10 +51,10 @@ public class CodeCommentController {
         comment.setContent(request.content());
         
         CodeComment saved = codeCommentRepository.save(comment);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    @PutMapping("/{commentId}/resolve")
+    @PatchMapping("/{commentId}")
     public ResponseEntity<Void> resolveComment(
             @PathVariable UUID projectId,
             @PathVariable UUID commentId,

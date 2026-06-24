@@ -77,7 +77,7 @@ export default function Friends() {
                 setCurrentUserName(myName);
             }
 
-            const res = await fetch(`${apiBaseUrl}/api/projects`, {
+            const res = await fetch(`${apiBaseUrl}/api/v1/projects`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!res.ok) return;
@@ -147,7 +147,7 @@ export default function Friends() {
     const fetchChatHistory = async (friendId: string) => {
         try {
             const token = localStorage.getItem("access_token");
-            const res = await fetch(`${apiBaseUrl}/api/chat/direct/${friendId}`, {
+            const res = await fetch(`${apiBaseUrl}/api/v1/conversations/${friendId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -254,7 +254,7 @@ export default function Friends() {
 
         try {
             const token = localStorage.getItem("access_token");
-            const res = await fetch(`${apiBaseUrl}/api/chat/files/upload`, {
+            const res = await fetch(`${apiBaseUrl}/api/v1/chat/files/upload`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData

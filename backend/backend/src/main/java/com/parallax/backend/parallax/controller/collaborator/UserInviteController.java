@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/me/invites")
+@RequestMapping("/me/invitations")
 @RequiredArgsConstructor
 public class UserInviteController {
 

@@ -25,15 +25,15 @@ export interface AiCommitMessageRequest {
 
 export const aiApi = {
   chat: async (request: AiChatRequest): Promise<AiChatResponse> => {
-    const response = await api.post("/api/ai/chat", request);
+    const response = await api.post("/api/v1/ai/chat", request);
     return response.data;
   },
   autocomplete: async (request: AiAutocompleteRequest): Promise<AiAutocompleteResponse> => {
-    const response = await api.post("/api/ai/autocomplete", request);
+    const response = await api.post("/api/v1/ai/autocomplete", request);
     return response.data;
   },
   generateCommitMessage: async (request: AiCommitMessageRequest): Promise<AiChatResponse> => {
-    const response = await api.post("/api/ai/generate-commit-message", request);
+    const response = await api.post("/api/v1/ai/generate-commit-message", request);
     return response.data;
   }
 };

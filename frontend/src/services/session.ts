@@ -5,7 +5,7 @@ export async function startSession(projectId: string, maxAttempts = 3): Promise<
   const token = localStorage.getItem("access_token");
   if (!token) throw new Error("No access token found");
 
-  const url = `${apiBaseUrl}/api/session/${projectId}/start`;
+  const url = `${apiBaseUrl}/api/v1/sessions/${projectId}`;
 
   const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 

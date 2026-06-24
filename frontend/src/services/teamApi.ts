@@ -41,65 +41,65 @@ export interface TeamProject {
 
 export const teamApi = {
   listMyTeams: async (): Promise<Team[]> => {
-    const response = await api.get("/api/teams");
+    const response = await api.get("/api/v1/teams");
     return response.data;
   },
 
   createTeam: async (payload: { name: string; description?: string }): Promise<Team> => {
-    const response = await api.post("/api/teams", payload);
+    const response = await api.post("/api/v1/teams", payload);
     return response.data;
   },
 
   getTeam: async (teamId: string): Promise<Team> => {
-    const response = await api.get(`/api/teams/${teamId}`);
+    const response = await api.get(`/api/v1/teams/${teamId}`);
     return response.data;
   },
 
   getTeamMembers: async (teamId: string): Promise<TeamMember[]> => {
-    const response = await api.get(`/api/teams/${teamId}/members`);
+    const response = await api.get(`/api/v1/teams/${teamId}/members`);
     return response.data;
   },
 
   inviteMember: async (teamId: string, email: string, role: TeamRole = "MEMBER"): Promise<TeamMember> => {
-    const response = await api.post(`/api/teams/${teamId}/members/invite`, { email, role });
+    const response = await api.post(`/api/v1/teams/${teamId}/members/invite`, { email, role });
     return response.data;
   },
 
   acceptInvite: async (teamId: string): Promise<void> => {
-    await api.patch(`/api/teams/${teamId}/members/accept`);
+    await api.patch(`/api/v1/teams/${teamId}/members/accept`);
   },
 
   rejectInvite: async (teamId: string): Promise<void> => {
-    await api.delete(`/api/teams/${teamId}/members/reject`);
+    await api.delete(`/api/v1/teams/${teamId}/members/reject`);
   },
 
   changeRole: async (teamId: string, userId: string, role: TeamRole): Promise<TeamMember> => {
-    const response = await api.patch(`/api/teams/${teamId}/members/${userId}`, { role });
+    const response = await api.patch(`/api/v1/teams/${teamId}/members/${userId}`, { role });
     return response.data;
   },
 
   removeMember: async (teamId: string, userId: string): Promise<void> => {
-    await api.delete(`/api/teams/${teamId}/members/${userId}`);
+    await api.delete(`/api/v1/teams/${teamId}/members/${userId}`);
   },
 
   updateTeam: async (teamId: string, payload: { name?: string; description?: string }): Promise<Team> => {
-    const response = await api.patch(`/api/teams/${teamId}`, payload);
+    const response = await api.patch(`/api/v1/teams/${teamId}`, payload);
     return response.data;
   },
 
   deleteTeam: async (teamId: string): Promise<void> => {
-    await api.delete(`/api/teams/${teamId}`);
+    await api.delete(`/api/v1/teams/${teamId}`);
   },
 
   // ===== NEW: Team <-> Project relationship =====
 
   getTeamProjects: async (teamId: string): Promise<TeamProject[]> => {
-    const response = await api.get(`/api/teams/${teamId}/projects`);
+    const response = await api.get(`/api/v1/teams/${teamId}/projects`);
     return response.data;
   },
 
   updateAutoAddSetting: async (teamId: string, autoAdd: boolean): Promise<Team> => {
-    const response = await api.patch(`/api/teams/${teamId}/settings/auto-add`, {
+    const response = await api.patch(`/api/v1/teams/${teamId}/settings/auto-add`, {
       autoAddMembersToProjects: autoAdd,
     });
     return response.data;
@@ -107,67 +107,67 @@ export const teamApi = {
 
   // Link/unlink a project to/from a team
   linkProjectToTeam: async (projectId: string, teamId: string | null): Promise<any> => {
-    const response = await api.patch(`/api/projects/${projectId}/team`, {
+    const response = await api.patch(`/api/v1/projects/${projectId}/team`, {
       teamId: teamId,
     });
     return response.data;
   },
 
   unlinkProjectFromTeam: async (teamId: string, projectId: string): Promise<void> => {
-    await api.delete(`/api/teams/${teamId}/projects/${projectId}`);
+    await api.delete(`/api/v1/teams/${teamId}/projects/${projectId}`);
   },
 
   // ===== NEW: Channels, Tasks, Notes =====
 
   getChannels: async (teamId: string) => {
-    const response = await api.get(`/api/teams/${teamId}/channels`);
+    const response = await api.get(`/api/v1/teams/${teamId}/channels`);
     return response.data;
   },
 
   createChannel: async (teamId: string, payload: { name: string; type: "TEXT" | "VOICE" }) => {
-    const response = await api.post(`/api/teams/${teamId}/channels`, payload);
+    const response = await api.post(`/api/v1/teams/${teamId}/channels`, payload);
     return response.data;
   },
 
   deleteChannel: async (teamId: string, channelId: string) => {
-    await api.delete(`/api/teams/${teamId}/channels/${channelId}`);
+    await api.delete(`/api/v1/teams/${teamId}/channels/${channelId}`);
   },
 
   getTasks: async (teamId: string) => {
-    const response = await api.get(`/api/teams/${teamId}/tasks`);
+    const response = await api.get(`/api/v1/teams/${teamId}/tasks`);
     return response.data;
   },
 
   createTask: async (teamId: string, payload: { title: string; description?: string; assigneeId?: string; assigneeName?: string; createdByName: string }) => {
-    const response = await api.post(`/api/teams/${teamId}/tasks`, payload);
+    const response = await api.post(`/api/v1/teams/${teamId}/tasks`, payload);
     return response.data;
   },
 
   updateTask: async (teamId: string, taskId: string, payload: any) => {
-    const response = await api.patch(`/api/teams/${teamId}/tasks/${taskId}`, payload);
+    const response = await api.patch(`/api/v1/teams/${teamId}/tasks/${taskId}`, payload);
     return response.data;
   },
 
   deleteTask: async (teamId: string, taskId: string) => {
-    await api.delete(`/api/teams/${teamId}/tasks/${taskId}`);
+    await api.delete(`/api/v1/teams/${teamId}/tasks/${taskId}`);
   },
 
   getNotes: async (teamId: string) => {
-    const response = await api.get(`/api/teams/${teamId}/notes`);
+    const response = await api.get(`/api/v1/teams/${teamId}/notes`);
     return response.data;
   },
 
   createNote: async (teamId: string, payload: { title: string; content?: string; visibility?: 'TEAM' | 'PRIVATE' | 'ADMIN_ONLY'; createdByName: string }) => {
-    const response = await api.post(`/api/teams/${teamId}/notes`, payload);
+    const response = await api.post(`/api/v1/teams/${teamId}/notes`, payload);
     return response.data;
   },
 
   updateNote: async (teamId: string, noteId: string, payload: { title?: string; content?: string; visibility?: 'TEAM' | 'PRIVATE' | 'ADMIN_ONLY'; editedByName: string }) => {
-    const response = await api.put(`/api/teams/${teamId}/notes/${noteId}`, payload);
+    const response = await api.put(`/api/v1/teams/${teamId}/notes/${noteId}`, payload);
     return response.data;
   },
 
   deleteNote: async (teamId: string, noteId: string) => {
-    await api.delete(`/api/teams/${teamId}/notes/${noteId}`);
+    await api.delete(`/api/v1/teams/${teamId}/notes/${noteId}`);
   },
 };

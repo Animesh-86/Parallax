@@ -73,7 +73,7 @@ public class SecurityConfig {
                             "Content-Type",
                             "X-Requested-With"
                     ));
-                    cfg.setExposedHeaders(List.of("Set-Cookie"));
+                    cfg.setExposedHeaders(List.of("Set-Cookie", "X-Request-ID"));
                     cfg.setAllowCredentials(true);
 
                     return cfg;
@@ -88,23 +88,23 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Public endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/profiles/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/profiles/*").permitAll()
 
                         // Auth & OAuth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         
                         // Webhooks
-                        .requestMatchers("/api/github/webhooks").permitAll()
+                        .requestMatchers("/github/webhooks").permitAll()
 
                         // Static resources & Error
                         .requestMatchers("/favicon.ico", "/error").permitAll()
 
                         // Health check
-                        .requestMatchers("/api/health").permitAll()
+                        .requestMatchers("/health").permitAll()
 
-                        // Actuator health (for load balancer health checks)
-                        .requestMatchers("/actuator/health").permitAll()
+                        // Actuator health & OpenAPI (Swagger UI)
+                        .requestMatchers("/actuator/health", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
                         // WebSocket handshake ONLY
                         .requestMatchers(
@@ -117,10 +117,10 @@ public class SecurityConfig {
 
                         // PROTECTED ENDPOINTS
                         // Private profile endpoints
-                        .requestMatchers("/api/profiles/me/**").authenticated()
+                        .requestMatchers("/profiles/me/**").authenticated()
 
                         // 🚨 FILE UPLOADS (CRITICAL FIX)
-                        .requestMatchers("/api/uploads/**").authenticated()
+                        .requestMatchers("/uploads/**").authenticated()
 
                         // EVERYTHING ELSE
                         .anyRequest().authenticated()

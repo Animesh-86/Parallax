@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/teams/{teamId}/notes")
+@RequestMapping("/teams/{teamId}/notes")
 @RequiredArgsConstructor
 public class TeamNoteController {
 

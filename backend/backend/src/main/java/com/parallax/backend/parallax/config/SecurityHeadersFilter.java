@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Applies industry-standard security headers to all HTTP responses.
@@ -67,6 +68,18 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         // Disable dangerous browser APIs
         response.setHeader("Permissions-Policy",
                 "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+
+        // HSTS
+        response.setHeader("Strict-Transport-Security", 
+                "max-age=31536000; includeSubDomains");
+
+        // Request tracing
+        String requestId = UUID.randomUUID().toString();
+        response.setHeader("X-Request-ID", requestId);
+        request.setAttribute("requestId", requestId);
+
+        // Strip server identification
+        response.setHeader("Server", "");
 
         // Prevent caching of authenticated responses
         String path = request.getRequestURI();

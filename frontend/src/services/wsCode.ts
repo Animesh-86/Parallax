@@ -9,7 +9,7 @@ import { wsSockJsEndpoint, apiBaseUrl } from "./env";
  */
 async function refreshAccessToken(): Promise<string | null> {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/auth/refresh`, {
+        const response = await fetch(`${apiBaseUrl}/api/v1/auth/refresh`, {
             method: "POST",
             credentials: "include", // sends refresh_token cookie
             headers: { "Content-Type": "application/json" },

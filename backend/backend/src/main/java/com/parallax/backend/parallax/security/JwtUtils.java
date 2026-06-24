@@ -55,6 +55,9 @@ public class JwtUtils {
 
         return Jwts.builder()
                 .setSubject(userId.toString())
+                .setId(UUID.randomUUID().toString())
+                .setIssuer("https://api.parallax.io")
+                .setAudience("parallax-client")
                 .claim("username", username)
                 .claim("email", email)
                 .claim("fullName", fullName)
@@ -71,6 +74,9 @@ public class JwtUtils {
 
         return Jwts.builder()
                 .setSubject(userId.toString())
+                .setId(UUID.randomUUID().toString())
+                .setIssuer("https://api.parallax.io")
+                .setAudience("parallax-client")
                 .claim("sid", sessionId)
                 .claim("type", "refresh")
                 .setIssuedAt(Date.from(now))

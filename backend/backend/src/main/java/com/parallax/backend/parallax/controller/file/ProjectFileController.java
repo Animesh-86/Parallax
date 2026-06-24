@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,7 +25,7 @@ import com.parallax.backend.parallax.security.AuthUtil;
 import com.parallax.backend.parallax.service.file.FileService;
 
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/projects")
 public class ProjectFileController {
 
     private final FileService fileService;
@@ -111,6 +112,6 @@ public class ProjectFileController {
                 userId
         );
 
-        return ResponseEntity.ok(ProjectFileInfoDto.from(file));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectFileInfoDto.from(file));
     }
 }

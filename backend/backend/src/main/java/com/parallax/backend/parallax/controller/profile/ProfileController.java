@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/profiles")
+@RequestMapping("/profiles")
 public class ProfileController {
 
     private final ProfileQueryService profileQueryService;
@@ -58,7 +58,7 @@ public class ProfileController {
     /**
      * Update display name, bio, location
      */
-    @PutMapping("/me")
+    @PatchMapping("/me")
     public ResponseEntity<Void> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request
     ) {
@@ -70,7 +70,7 @@ public class ProfileController {
     /**
      * Update username (guarded, policy-driven)
      */
-    @PutMapping("/me/username")
+    @PatchMapping("/me/username")
     public ResponseEntity<Void> updateUsername(
             @Valid @RequestBody UpdateUsernameRequest request
     ) {
@@ -82,7 +82,7 @@ public class ProfileController {
     /**
      * Update avatar reference
      */
-    @PutMapping("/me/avatar")
+    @PatchMapping("/me/avatar")
     public ResponseEntity<Void> updateAvatar(
             @Valid @RequestBody UpdateAvatarRequest request
     ) {
@@ -111,7 +111,7 @@ public class ProfileController {
     /**
      * Update IDE Settings
      */
-    @PutMapping("/me/settings")
+    @PatchMapping("/me/settings")
     public ResponseEntity<Void> updateIdeSettings(
             @RequestBody UpdateIdeSettingsRequest request
     ) {

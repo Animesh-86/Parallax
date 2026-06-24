@@ -38,7 +38,7 @@ export default function Signup() {
         }
 
         try {
-            const res = await api.post("/api/auth/signup", {
+            const res = await api.post("/api/v1/auth/signup", {
                 fullName: formData.fullName,
                 username: formData.username,
                 email: formData.email,

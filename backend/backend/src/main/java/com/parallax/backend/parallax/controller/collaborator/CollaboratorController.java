@@ -10,6 +10,7 @@ import com.parallax.backend.parallax.service.collaborator.ProjectCollaboratorSer
 import com.parallax.backend.parallax.store.SessionRegistry;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/collaborators")
+@RequestMapping("/projects/{projectId}/collaborators")
 @RequiredArgsConstructor
 public class CollaboratorController {
 
@@ -41,7 +42,7 @@ public class CollaboratorController {
                         requesterId
                 );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // REMOVE COLLABORATOR

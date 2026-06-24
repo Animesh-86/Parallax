@@ -21,7 +21,7 @@ export function IdeSettingsPanel({ onClose, onSettingsChange }: { onClose: () =>
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get("/profiles/me")
+    api.get("/api/v1/profiles/me")
       .then((res) => {
         if (res.data.ideSettings) {
           try {
@@ -39,7 +39,7 @@ export function IdeSettingsPanel({ onClose, onSettingsChange }: { onClose: () =>
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put("/profiles/me/settings", {
+      await api.patch("/api/v1/profiles/me/settings", {
         ideSettings: JSON.stringify(settings),
       });
       onSettingsChange(settings);

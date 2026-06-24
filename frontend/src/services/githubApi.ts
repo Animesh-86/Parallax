@@ -8,7 +8,7 @@ export interface CreatePullRequestPayload {
 
 export const githubApi = {
   createPullRequest: async (projectId: string, payload: CreatePullRequestPayload) => {
-    const res = await api.post(`/api/projects/${projectId}/github/pr`, payload);
+    const res = await api.post(`/api/v1/projects/${projectId}/github/pr`, payload);
     return res.data;
   },
 };

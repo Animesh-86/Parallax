@@ -56,7 +56,7 @@ export const profileService = {
     // 1.1 Public Profile
     getPublicProfile: async (username: string): Promise<UserProfile> => {
         try {
-            const response = await api.get(`/api/profiles/${username}`);
+            const response = await api.get(`/api/v1/profiles/${username}`);
             return response.data;
         } catch (error) {
             throw handleApiError(error);
@@ -66,7 +66,7 @@ export const profileService = {
     // 1.2 Private Profile
     getMyProfile: async (): Promise<UserProfile> => {
         try {
-            const response = await api.get('/api/profiles/me');
+            const response = await api.get('/api/v1/profiles/me');
             return response.data;
         } catch (error) {
             throw handleApiError(error);
@@ -76,7 +76,7 @@ export const profileService = {
     // 1.3 Update Profile (Safe fields)
     updateProfile: async (data: ProfileUpdateDTO): Promise<void> => {
         try {
-            await api.put('/api/profiles/me', data);
+            await api.patch('/api/v1/profiles/me', data);
         } catch (error) {
             throw handleApiError(error);
         }
@@ -85,7 +85,7 @@ export const profileService = {
     // 1.4 Update Username
     updateUsername: async (data: UsernameUpdateDTO): Promise<void> => {
         try {
-            await api.put('/api/profiles/me/username', data);
+            await api.patch('/api/v1/profiles/me/username', data);
         } catch (error) {
             throw handleApiError(error);
         }
@@ -105,7 +105,7 @@ export const profileService = {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await api.post('/api/profiles/me/avatar/upload', formData, {
+            const response = await api.post('/api/v1/profiles/me/avatar/upload', formData, {
                 headers
             });
             return response.data;

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/files")
+@RequestMapping("/projects/{projectId}/files")
 @RequiredArgsConstructor
 public class FileTreeController {
 

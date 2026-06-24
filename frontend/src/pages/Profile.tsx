@@ -96,7 +96,7 @@ export default function Profile() {
           const token = localStorage.getItem("access_token");
           if (!token) return;
 
-          const res = await fetch(`${apiBaseUrl}/api/projects`, {
+          const res = await fetch(`${apiBaseUrl}/api/v1/projects`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
