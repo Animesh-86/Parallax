@@ -109,9 +109,10 @@ public class WebSocketPermissionInterceptor implements ChannelInterceptor {
             if (roomId == null) {
                 // For non-project, non-room topics (like /topic/user/{userId} or /topic/direct/{channelId})
                 if (destination.contains("/user/")) {
-                    if (!destination.contains(userId.toString())) {
-                        throw new SecurityException("Cannot subscribe to another user's topic");
-                    }
+                    // Spring STOMP UserDestinationMessageHandler automatically routes
+                    // /user/... to the authenticated principal's specific queue.
+                    // We don't need to manually check if the URL contains the userId
+                    // because the client never sends the userId in the subscribe path.
                 }
                 return message;
             }

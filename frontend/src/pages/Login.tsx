@@ -69,11 +69,11 @@ export default function Login() {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = `${apiBaseUrl}/oauth2/authorization/google`;
+        window.location.href = `${apiBaseUrl}/api/v1/oauth2/authorization/google`;
     };
 
     const handleGitHubLogin = () => {
-        window.location.href = `${apiBaseUrl}/oauth2/authorization/github`;
+        window.location.href = `${apiBaseUrl}/api/v1/oauth2/authorization/github`;
     };
 
 

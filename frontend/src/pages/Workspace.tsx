@@ -20,6 +20,8 @@ import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
 import { ExtensionsPanel } from "../components/workspace/ExtensionsPanel";
 import { IdeSettingsPanel } from "../components/workspace/IdeSettingsPanel";
+import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
+import { ParticipantsList } from "../components/workspace/ParticipantsList";
 
 type FileNode = {
   name: string;
@@ -92,7 +94,6 @@ export default function Workspace() {
   };
 
   /* Global IDE Settings */
-  const [projectSettings, setProjectSettings] = useState<any>(null);
   const [ideSettings, setIdeSettings] = useState({
     tabSize: 2,
     fontSize: 14,
@@ -353,13 +354,11 @@ export default function Workspace() {
                           try {
                             await versioningApi.checkoutBranch(projectId, b.name);
                             // Refresh file tree if we switch branches
-                            const newTree = await fileSystemApi.getDirectory(projectId, '/');
-                            setFileTree(newTree);
+                            await loadTree();
                             
                             // Reload active file content if one is open
                             if (activeFile) {
-                              const content = await fileSystemApi.getFile(projectId, activeFile);
-                              setFileContent(content);
+                              await openFile(activeFile);
                             }
                           } catch (e) {
                             console.error('Failed to checkout branch:', e);
@@ -379,8 +378,12 @@ export default function Workspace() {
 
 
 
-                {activeLeftTool === "settings" && (
-                  <ProjectSettingsPanel projectSettings={projectSettings} onClose={() => setActiveLeftTool(null)} />
+                {activeLeftTool === "settings" && projectId && (
+                  <ProjectSettingsPanel 
+                    projectId={projectId} 
+                    onClose={() => setActiveLeftTool(null)} 
+                    onUpdate={() => bootstrapWorkspace()}
+                  />
                 )}
                 
                 {activeLeftTool === "ide-settings" && (

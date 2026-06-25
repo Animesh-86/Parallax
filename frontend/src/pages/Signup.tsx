@@ -76,11 +76,11 @@ export default function Signup() {
 
     // SOCIAL AUTH
     const handleGoogleSignup = () => {
-        window.location.href = `${apiBaseUrl}/oauth2/authorization/google`;
+        window.location.href = `${apiBaseUrl}/api/v1/oauth2/authorization/google`;
     };
 
     const handleGitHubSignup = () => {
-        window.location.href = `${apiBaseUrl}/oauth2/authorization/github`;
+        window.location.href = `${apiBaseUrl}/api/v1/oauth2/authorization/github`;
     };
 
     return (

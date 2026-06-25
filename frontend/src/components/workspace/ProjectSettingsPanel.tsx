@@ -9,9 +9,10 @@ import { ConfirmModal } from '../modals/ConfirmModal';
 interface ProjectSettingsPanelProps {
   projectId: string;
   onUpdate?: () => void;
+  onClose?: () => void;
 }
 
-export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPanelProps) {
+export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSettingsPanelProps) {
   const [activeTab, setActiveTab] = useState<'general' | 'editor' | 'environment' | 'collaborators' | 'danger'>('general');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -132,11 +133,11 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
 
   return (
     <div className="flex flex-col h-full bg-[#09090B] text-white">
-      {/* Tab Dropdown */}
-      <div className="relative p-2 border-b border-white/5 bg-white/[0.02]">
+      {/* Header with Close Button and Dropdown */}
+      <div className="relative p-2 border-b border-white/5 bg-white/[0.02] flex items-center gap-2">
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-full px-3 py-2 text-sm font-medium flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10"
+          className="flex-1 px-3 py-2 text-sm font-medium flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10"
         >
           <div className="flex items-center gap-2">
             {activeTab === 'general' && <Info className="w-4 h-4 text-[#D4AF37]" />}
@@ -150,6 +151,15 @@ export function ProjectSettingsPanel({ projectId, onUpdate }: ProjectSettingsPan
           </div>
           <ChevronDown className={`w-4 h-4 text-white/50 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
         </button>
+        
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10"
+          >
+            <X className="w-4 h-4 text-white/60 hover:text-white" />
+          </button>
+        )}
 
         <AnimatePresence>
           {isDropdownOpen && (
