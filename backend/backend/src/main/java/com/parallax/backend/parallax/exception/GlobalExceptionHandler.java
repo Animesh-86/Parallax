@@ -39,10 +39,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiError> handleForbidden(
+    public ResponseEntity<ApiError> handleAccessDenied(
             AccessDeniedException ex, HttpServletRequest req) {
         return respond(403, "PERMISSION_DENIED",
                 "You do not have permission for this action", req, null);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiError> handleForbidden(
+            ForbiddenException ex, HttpServletRequest req) {
+        return respond(403, "PERMISSION_DENIED",
+                ex.getMessage(), req, null);
     }
 
     @ExceptionHandler(SecurityException.class)

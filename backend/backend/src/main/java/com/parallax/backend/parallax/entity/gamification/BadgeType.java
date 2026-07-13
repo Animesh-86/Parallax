@@ -12,7 +12,7 @@ public enum BadgeType {
     STREAK_30_DAYS("Cosmic Coder", "Maintain a 30-day coding streak", "https://api.iconify.design/lucide:sparkles.svg?color=%23A855F7", "EXPERT"),
 
     // Projects
-    CREATOR("Creator", "Create your first project", "https://api.iconify.design/lucide:folder.svg?color=%23D4AF37", "BEGINNER"),
+    CREATOR("Cosmic Pioneer", "Create your first project.", "https://api.iconify.design/lucide:folder.svg?color=%23D4AF37", "Bronze"),
     PORTFOLIO_BUILDER("Portfolio Builder", "Create 5 projects", "https://api.iconify.design/lucide:layers.svg?color=%234ADE80", "INTERMEDIATE"),
     
     // Collaboration

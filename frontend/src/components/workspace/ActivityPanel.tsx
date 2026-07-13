@@ -211,6 +211,33 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
         </span>
       </div>
 
+      {/* Connect Repository — always visible when no remote is configured */}
+      {!githubRepoUrl && (
+        <div className="p-4 border-b border-white/5 bg-gradient-to-r from-[#D4AF37]/5 to-transparent">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <p className="text-xs font-medium text-white/70">Connect a GitHub repository to push & sync code.</p>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={remoteUrlInput}
+              onChange={(e) => setRemoteUrlInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddRemote()}
+              placeholder="https://github.com/username/repo"
+              className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs focus:outline-none focus:border-[#D4AF37]/50 placeholder:text-white/30"
+            />
+            <button
+              onClick={handleAddRemote}
+              disabled={!remoteUrlInput.trim() || settingRemote}
+              className="px-4 py-2 bg-[#D4AF37] text-black rounded-lg text-xs font-semibold disabled:opacity-50 hover:bg-[#D4AF37]/90 transition-colors whitespace-nowrap"
+            >
+              {settingRemote ? 'Connecting...' : 'Connect'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tab Dropdown */}
       <div className="relative p-2 border-b border-white/5">
         <button
@@ -317,28 +344,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
             </div>
           )}
 
-          {!githubRepoUrl && (
-            <div className="p-4 border-b border-white/5 bg-[#09090B]/50">
-              <p className="text-xs text-white/50 mb-2">Connect to a GitHub repository to push your branches.</p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={remoteUrlInput}
-                  onChange={(e) => setRemoteUrlInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddRemote()}
-                  placeholder="https://github.com/username/repo"
-                  className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs focus:outline-none focus:border-[#D4AF37]/50"
-                />
-                <button
-                  onClick={handleAddRemote}
-                  disabled={!remoteUrlInput.trim() || settingRemote}
-                  className="px-4 py-2 bg-white/10 rounded-lg text-xs font-medium disabled:opacity-50 hover:bg-white/20 transition-colors"
-                >
-                  Add Remote
-                </button>
-              </div>
-            </div>
-          )}
+
 
           {/* Commit List */}
           <div className="max-h-[400px] overflow-y-auto">

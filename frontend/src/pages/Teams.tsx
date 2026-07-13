@@ -280,16 +280,27 @@ export default function Teams() {
 
                         {/* Active Teams Section */}
                         {activeTeams.length === 0 && pendingTeams.length === 0 ? (
-                            <div className="glass-panel rounded-2xl h-[360px] flex flex-col items-center justify-center gap-4 text-center">
-                                <CircleDashed className="w-10 h-10 text-white/30" />
-                                <h2 className="text-2xl font-semibold">No Team Workspaces Yet</h2>
-                                <p className="text-white/40 max-w-md">
-                                    Create your first dedicated team, invite members, then use shared rooms and workspaces.
+                            <div className="bg-white/5 backdrop-blur-md rounded-3xl py-16 flex flex-col items-center justify-center gap-2 text-center border border-white/10">
+                                <h2 className="text-lg md:text-xl font-medium text-white/70">No Team Workspaces Yet</h2>
+                                <p className="text-sm text-white/40 max-w-sm mb-4">
+                                    {(() => {
+                                        const jokes = [
+                                            "It's a little lonely in here. Create a team and bring some friends!",
+                                            "Even Batman had Robin. Time to assemble your squad!",
+                                            "Your teams list is as empty as a developer's coffee cup at 3 AM.",
+                                            "Looks like a solo mission so far. Create a team and multiply your brain power!",
+                                            "No teams found. Are you secretly working on a stealth startup?",
+                                            "Error 404: Squad not found. Create a team to fix this.",
+                                            "You can't spell 'Collaborate' without 'Bro'. Go get your bros (and sis)!",
+                                        ];
+                                        return jokes[Math.floor(Math.random() * jokes.length)];
+                                    })()}
                                 </p>
                                 <button
                                     onClick={() => setIsCreateTeamModalOpen(true)}
-                                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                                    className="px-4 py-2 bg-[#D4AF37] text-black rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2"
                                 >
+                                    <Plus className="w-4 h-4" />
                                     Create Team
                                 </button>
                             </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   X,
   FilePlus,
@@ -63,23 +63,34 @@ export function FileExplorer({
     }
   };
 
+  // Track whether we already submitted to prevent double-creation
+  const submittedRef = React.useRef(false);
+
   const handleCreationSubmit = () => {
+    if (submittedRef.current) return; // Already submitted via Enter or Blur
     if (!newItemName.trim() || !creationState) {
       setCreationState(null);
       return;
     }
 
+    submittedRef.current = true;
     const parentPath = creationState.parentPath ? `${creationState.parentPath}/` : "";
     const finalPath = `${parentPath}${newItemName.trim()}`;
 
     onCreate(finalPath, creationState.type);
     setCreationState(null);
     setNewItemName("");
+    // Reset the ref after a tick so future creations work
+    setTimeout(() => { submittedRef.current = false; }, 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleCreationSubmit();
-    if (e.key === "Escape") setCreationState(null);
+    if (e.key === "Escape") {
+      submittedRef.current = true; // Prevent onBlur from submitting
+      setCreationState(null);
+      setTimeout(() => { submittedRef.current = false; }, 0);
+    }
   };
 
   const renderCreationInput = (depth: number) => {
@@ -101,7 +112,7 @@ export function FileExplorer({
           value={newItemName}
           onChange={(e) => setNewItemName(e.target.value)}
           onKeyDown={handleKeyDown}
-          onBlur={() => setCreationState(null)}
+          onBlur={() => handleCreationSubmit()}
           placeholder={creationState?.type === "FILE" ? "File name..." : "Folder name..."}
           onClick={(e) => e.stopPropagation()}
         />

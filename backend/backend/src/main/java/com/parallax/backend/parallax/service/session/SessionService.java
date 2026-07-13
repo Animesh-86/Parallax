@@ -151,7 +151,7 @@ public class SessionService {
                     .withCapDrop(Capability.ALL)
                     .withIpcMode("none")
                     .withPortBindings(PortBinding.parse(webPort + ":3000"))
-                    .withBinds(Bind.parse(hostMount + ":/workspace"));
+                    .withBinds(new Bind(hostMount, new Volume("/workspace")));
 
                 CreateContainerResponse container = dockerClient.createContainerCmd(sessionImage)
                     .withName(containerName)

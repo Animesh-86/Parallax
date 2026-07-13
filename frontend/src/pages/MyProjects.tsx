@@ -221,14 +221,14 @@ export default function MyProjects() {
                         <ProjectSkeleton />
                     </div>
                 ) : filteredProjects.length === 0 ? (
-                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#09090B]/70">
-                        <div className="text-3xl md:text-4xl font-bold text-white">
+                    <div className="bg-white/5 backdrop-blur-md rounded-3xl py-16 flex flex-col items-center justify-center gap-2 text-center border border-white/10">
+                        <div className="text-lg md:text-xl font-medium text-white/70">
                             {viewFilter === 'active' ? 'No Projects Yet' : 'No Archived Projects'}
                         </div>
-                        <p className="text-white/45 text-lg max-w-md">
+                        <p className="text-white/40 text-sm max-w-sm mb-4">
                             {viewFilter === 'active' 
-                                ? 'Start your journey by creating your first project.' 
-                                : 'Archived projects will appear here.'}
+                                ? 'Wow, such empty. Time to build your next masterpiece!' 
+                                : 'It\'s quieter than a library on a Friday night in here.'}
                         </p>
                         {viewFilter === 'active' && (
                             <button

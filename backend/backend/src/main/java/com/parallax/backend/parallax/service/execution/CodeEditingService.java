@@ -8,6 +8,8 @@ import com.parallax.backend.parallax.security.ProjectPermission;
 import com.parallax.backend.parallax.service.file.DebouncedFileSaveManager;
 import com.parallax.backend.parallax.service.file.FileSyncService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CodeEditingService {
 
+    private static final Logger log = LoggerFactory.getLogger(CodeEditingService.class);
     private static final int MAX_CONTENT_SIZE = 300_000;
 
     private final DebouncedFileSaveManager debouncedFileSaveManager;
@@ -27,6 +30,10 @@ public class CodeEditingService {
     // MAIN ENTRY
     public void handleEdit(UUID projectId, CodeEditMessage msg, UUID userId) {
 
+        log.info("📝 handleEdit called: projectId={}, path={}, isDelta={}, contentIsNull={}, contentLen={}",
+                projectId, msg.getPath(), msg.getIsDelta(),
+                msg.getContent() == null, msg.getContent() == null ? -1 : msg.getContent().length());
+
         // 🔐 AUTHORIZATION
         try {
             accessManager.require(
@@ -35,6 +42,7 @@ public class CodeEditingService {
                     ProjectPermission.UPDATE_FILE
             );
         } catch (ForbiddenException e) {
+            log.warn("📝 FORBIDDEN: userId={} cannot edit projectId={}", userId, projectId);
             publishError(projectId, "forbidden", "Not authorized");
             return;
         }
@@ -44,6 +52,7 @@ public class CodeEditingService {
         try {
             path = fileSyncService.sanitizeUserPath(msg.getPath());
         } catch (IllegalArgumentException e) {
+            log.warn("📝 INVALID PATH: {}", msg.getPath());
             publishError(projectId, "invalid_path", e.getMessage());
             return;
         }
@@ -54,6 +63,9 @@ public class CodeEditingService {
             publishError(projectId, "payload_too_large", "Content too large");
             return;
         }
+
+        log.info("📝 Scheduling save: projectId={}, path={}, contentIsNull={}, contentLen={}",
+                projectId, path, content == null, content == null ? -1 : content.length());
 
         // ASYNC DURABLE SAVE (DB + FS + SESSION handled later)
         debouncedFileSaveManager.scheduleSave(

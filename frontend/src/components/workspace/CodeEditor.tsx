@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
-import { apiBaseUrl, apiWsUrl } from '../../services/env';
+import { apiBaseUrl, wsBaseUrl } from '../../services/env';
 import { useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Editor, { OnMount } from "@monaco-editor/react";
@@ -184,10 +184,10 @@ export default function CodeEditor({
   // --------------------------------------------------
   // Code WebSocket
   // --------------------------------------------------
-  useEffect(() => {
-    if (!projectId) return;
+  const handleIncomingMessageRef = useRef<((msg: CodeEditMessage) => void) | null>(null);
 
-    codeWs.connect(projectId, (msg: CodeEditMessage) => {
+  useEffect(() => {
+    handleIncomingMessageRef.current = (msg: CodeEditMessage) => {
       // Ignore my own edits
       if (msg.userId === userId) return;
 
@@ -214,12 +214,22 @@ export default function CodeEditor({
           isApplyingRemoteEditRef.current = false;
         }
       }
+    };
+  }, [userId, editorInstance, monacoInstance, onChange]);
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    codeWs.connect(projectId, (msg: CodeEditMessage) => {
+      if (handleIncomingMessageRef.current) {
+        handleIncomingMessageRef.current(msg);
+      }
     });
 
     return () => {
       codeWs.disconnect();
     };
-  }, [projectId, userId, onChange, editorInstance, monacoInstance]);
+  }, [projectId]);
 
   // --------------------------------------------------
   // Run WebSocket (ONE TIME)
@@ -437,30 +447,48 @@ export default function CodeEditor({
       const lang = getLanguageFromPath(filePath);
       const token = localStorage.getItem("access_token");
       if (token) {
-        const wsUrl = `${apiWsUrl}/ws/lsp/${projectId}/${lang}?token=${token}`;
-        const socket = new WebSocket(wsUrl);
-        socket.onopen = () => {
-          const socketConnection = toSocket(socket);
-          const reader = new WebSocketMessageReader(socketConnection);
-          const writer = new WebSocketMessageWriter(socketConnection);
+        try {
+          const wsUrl = `${wsBaseUrl}/ws/lsp/${projectId}/${lang}?token=${token}`;
+          const socket = new WebSocket(wsUrl);
           
-          const languageClient = new MonacoLanguageClient({
-            name: `${lang} Language Client`,
-            clientOptions: {
-              documentSelector: [lang]
-            },
-            connectionProvider: {
-              get: () => Promise.resolve({ reader, writer })
+          socket.onerror = (err) => {
+            console.warn("LSP WebSocket error (non-fatal):", err);
+          };
+
+          socket.onclose = () => {
+            console.log("LSP WebSocket closed for", lang);
+          };
+
+          socket.onopen = () => {
+            try {
+              const socketConnection = toSocket(socket);
+              const reader = new WebSocketMessageReader(socketConnection);
+              const writer = new WebSocketMessageWriter(socketConnection);
+              
+              const languageClient = new MonacoLanguageClient({
+                name: `${lang} Language Client`,
+                clientOptions: {
+                  documentSelector: [lang]
+                },
+                connectionProvider: {
+                  get: () => Promise.resolve({ reader, writer })
+                }
+              });
+              
+              languageClient.start().catch(err => console.warn("LSP Start Error (non-fatal):", err));
+              
+              editor.onDidDispose(() => {
+                languageClient.dispose().catch(() => {});
+                socket.close();
+              });
+            } catch (err) {
+              console.warn("LSP client setup failed (non-fatal):", err);
+              socket.close();
             }
-          });
-          
-          languageClient.start().catch(err => console.error("LSP Start Error:", err));
-          
-          editor.onDidDispose(() => {
-            languageClient.dispose();
-            socket.close();
-          });
-        };
+          };
+        } catch (err) {
+          console.warn("LSP connection failed (non-fatal):", err);
+        }
       }
     }
 

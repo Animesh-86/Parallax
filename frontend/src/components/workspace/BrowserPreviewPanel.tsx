@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { RefreshCw, ExternalLink, Play, Square, Loader } from 'lucide-react';
+import { RefreshCw, ExternalLink, Play, Square, Loader, Globe } from 'lucide-react';
 import { webProjectApi, WebProjectStatus } from '../../services/webProjectApi';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -7,9 +7,10 @@ import { previewDomain } from '../../services/env';
 
 interface BrowserPreviewPanelProps {
   projectId: string;
+  language?: string;
 }
 
-export function BrowserPreviewPanel({ projectId }: BrowserPreviewPanelProps) {
+export function BrowserPreviewPanel({ projectId, language }: BrowserPreviewPanelProps) {
   const [status, setStatus] = useState<WebProjectStatus>({ status: 'STOPPED', port: null });
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState('');
@@ -201,7 +202,13 @@ export function BrowserPreviewPanel({ projectId }: BrowserPreviewPanelProps) {
 
       {/* Content Area */}
       <div className="flex-1 relative bg-white">
-        {waitingForReady ? (
+        {language && ['c', 'cpp', 'python', 'java', 'rust', 'go'].includes(language.toLowerCase()) ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090B] text-white/40">
+            <Globe className="w-12 h-12 mb-4 text-white/20" />
+            <p className="text-sm font-medium">Browser preview is only available for web projects.</p>
+            <p className="text-xs text-white/30 mt-2">Use the "Run Code" button to execute scripts in the terminal.</p>
+          </div>
+        ) : waitingForReady ? (
           /* Loading / Waiting for server readiness */
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090B] text-white/60">
             <motion.div

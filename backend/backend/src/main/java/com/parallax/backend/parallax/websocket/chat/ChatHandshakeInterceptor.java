@@ -60,7 +60,7 @@ public class ChatHandshakeInterceptor extends BaseAuthHandshakeInterceptor {
     private UUID extractProjectId(String path) {
         try {
             String[] parts = path.split("/");
-            if (parts.length >= 4 && "chat".equals(parts[2])) {
+            if (parts.length >= 3 && "chat".equals(parts[parts.length - 2])) {
                 return UUID.fromString(parts[parts.length - 1]);
             }
         } catch (Exception e) {

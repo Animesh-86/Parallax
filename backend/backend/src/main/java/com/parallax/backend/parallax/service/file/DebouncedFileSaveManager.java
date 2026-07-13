@@ -43,6 +43,8 @@ public class DebouncedFileSaveManager {
             UUID userId
     ) {
         if (projectId == null || path == null || path.isBlank()) return;
+        // Skip saving null content — delta-only messages must not overwrite existing files
+        if (content == null) return;
 
         // Normalize path ONCE
         String safePath = path.replace("\\", "/").replaceAll("/{2,}", "/");

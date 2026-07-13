@@ -14,6 +14,11 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
 
     boolean existsByOwner_IdAndName(UUID ownerId, String name);
 
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Project p WHERE p.owner.id = :ownerId AND LOWER(p.name) = LOWER(:name)"
+    )
+    boolean existsByOwnerIdAndNameIgnoreCase(@org.springframework.data.repository.query.Param("ownerId") UUID ownerId, @org.springframework.data.repository.query.Param("name") String name);
+
     @EntityGraph(attributePaths = {"owner", "team"})
     List<Project> findByOwner_Id(UUID ownerId);
 

@@ -71,8 +71,8 @@ public class TeamChatHandshakeInterceptor extends BaseAuthHandshakeInterceptor {
     private UUID extractTeamId(String path) {
         try {
             String[] parts = path.split("/");
-            if (parts.length >= 5 && "team-chat".equals(parts[2])) {
-                return UUID.fromString(parts[3]);
+            if (parts.length >= 4 && "team-chat".equals(parts[parts.length - 3])) {
+                return UUID.fromString(parts[parts.length - 2]);
             }
         } catch (Exception e) {
             return null;
@@ -83,8 +83,8 @@ public class TeamChatHandshakeInterceptor extends BaseAuthHandshakeInterceptor {
     private UUID extractChannelId(String path) {
         try {
             String[] parts = path.split("/");
-            if (parts.length >= 5 && "team-chat".equals(parts[2])) {
-                return UUID.fromString(parts[4]);
+            if (parts.length >= 4 && "team-chat".equals(parts[parts.length - 3])) {
+                return UUID.fromString(parts[parts.length - 1]);
             }
         } catch (Exception e) {
             return null;

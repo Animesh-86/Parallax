@@ -59,6 +59,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectProvisioningService provisioningService;
     private final ProjectTemplateService templateService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     // CREATE PROJECT
     @Override
@@ -71,15 +72,16 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found"));
 
-        validateProjectName(request.getName());
+        String projectName = request.getName().trim();
+        validateProjectName(projectName);
 
-        if (projectRepository.existsByOwner_IdAndName(ownerId, request.getName())) {
+        if (projectRepository.existsByOwnerIdAndNameIgnoreCase(ownerId, projectName)) {
             throw new DuplicateResourceException("Project name already exists");
         }
 
         Project project = new Project();
         project.setId(UUID.randomUUID());
-        project.setName(request.getName());
+        project.setName(projectName);
         // Force language to lowercase for consistent matching
         project.setLanguage(request.getLanguage() != null ? request.getLanguage().toLowerCase() : "python");
         project.setOwner(owner);
@@ -118,6 +120,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         // ALWAYS create the root directory, even if GitHub import failed and finalFiles is empty
         provisioningService.createProjectRootOnDisk(project.getId(), finalFiles);
+
+        // Emit Gamification Event for creating a project
+        eventPublisher.publishEvent(new com.parallax.backend.parallax.service.gamification.GamificationEvent(
+                this, owner.getId(), com.parallax.backend.parallax.service.gamification.GamificationEvent.EventType.PROJECT_CREATE, "Created project " + project.getName(), project.getId()
+        ));
 
         return ProjectResponse.from(project, finalFiles, null);
     }
@@ -321,7 +328,15 @@ public class ProjectServiceImpl implements ProjectService {
             boolean wasEmpty = project.getGithubRepoUrl() == null || project.getGithubRepoUrl().isBlank();
             project.setGithubRepoUrl(request.getGithubRepoUrl());
             if (wasEmpty && !request.getGithubRepoUrl().isBlank()) {
-                githubService.importRepositoryToProject(project, requesterId);
+                List<ProjectFile> importedFiles = githubService.importRepositoryToProject(project, requesterId);
+                if (importedFiles != null && !importedFiles.isEmpty()) {
+                    // Save files to DB and Disk
+                    projectFileRepository.deleteByProjectId(project.getId());
+                    projectFileRepository.flush(); // ensure deletion before insert
+                    projectFileRepository.saveAll(importedFiles);
+                    provisioningService.deleteProjectRootFromDisk(project.getId());
+                    provisioningService.createProjectRootOnDisk(project.getId(), importedFiles);
+                }
             }
         }
         if (request.getAiReviewEnabled() != null) {

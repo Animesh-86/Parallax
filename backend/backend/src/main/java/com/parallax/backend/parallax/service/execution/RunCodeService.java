@@ -130,6 +130,8 @@ public class RunCodeService {
                 cmd.add("docker");
                 cmd.add("exec");
                 cmd.add("-i");
+                cmd.add("-w");
+                cmd.add("/workspace");
                 cmd.add(session.getContainerName());
 
                 if ("python".equalsIgnoreCase(detectedLanguage)) {
@@ -148,14 +150,14 @@ public class RunCodeService {
                     sink.onOutput("[parallax] Active Runner: Workspace GCC (C)");
                     cmd.add("sh");
                     cmd.add("-c");
-                    cmd.add("gcc \"$1\" -o /tmp/out && /tmp/out");
+                    cmd.add("gcc \"$1\" -o .out && ./.out");
                     cmd.add("--");
                     cmd.add(safePath);
                 } else if ("cpp".equalsIgnoreCase(detectedLanguage)) {
                     sink.onOutput("[parallax] Active Runner: Workspace G++ (C++)");
                     cmd.add("sh");
                     cmd.add("-c");
-                    cmd.add("g++ \"$1\" -o /tmp/out && /tmp/out");
+                    cmd.add("g++ \"$1\" -o .out && ./.out");
                     cmd.add("--");
                     cmd.add(safePath);
                 } else {
@@ -163,7 +165,7 @@ public class RunCodeService {
                     if (safePath.endsWith(".c")) {
                         cmd.add("sh");
                         cmd.add("-c");
-                        cmd.add("gcc \"$1\" -o /tmp/out && /tmp/out");
+                        cmd.add("gcc \"$1\" -o .out && ./.out");
                         cmd.add("--");
                         cmd.add(safePath);
                     } else {
