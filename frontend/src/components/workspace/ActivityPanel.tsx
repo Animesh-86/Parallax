@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GitCommit, GitBranch, GitMerge, Clock, User, ChevronDown, Plus, Loader, AlertCircle, Check, X, PlayCircle, Trash2 } from 'lucide-react';
+import { GitCommit, GitBranch, GitMerge, Clock, User, ChevronDown, Plus, Loader, AlertCircle, Check, X, PlayCircle, Trash2, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { versioningApi, ProjectCommit, ProjectBranch, MergeRequestData } from '../../services/versioningApi';
 import { CreatePullRequestModal } from './CreatePullRequestModal';
@@ -96,7 +96,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
       toast.success('Successfully pushed to GitHub');
     } catch (err: any) {
       console.error('Failed to push:', err);
-      toast.error('Failed to push: ' + (err.response?.data?.error || err.message));
+      toast.error('Failed to push: ' + (err.response?.data?.error || err.response?.data?.message || err.message));
     } finally {
       setSubmitting(false);
     }
@@ -211,8 +211,18 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
         </span>
       </div>
 
-      {/* Connect Repository — always visible when no remote is configured */}
-      {!githubRepoUrl && (
+      {/* Connected Repository OR Connect Repository */}
+      {githubRepoUrl ? (
+        <div className="px-4 py-3 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Globe className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest">Remote</span>
+          </div>
+          <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-white/80 hover:text-[#D4AF37] hover:underline truncate max-w-[200px]">
+            {githubRepoUrl.replace('https://github.com/', '').replace('.git', '')}
+          </a>
+        </div>
+      ) : (
         <div className="p-4 border-b border-white/5 bg-gradient-to-r from-[#D4AF37]/5 to-transparent">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="w-3.5 h-3.5 text-[#D4AF37]" />
