@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.parallax.backend.parallax.dto.file.CreateFileRequest;
+import com.parallax.backend.parallax.dto.file.FileSearchResultDto;
 import com.parallax.backend.parallax.dto.project.ProjectFileContentDto;
 import com.parallax.backend.parallax.dto.project.ProjectFileInfoDto;
 import com.parallax.backend.parallax.entity.file.ProjectFile;
@@ -128,5 +129,19 @@ public class ProjectFileController {
         UUID userId = AuthUtil.requireUserId(authentication);
         fileService.deleteFile(projectId, path, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    // ------------------------------------------------
+    // Search files
+    // ------------------------------------------------
+    @GetMapping("/{projectId}/search")
+    public ResponseEntity<List<FileSearchResultDto>> searchFiles(
+            @PathVariable UUID projectId,
+            @RequestParam String query,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        List<FileSearchResultDto> results = fileService.searchFiles(projectId, query, userId);
+        return ResponseEntity.ok(results);
     }
 }

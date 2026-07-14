@@ -1,7 +1,7 @@
-import { X, Split, Play, LogOut, GitBranch, Users, Globe } from 'lucide-react';
+import { X, Split, Play, LogOut, GitBranch, Users, Globe, Search } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 type EditorTabsProps = {
-  projectName: string;
+  projectName: React.ReactNode;
   files: string[];
   activeFile: string | null;
   onSelect: (path: string) => void;
@@ -11,6 +11,9 @@ type EditorTabsProps = {
   teamName?: string | null;
   activeBranch?: { name: string } | null;
   onOpenPreview?: () => void;
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
+  onSearchFocus?: () => void;
 };
 
 export function EditorTabs({
@@ -24,6 +27,9 @@ export function EditorTabs({
   teamName,
   activeBranch,
   onOpenPreview,
+  searchQuery,
+  onSearchChange,
+  onSearchFocus,
 }: EditorTabsProps) {
   const navigate = useNavigate();
 
@@ -49,10 +55,23 @@ export function EditorTabs({
           )}
         </div>
 
-        <div className="flex-[2] text-center">
+        <div className="flex-[2] flex flex-col items-center justify-center gap-1.5 py-1">
           <h2 className="text-sm md:text-lg font-bold bg-gradient-to-r from-[#D4AF37] via-[#F59E0B] to-[#D4AF37] bg-clip-text text-transparent font-serif italic truncate px-2">
-            {projectName}
+            {projectName} - Parallax IDE
           </h2>
+          {onSearchChange && (
+            <div className="relative w-64 max-w-full">
+              <input
+                type="text"
+                placeholder="Search files..."
+                value={searchQuery || ""}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onFocus={onSearchFocus}
+                className="w-full bg-black/20 border border-white/5 rounded-md px-3 py-1 text-xs text-white placeholder:text-white/50 focus:outline-none focus:border-white/20 focus:bg-white/5 transition-colors pl-8 shadow-inner"
+              />
+              <Search className="w-3 h-3 text-white/50 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
         </div>
 
         <div className="flex-1 flex justify-end">

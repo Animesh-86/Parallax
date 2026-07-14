@@ -30,3 +30,14 @@ export async function createFile(
 export async function deleteFile(projectId: string, path: string) {
   await api.delete(`/api/v1/projects/${projectId}/file`, { params: { path } });
 }
+
+export interface FileSearchResult {
+  path: string;
+  lineNumber: number;
+  lineContent: string;
+}
+
+export async function searchFiles(projectId: string, query: string): Promise<FileSearchResult[]> {
+  const res = await api.get(`/api/v1/projects/${projectId}/search`, { params: { query } });
+  return res.data;
+}

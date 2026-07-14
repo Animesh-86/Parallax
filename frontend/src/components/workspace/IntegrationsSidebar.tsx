@@ -1,13 +1,13 @@
-import { GitBranch, Puzzle, Settings, Bot, FolderOpen } from 'lucide-react';
+import { GitBranch, Puzzle, Settings, Bot, FolderOpen, Search } from 'lucide-react';
 
 type IntegrationsSidebarProps = {
-  activeTool: "explorer" | "git" | "extensions" | "settings" | "ide-settings" | null;
-  onSelectTool: (tool: "explorer" | "git" | "extensions" | "settings" | "ide-settings" | null) => void;
+  activeTool: "explorer" | "git" | "extensions" | "settings" | "ide-settings" | "search" | null;
+  onSelectTool: (tool: "explorer" | "git" | "extensions" | "settings" | "ide-settings" | "search" | null) => void;
 };
 
 export function IntegrationsSidebar({ activeTool, onSelectTool }: IntegrationsSidebarProps) {
 
-  const handleToolClick = (tool: "explorer" | "git" | "extensions" | "settings" | "ide-settings") => {
+  const handleToolClick = (tool: "explorer" | "git" | "extensions" | "settings" | "ide-settings" | "search") => {
     if (activeTool === tool) {
       onSelectTool(null); // Toggle off
     } else {
@@ -31,6 +31,22 @@ export function IntegrationsSidebar({ activeTool, onSelectTool }: IntegrationsSi
           <div className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-[#A1A1AA] rounded-r" />
         )}
       </button>
+
+      {/* Search */}
+      <button
+        onClick={() => handleToolClick('search')}
+        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group relative ${activeTool === 'search'
+            ? 'bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 text-[#A1A1AA] shadow-lg shadow-[#D4AF37]/20'
+            : 'hover:bg-white/10 text-white/60 hover:text-white'
+          }`}
+        title="Search"
+      >
+        <Search className="w-5 h-5" />
+        {activeTool === 'search' && (
+          <div className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-[#A1A1AA] rounded-r" />
+        )}
+      </button>
+
 
       {/* Git */}
       <button

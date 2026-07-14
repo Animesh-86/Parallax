@@ -1,6 +1,7 @@
 package com.parallax.backend.parallax.service.file;
 
 import com.parallax.backend.parallax.config.StorageProperties;
+import com.parallax.backend.parallax.dto.file.FileSearchResultDto;
 import com.parallax.backend.parallax.entity.file.ProjectFile;
 import com.parallax.backend.parallax.exception.ResourceNotFoundException;
 import com.parallax.backend.parallax.repository.file.ProjectFileRepository;
@@ -17,8 +18,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -292,5 +295,54 @@ public class FileService {
             throw new IllegalArgumentException("Invalid path");
         }
         return resolved;
+    }
+
+    public List<FileSearchResultDto> searchFiles(UUID projectId, String query, UUID userId) {
+        accessManager.require(projectId, userId, ProjectPermission.READ_FILE);
+        
+        List<FileSearchResultDto> results = new ArrayList<>();
+        if (query == null || query.isBlank()) {
+            return results;
+        }
+        
+        String lowerQuery = query.toLowerCase();
+        Path root = Paths.get(storageProperties.getProjects())
+                .resolve(projectId.toString())
+                .toAbsolutePath()
+                .normalize();
+                
+        if (!Files.exists(root) || !Files.isDirectory(root)) {
+            return results;
+        }
+
+        try (Stream<Path> stream = Files.walk(root)) {
+            stream.filter(Files::isRegularFile)
+                  .filter(path -> {
+                      String rel = root.relativize(path).toString();
+                      return !rel.contains(".git") && !rel.contains("node_modules") && !rel.contains("target");
+                  })
+                  .forEach(path -> {
+                      if (results.size() >= 100) return; // Cap results
+                      
+                      try {
+                          List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+                          for (int i = 0; i < lines.size(); i++) {
+                              if (results.size() >= 100) break;
+                              
+                              String line = lines.get(i);
+                              if (line.toLowerCase().contains(lowerQuery)) {
+                                  String relPath = root.relativize(path).toString().replace("\\", "/");
+                                  results.add(new FileSearchResultDto(relPath, i + 1, line.trim()));
+                              }
+                          }
+                      } catch (Exception e) {
+                          // Ignore binary files or unreadable files
+                      }
+                  });
+        } catch (IOException e) {
+            log.error("Failed to search files in project {}", projectId, e);
+        }
+        
+        return results;
     }
 }

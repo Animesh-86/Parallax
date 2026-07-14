@@ -76,5 +76,6 @@ export default defineConfig({
     server: {
         port: 3000,
         open: true,
+        host: true, // Listen on all local IPs (fixes IPv6/IPv4 localhost mapping issues)
     },
 });

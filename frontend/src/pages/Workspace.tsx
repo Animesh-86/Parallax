@@ -21,6 +21,7 @@ import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
 import { ExtensionsPanel } from "../components/workspace/ExtensionsPanel";
 import { IdeSettingsPanel } from "../components/workspace/IdeSettingsPanel";
+import { SearchPanel } from "../components/workspace/SearchPanel";
 import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
 import { ParticipantsList } from "../components/workspace/ParticipantsList";
 
@@ -49,7 +50,7 @@ export default function Workspace() {
   const { projectId } = useParams();
 
   /* Left Panel Tools State */
-  type LeftTool = "explorer" | "git" | "extensions" | "settings" | "ide-settings" | null;
+  type LeftTool = "explorer" | "git" | "extensions" | "settings" | "ide-settings" | "search" | null;
   const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("explorer");
 
   const toggleLeftTool = (tool: LeftTool) => {
@@ -120,6 +121,7 @@ export default function Workspace() {
   const state = location.state as { projectName?: string } | null;
   const [projectName, setProjectName] = useState<string>(state?.projectName || "");
   const [loadingName, setLoadingName] = useState(!state?.projectName);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const bootstrapWorkspace = async () => {
     if (!projectId) return;
@@ -427,6 +429,18 @@ export default function Workspace() {
                     onSettingsChange={(newSettings) => setIdeSettings(newSettings)}
                   />
                 )}
+
+                {activeLeftTool === "search" && projectId && (
+                  <SearchPanel
+                    projectId={projectId}
+                    query={searchQuery}
+                    onQueryChange={setSearchQuery}
+                    onSelect={(path) => {
+                      setActiveFile(path);
+                      openFile(path);
+                    }}
+                  />
+                )}
               </div>
               <div
                 className="w-1 cursor-col-resize hover:bg-white/20 active:bg-[#D4AF37]/30 transition-colors"
@@ -446,6 +460,9 @@ export default function Workspace() {
                 openFile(path);
               }}
               onClose={closeFile}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSearchFocus={() => setActiveLeftTool("search")}
               onRun={() => {
                 setTerminalOpen(true);
                 setTerminalActiveTab("output");
