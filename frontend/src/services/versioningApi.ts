@@ -21,6 +21,7 @@ export interface ProjectCommit {
   authorName: string;
   message: string;
   committedAt: string;
+  pushed: boolean;
 }
 
 export type MergeRequestStatus = "OPEN" | "APPROVED" | "MERGED" | "REJECTED" | "CLOSED";
@@ -65,7 +66,7 @@ export const versioningApi = {
   },
 
   deleteBranch: async (projectId: string, name: string): Promise<void> => {
-    await api.delete(`/api/v1/projects/${projectId}/git/branches/${encodeURIComponent(name)}`);
+    await api.delete(`/api/v1/projects/${projectId}/git/branches?branchName=${encodeURIComponent(name)}`);
   },
 
   ensureMainBranch: async (projectId: string): Promise<ProjectBranch> => {
@@ -74,25 +75,30 @@ export const versioningApi = {
   },
 
   checkoutBranch: async (projectId: string, branchName: string): Promise<void> => {
-    await api.post(`/api/v1/projects/${projectId}/git/branches/${branchName}/checkout`);
+    await api.post(`/api/v1/projects/${projectId}/git/branches/checkout?branchName=${encodeURIComponent(branchName)}`);
   },
 
   pushBranch: async (projectId: string, branchName: string): Promise<{ message: string }> => {
-    const res = await api.post(`/api/v1/projects/${projectId}/git/branches/${branchName}/push`);
+    const res = await api.post(`/api/v1/projects/${projectId}/git/branches/push?branchName=${encodeURIComponent(branchName)}`);
+    return res.data;
+  },
+
+  pullBranch: async (projectId: string, branchName: string): Promise<{ message: string }> => {
+    const res = await api.post(`/api/v1/projects/${projectId}/git/pull?branchName=${encodeURIComponent(branchName)}`);
     return res.data;
   },
 
   // Commits
   getCommits: async (projectId: string, branchId?: string): Promise<ProjectCommit[]> => {
     const url = branchId
-      ? `/api/v1/projects/${projectId}/git/branches/${encodeURIComponent(branchId)}/commits`
+      ? `/api/v1/projects/${projectId}/git/commits?branchId=${encodeURIComponent(branchId)}`
       : `/api/v1/projects/${projectId}/git/commits`;
     const res = await api.get(url);
     return res.data;
   },
 
   getBranchCommits: async (projectId: string, branchId: string): Promise<ProjectCommit[]> => {
-    const res = await api.get(`/api/v1/projects/${projectId}/git/branches/${branchId}/commits`);
+    const res = await api.get(`/api/v1/projects/${projectId}/git/commits?branchId=${encodeURIComponent(branchId)}`);
     return res.data;
   },
 

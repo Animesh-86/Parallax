@@ -27,6 +27,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [remoteUrlInput, setRemoteUrlInput] = useState('');
   const [settingRemote, setSettingRemote] = useState(false);
+  const [pushedCommitIds, setPushedCommitIds] = useState<string[]>([]);
 
   useEffect(() => {
     loadData();
@@ -59,8 +60,9 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
       await versioningApi.createCommit(projectId, activeBranchId, commitMessage.trim());
       setCommitMessage('');
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create commit:', err);
+      toast.error(err.response?.data?.message || err.message || 'Failed to create commit');
     } finally {
       setSubmitting(false);
     }
@@ -88,15 +90,33 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
     }
   };
 
-  const handlePush = async () => {
+  const handlePush = async (commitId?: string) => {
     if (!activeBranchId || submitting) return;
     try {
       setSubmitting(true);
       await versioningApi.pushBranch(projectId, activeBranchId);
       toast.success('Successfully pushed to GitHub');
+      if (commitId) {
+        setPushedCommitIds(prev => [...prev, commitId]);
+      }
     } catch (err: any) {
       console.error('Failed to push:', err);
       toast.error('Failed to push: ' + (err.response?.data?.error || err.response?.data?.message || err.message));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handlePull = async () => {
+    if (!activeBranchId || submitting) return;
+    try {
+      setSubmitting(true);
+      await versioningApi.pullBranch(projectId, activeBranchId);
+      toast.success('Successfully pulled from GitHub');
+      loadData();
+    } catch (err: any) {
+      console.error('Failed to pull:', err);
+      toast.error('Failed to pull: ' + (err.response?.data?.error || err.response?.data?.message || err.message));
     } finally {
       setSubmitting(false);
     }
@@ -127,8 +147,9 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
       setShowNewBranch(false);
       setBranches(prev => [branch, ...prev]);
       onBranchChange(branch);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create branch:', err);
+      toast.error(err.response?.data?.message || err.message || 'Failed to create branch');
     } finally {
       setSubmitting(false);
     }
@@ -341,15 +362,6 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
                 >
                   Commit
                 </button>
-                {githubRepoUrl && (
-                  <button
-                    onClick={handlePush}
-                    disabled={submitting}
-                    className="px-4 py-2 bg-blue-600 rounded-lg text-xs font-medium text-white disabled:opacity-50 hover:bg-blue-700 transition-colors"
-                  >
-                    Push
-                  </button>
-                )}
               </div>
             </div>
           )}
@@ -377,7 +389,7 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
                       <div className="mt-1 w-2 h-2 rounded-full bg-[#D4AF37] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{commit.message}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-white/40">
+                        <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-white/40">
                           <span className="flex items-center gap-1">
                             <User className="w-3 h-3" />
                             {commit.authorName}
@@ -392,7 +404,27 @@ export function ActivityPanel({ projectId, activeBranchId, onBranchChange, githu
                           </span>
                         </div>
                       </div>
-                      <span className="text-[10px] text-white/20 font-mono mt-1">{commit.id.slice(0, 7)}</span>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <span className="text-[10px] text-white/20 font-mono mt-1">{commit.id.slice(0, 7)}</span>
+                        {githubRepoUrl && i === 0 && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handlePull()}
+                              disabled={submitting}
+                              className="px-3 py-1 bg-white/10 rounded-md text-[10px] font-bold text-white hover:bg-white/20 transition-colors uppercase tracking-wider"
+                            >
+                              Pull
+                            </button>
+                            <button
+                              onClick={() => handlePush(commit.id)}
+                              disabled={submitting || commit.pushed || pushedCommitIds.includes(commit.id)}
+                              className="px-3 py-1 bg-[#D4AF37] rounded-md text-[10px] font-bold text-black disabled:opacity-50 disabled:bg-white/10 disabled:text-white/40 hover:bg-[#D4AF37]/90 transition-colors uppercase tracking-wider"
+                            >
+                              {(commit.pushed || pushedCommitIds.includes(commit.id)) ? 'Pushed' : 'Push'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 ))}

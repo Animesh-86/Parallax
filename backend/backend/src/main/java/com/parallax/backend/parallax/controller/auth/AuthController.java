@@ -189,4 +189,26 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of("status", "ok"));
     }
+
+    // PRE-CONNECT HANDSHAKE FOR GITHUB
+    @PostMapping("/github-connect-init")
+    public ResponseEntity<?> initGithubConnect(
+            @RequestHeader("Authorization") String authHeader,
+            HttpServletResponse response
+    ) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            
+            org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie.from("link_jwt", token)
+                    .path("/")
+                    .maxAge(120) // 2 minutes
+                    .httpOnly(true)
+                    .sameSite("Lax")
+                    .build();
+                    
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            return ResponseEntity.ok(Map.of("status", "ok"));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
 }

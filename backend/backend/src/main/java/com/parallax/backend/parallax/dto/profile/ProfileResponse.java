@@ -4,6 +4,7 @@ public class ProfileResponse extends PublicProfileResponse{
 
     private String email;
     private String ideSettings;
+    private boolean githubConnected;
 
     public ProfileResponse(
             String username,
@@ -14,6 +15,7 @@ public class ProfileResponse extends PublicProfileResponse{
             java.time.Instant joinedAt,
             String email,
             String ideSettings,
+            boolean githubConnected,
             GamificationDtos.ProfileStatsDto stats,
             java.util.List<GamificationDtos.BadgeDto> badges,
             java.util.List<GamificationDtos.ActivityDto> recentActivity,
@@ -22,6 +24,7 @@ public class ProfileResponse extends PublicProfileResponse{
         super(username, displayName, bio, location, avatarUrl, joinedAt, stats, badges, recentActivity, contributionGraph);
         this.email = email;
         this.ideSettings = ideSettings;
+        this.githubConnected = githubConnected;
     }
 
     public String getEmail() {
@@ -30,5 +33,9 @@ public class ProfileResponse extends PublicProfileResponse{
 
     public String getIdeSettings() {
         return ideSettings;
+    }
+
+    public boolean isGithubConnected() {
+        return githubConnected;
     }
 }

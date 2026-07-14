@@ -27,7 +27,7 @@ public class VersioningController {
 
     private final VersioningService versioningService;
     private final ProjectAccessManager accessManager;
-    private static final String BRANCH_NAME_REGEX = "^[a-zA-Z0-9_/-]+$";
+    private static final String BRANCH_NAME_REGEX = "^[a-zA-Z0-9_/.\\-]+$";
 
     private boolean isValidBranchName(String name) {
         return name != null && name.matches(BRANCH_NAME_REGEX) && !name.startsWith("-");
@@ -57,7 +57,7 @@ public class VersioningController {
         accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
         String name = body.name().trim();
         if (!isValidBranchName(name)) {
-            return ResponseEntity.badRequest().build();
+            throw new IllegalArgumentException("Branch name can only contain alphanumeric characters, dots, underscores, hyphens, and slashes.");
         }
 
         // Ensure main branch exists first
@@ -78,10 +78,10 @@ public class VersioningController {
         return ResponseEntity.ok(main);
     }
 
-    @PostMapping("/branches/{branchName}/checkout")
+    @PostMapping("/branches/checkout")
     public ResponseEntity<Void> checkoutBranch(
             @PathVariable UUID projectId,
-            @PathVariable String branchName,
+            @RequestParam String branchName,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
@@ -93,10 +93,10 @@ public class VersioningController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/branches/{branchName}")
+    @DeleteMapping("/branches")
     public ResponseEntity<Void> deleteBranch(
             @PathVariable UUID projectId,
-            @PathVariable String branchName,
+            @RequestParam String branchName,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
@@ -112,10 +112,10 @@ public class VersioningController {
         }
     }
 
-    @PostMapping("/branches/{branchName}/push")
+    @PostMapping("/branches/push")
     public ResponseEntity<Map<String, String>> pushBranch(
             @PathVariable UUID projectId,
-            @PathVariable String branchName,
+            @RequestParam String branchName,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
@@ -123,6 +123,22 @@ public class VersioningController {
         try {
             versioningService.pushToRemote(projectId, branchName);
             return ResponseEntity.ok(Map.of("message", "Successfully pushed to GitHub"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/branches/pull")
+    public ResponseEntity<Map<String, String>> pullBranch(
+            @PathVariable UUID projectId,
+            @RequestParam String branchName,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
+        try {
+            versioningService.pullFromRemote(projectId, branchName);
+            return ResponseEntity.ok(Map.of("message", "Successfully pulled from GitHub"));
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -147,23 +163,17 @@ public class VersioningController {
     @GetMapping("/commits")
     public ResponseEntity<List<ProjectCommitResponse>> getCommits(
             @PathVariable UUID projectId,
+            @RequestParam(required = false) String branchId,
             Authentication authentication
     ) {
         UUID userId = AuthUtil.requireUserId(authentication);
         accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
-        var commits = versioningService.getCommits(projectId);
-        return ResponseEntity.ok(commits);
-    }
-
-    @GetMapping("/branches/{branchId}/commits")
-    public ResponseEntity<List<ProjectCommitResponse>> getBranchCommits(
-            @PathVariable UUID projectId,
-            @PathVariable String branchId,
-            Authentication authentication
-    ) {
-        UUID userId = AuthUtil.requireUserId(authentication);
-        accessManager.require(projectId, userId, ProjectPermission.READ_PROJECT);
-        var commits = versioningService.getBranchCommits(projectId, branchId);
+        List<ProjectCommitResponse> commits;
+        if (branchId != null && !branchId.isBlank()) {
+            commits = versioningService.getBranchCommits(projectId, branchId);
+        } else {
+            commits = versioningService.getCommits(projectId);
+        }
         return ResponseEntity.ok(commits);
     }
 

@@ -25,9 +25,6 @@ public class GitHubService {
     private final com.parallax.backend.parallax.service.file.FileService fileService;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${github.pat}")
-    private String githubPat;
-
     public void handlePullRequestEvent(JsonNode payload) {
         try {
             JsonNode repositoryNode = payload.path("repository");
@@ -48,12 +45,17 @@ public class GitHubService {
                     
                     log.info("Found project {} for PR. Fetching diff from {}", project.getId(), diffUrl);
                     
-                    String diffContent = fetchPrDiff(diffUrl);
-                    if (diffContent != null && !diffContent.isEmpty()) {
-                        log.info("Diff fetched successfully. Sending to AiReviewService.");
-                        aiReviewService.analyzeAndCommentAsync(project, diffContent, commentsUrl, githubPat);
+                    String pat = project.getOwner() != null ? project.getOwner().getGithubAccessToken() : null;
+                    if (pat == null || pat.isEmpty()) {
+                        log.warn("Project {} owner does not have a GitHub Access Token.", project.getId());
                     } else {
-                        log.warn("Fetched empty diff for PR: {}", diffUrl);
+                        String diffContent = fetchPrDiff(diffUrl, pat);
+                        if (diffContent != null && !diffContent.isEmpty()) {
+                            log.info("Diff fetched successfully. Sending to AiReviewService.");
+                            aiReviewService.analyzeAndCommentAsync(project, diffContent, commentsUrl, pat);
+                        } else {
+                            log.warn("Fetched empty diff for PR: {}", diffUrl);
+                        }
                     }
                 } else {
                     log.info("Project {} found but AI Review is disabled.", project.getId());
@@ -86,8 +88,9 @@ public class GitHubService {
             String zipUrl = String.format("https://api.github.com/repos/%s/%s/zipball/HEAD", owner, repo);
 
             HttpHeaders headers = new HttpHeaders();
-            if (githubPat != null && !githubPat.isEmpty() && !githubPat.equals("dummy-pat")) {
-                headers.set("Authorization", "Bearer " + githubPat);
+            String pat = project.getOwner() != null ? project.getOwner().getGithubAccessToken() : null;
+            if (pat != null && !pat.isEmpty() && !pat.equals("dummy-pat")) {
+                headers.set("Authorization", "Bearer " + pat);
             }
             headers.set("Accept", "application/vnd.github.v3+json");
 
@@ -160,7 +163,10 @@ public class GitHubService {
             String owner = parts[parts.length - 2];
 
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + githubPat);
+            String pat = project.getOwner() != null ? project.getOwner().getGithubAccessToken() : null;
+            if (pat != null && !pat.isEmpty()) {
+                headers.set("Authorization", "Bearer " + pat);
+            }
             headers.set("Accept", "application/vnd.github.v3+json");
             headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -243,10 +249,10 @@ public class GitHubService {
         }
     }
 
-    private String fetchPrDiff(String diffUrl) {
+    private String fetchPrDiff(String diffUrl, String pat) {
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + githubPat);
+            headers.set("Authorization", "Bearer " + pat);
             // Request the diff media type
             headers.set("Accept", "application/vnd.github.v3.diff");
 

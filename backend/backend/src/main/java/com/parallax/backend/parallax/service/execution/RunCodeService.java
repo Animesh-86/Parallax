@@ -60,7 +60,7 @@ public class RunCodeService {
      * Prevents command injection via shell metacharacters in filenames.
      */
     private static final java.util.regex.Pattern SAFE_FILENAME_PATTERN =
-            java.util.regex.Pattern.compile("^[a-zA-Z0-9._/\\-]+$");
+            java.util.regex.Pattern.compile("^[a-zA-Z0-9._/\\- ]+$");
 
     private void validateFilenameForExecution(String path) {
         if (path == null || path.isBlank()) {

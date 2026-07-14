@@ -8,6 +8,7 @@ export interface UserProfile {
     avatarUrl: string;
     joinedAt: string;
     email?: string; // Only present for "me"
+    githubConnected?: boolean; // Only present for "me"
     fullName?: string; // Potential backend mismatch
     name?: string;     // Potential backend mismatch
     stats?: {

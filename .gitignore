@@ -54,3 +54,5 @@ mvnw.cmd
 **/data/*.mv.db
 **/data/*.trace.db
 **/data/*.lock.db
+**/temp-repo/
+**/temp-repo2/
