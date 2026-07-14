@@ -10,6 +10,7 @@ import com.parallax.backend.parallax.repository.UserRepository;
 import com.parallax.backend.parallax.repository.project.MergeRequestRepository;
 import com.parallax.backend.parallax.repository.project.ProjectRepository;
 import com.parallax.backend.parallax.service.gamification.GamificationEvent;
+import com.parallax.backend.parallax.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +39,7 @@ public class VersioningService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final StorageProperties storageProperties;
-
-    @Value("${github.pat}")
-    private String githubPat;
+    private final FileService fileService;
 
     private final java.util.concurrent.ConcurrentMap<UUID, Object> projectLocks = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -63,6 +62,7 @@ public class VersioningService {
         
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
+            pb.environment().put("GIT_TERMINAL_PROMPT", "0");
             pb.directory(projectRoot.toFile());
             pb.redirectErrorStream(true);
             Process p = pb.start();
@@ -134,6 +134,7 @@ public class VersioningService {
     public void checkoutBranch(UUID projectId, String name) {
         ensureGitInitialized(projectId);
         runGitCommand(projectId, "checkout", name);
+        fileService.syncDbFromDisk(projectId);
     }
 
     public void deleteBranch(UUID projectId, String name) {
@@ -178,6 +179,7 @@ public class VersioningService {
 
         // Checkout the branch
         runGitCommand(projectId, "checkout", branchName);
+        fileService.syncDbFromDisk(projectId);
         
         // Configure user for commit
         runGitCommand(projectId, "config", "user.name", user.getFullName());
@@ -221,22 +223,18 @@ public class VersioningService {
         }
     }
 
-    public void pushToRemote(UUID projectId, String branchName) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
-        
-        String url = project.getGithubRepoUrl();
-        if (url == null || url.isBlank()) {
-            throw new IllegalStateException("Project is not linked to a GitHub repository. Please set a remote URL first.");
+    private void setupRemoteOrigin(UUID projectId, String url) {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new IllegalStateException("You must be logged in to sync code.");
         }
         
-        validateGithubUrl(url.trim());
-        
-        if (githubPat == null || githubPat.isBlank() || "dummy-pat".equals(githubPat)) {
-            throw new IllegalStateException("GitHub integration is not configured on the server. Please contact the administrator.");
-        }
-        
-        // Remove trailing slash or .git
+        UUID userId = UUID.fromString(auth.getName());
+        com.parallax.backend.parallax.entity.auth.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+
+        String githubPat = user.getGithubAccessToken();
+
         String cleanUrl = url.trim();
         if (cleanUrl.endsWith("/")) cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 1);
         if (cleanUrl.endsWith(".git")) cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 4);
@@ -246,22 +244,69 @@ public class VersioningService {
         String repo = parts[parts.length - 1];
         String owner = parts[parts.length - 2];
         
-        // Construct authenticated URL: https://PAT@github.com/owner/repo.git
-        String authUrl = String.format("https://%s@github.com/%s/%s.git", githubPat, owner, repo);
+        String authUrl;
+        if (githubPat == null || githubPat.isBlank()) {
+            authUrl = String.format("https://github.com/%s/%s.git", owner, repo);
+        } else {
+            authUrl = String.format("https://%s@github.com/%s/%s.git", githubPat, owner, repo);
+        }
         
-        // Ensure remote exists
         String remotes = runGitCommand(projectId, "remote");
         if (!remotes.contains("origin")) {
             runGitCommand(projectId, "remote", "add", "origin", authUrl);
         } else {
             runGitCommand(projectId, "remote", "set-url", "origin", authUrl);
         }
+    }
+
+    public void pushToRemote(UUID projectId, String branchName) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        
+        String url = project.getGithubRepoUrl();
+        if (url == null || url.isBlank()) {
+            throw new IllegalStateException("Project is not linked to a GitHub repository. Please set a remote URL first.");
+        }
+        
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            UUID userId = UUID.fromString(auth.getName());
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null && (user.getGithubAccessToken() == null || user.getGithubAccessToken().isBlank())) {
+                throw new IllegalStateException("GitHub integration is not configured. Please connect your GitHub account in your Profile to push code.");
+            }
+        }
+        
+        validateGithubUrl(url.trim());
+        setupRemoteOrigin(projectId, url);
         
         String output = runGitCommand(projectId, "push", "-u", "origin", branchName);
         if (output.toLowerCase().contains("error:") || output.toLowerCase().contains("fatal:")) {
             log.error("Git push failed: {}", output);
             throw new IllegalStateException("Failed to push to GitHub: " + output);
         }
+    }
+
+    public void pullFromRemote(UUID projectId, String branchName) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        
+        String url = project.getGithubRepoUrl();
+        if (url == null || url.isBlank()) {
+            throw new IllegalStateException("Project is not linked to a GitHub repository.");
+        }
+        
+        validateGithubUrl(url.trim());
+        setupRemoteOrigin(projectId, url);
+        
+        runGitCommand(projectId, "fetch", "origin");
+        String output = runGitCommand(projectId, "pull", "origin", branchName, "--no-edit");
+        if (output.toLowerCase().contains("error:") || output.toLowerCase().contains("fatal:") || output.toLowerCase().contains("conflict")) {
+            log.error("Git pull failed: {}", output);
+            throw new IllegalStateException("Failed to pull from GitHub: " + output);
+        }
+        
+        fileService.syncDbFromDisk(projectId);
     }
 
     @Transactional
@@ -274,6 +319,36 @@ public class VersioningService {
         validateGithubUrl(url.trim());
         project.setGithubRepoUrl(url.trim());
         projectRepository.save(project);
+
+        try {
+            ensureGitInitialized(projectId);
+            setupRemoteOrigin(projectId, url);
+            String fetchOutput = runGitCommand(projectId, "fetch", "origin");
+            if (fetchOutput.toLowerCase().contains("fatal:") || fetchOutput.toLowerCase().contains("error:")) {
+                throw new IllegalStateException("Failed to fetch repository. Is the repository private? Connect GitHub account in Profile. Details: " + fetchOutput);
+            }
+            
+            String commitCountStr = runGitCommand(projectId, "rev-list", "--count", "HEAD");
+            int commitCount = 0;
+            try { commitCount = Integer.parseInt(commitCountStr.trim()); } catch(Exception ignored){}
+            
+            if (commitCount <= 1) {
+                String branches = runGitCommand(projectId, "branch", "-r");
+                if (branches.contains("origin/main")) {
+                    runGitCommand(projectId, "reset", "--hard", "origin/main");
+                } else if (branches.contains("origin/master")) {
+                    runGitCommand(projectId, "reset", "--hard", "origin/master");
+                }
+                fileService.syncDbFromDisk(projectId);
+            } else {
+                throw new IllegalStateException("Project has local commits. Please pull from the remote repository first to sync files.");
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to initial sync repo on connect", e);
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public List<ProjectCommitResponse> getCommits(UUID projectId) {
@@ -291,6 +366,14 @@ public class VersioningService {
 
         List<ProjectCommitResponse> list = new ArrayList<>();
         User systemUser = getSystemUserOrDummy();
+
+        Set<String> unpushedHashes = new java.util.HashSet<>();
+        String unpushedLog = runGitCommand(projectId, "log", branchName, "--not", "--remotes", "--format=%H");
+        if (!unpushedLog.isBlank() && !unpushedLog.startsWith("fatal:")) {
+            for (String h : unpushedLog.split("\n")) {
+                unpushedHashes.add(h.trim());
+            }
+        }
 
         for (String line : logOutput.split("\n")) {
             String[] parts = line.split("\\|", 5);
@@ -312,6 +395,7 @@ public class VersioningService {
                         .authorName(authorName)
                         .message(subject)
                         .committedAt(Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(dateStr)))
+                        .pushed(!unpushedHashes.contains(hash))
                         .build());
             }
         }

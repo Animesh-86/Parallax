@@ -18,7 +18,7 @@ public class UsernamePolicyService {
 
         // No-op if same username
         if (newUsername.equalsIgnoreCase(currentUsername)) {
-            throw new ValidationException("New username must be different");
+            return;
         }
 
         // Uniqueness check

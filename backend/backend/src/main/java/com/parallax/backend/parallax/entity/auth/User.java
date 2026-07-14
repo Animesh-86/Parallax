@@ -67,6 +67,9 @@ public class User {
     @Column(name = "ide_settings", columnDefinition = "TEXT")
     private String ideSettings;
 
+    @Column(name = "github_access_token")
+    private String githubAccessToken;
+
     // Constructors
     protected User() {
         // JPA only
@@ -166,6 +169,14 @@ public class User {
 
     public void setIdeSettings(String ideSettings) {
         this.ideSettings = ideSettings;
+    }
+
+    public String getGithubAccessToken() {
+        return githubAccessToken;
+    }
+
+    public void setGithubAccessToken(String githubAccessToken) {
+        this.githubAccessToken = githubAccessToken;
     }
 
     // --------------------

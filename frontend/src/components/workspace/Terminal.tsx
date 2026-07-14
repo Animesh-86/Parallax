@@ -11,11 +11,24 @@ interface TerminalProps {
   output: string;
   exitCode: number | null;
   projectId?: string;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: TerminalProps) {
-  const [activeTab, setActiveTab] = useState('terminal');
+export function Terminal({ isOpen, onToggle, output, exitCode, projectId, activeTab, onTabChange }: TerminalProps) {
+  const [internalTab, setInternalTab] = useState(activeTab || 'terminal');
   const [height, setHeight] = useState(250);
+
+  useEffect(() => {
+    if (activeTab) {
+      setInternalTab(activeTab);
+    }
+  }, [activeTab]);
+
+  const handleTabChange = (tab: string) => {
+    setInternalTab(tab);
+    onTabChange?.(tab);
+  };
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -29,7 +42,7 @@ export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: Term
 
   // Initialize xterm
   useEffect(() => {
-    if (!isOpen || activeTab !== 'terminal' || !terminalRef.current || !projectId) return;
+    if (!isOpen || internalTab !== 'terminal' || !terminalRef.current || !projectId) return;
 
     if (!xtermRef.current) {
       const term = new XTerm({
@@ -82,7 +95,7 @@ export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: Term
         xtermRef.current = null;
       };
     }
-  }, [isOpen, activeTab, projectId]);
+  }, [isOpen, internalTab, projectId]);
 
   // Adjust xterm on resize
   useEffect(() => {
@@ -93,7 +106,7 @@ export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: Term
         window.dispatchEvent(event);
       }, 50);
     }
-  }, [height, activeTab, isOpen]);
+  }, [height, internalTab, isOpen]);
 
 
   if (!isOpen) {
@@ -144,8 +157,8 @@ export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: Term
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-2 ${activeTab === tab.id
+              onClick={() => handleTabChange(tab.id)}
+              className={`px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-2 ${internalTab === tab.id
                   ? 'bg-[#09090B] text-white'
                   : 'text-white/60 hover:text-white/90 hover:bg-white/5'
                 }`}
@@ -169,11 +182,11 @@ export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: Term
       </div>
 
       <div className="flex-1 overflow-auto p-4 font-mono text-sm relative">
-        {activeTab === 'terminal' && (
+        {internalTab === 'terminal' && (
           <div className="absolute inset-0 p-2" ref={terminalRef} />
         )}
 
-        {activeTab === 'output' && (
+        {internalTab === 'output' && (
           <div className="space-y-2">
             {exitCode !== null && (
               <div className="text-xs text-white/60">
@@ -196,16 +209,15 @@ export function Terminal({ isOpen, onToggle, output, exitCode, projectId }: Term
           </div>
         )}
 
-        {activeTab === 'problems' && (
+        {internalTab === 'problems' && (
           <div className="text-white/60 text-center py-8">
             No problems detected
           </div>
         )}
 
 
-
-        {activeTab === 'debug' && (
-          <div className="text-white/60">
+        {internalTab === 'debug' && (
+          <div className="text-white/60 text-center py-8">
             Debug console ready. Start debugging to see output.
           </div>
         )}

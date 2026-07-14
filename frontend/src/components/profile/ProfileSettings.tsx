@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Save, AlertCircle, CheckCircle2, User, MapPin, FileText, AtSign, Camera } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle2, User, MapPin, FileText, AtSign, Camera, Github } from 'lucide-react';
 import { UserProfile, profileService } from '../../services/profileService';
 import { uploadService } from '../../services/uploadService';
 import { toast } from 'sonner';
 import { cn } from '../../components/ui/utils';
 import { useProfile } from '../../context/ProfileContext';
+import { apiBaseUrl } from '../../services/env';
 
 interface ProfileSettingsProps {
     currentUser: UserProfile;
@@ -143,6 +144,30 @@ export default function ProfileSettings({ currentUser }: ProfileSettingsProps) {
             }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleConnectGithub = async () => {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${apiBaseUrl}/api/v1/auth/github-connect-init`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                window.location.href = `${apiBaseUrl}/api/v1/oauth2/authorization/github`;
+            } else {
+                toast.error('Failed to initiate GitHub connection');
+            }
+        } catch (error) {
+            console.error('GitHub connect error:', error);
+            toast.error('Failed to connect to GitHub');
         }
     };
 
@@ -324,6 +349,42 @@ export default function ProfileSettings({ currentUser }: ProfileSettingsProps) {
                                 className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-white/60 cursor-not-allowed"
                             />
                             <p className="text-xs text-white/30">Email cannot be changed at this time.</p>
+                        </div>
+
+                        {/* Connected Accounts */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                            <h3 className="text-sm font-medium text-white/80">Connected Accounts</h3>
+                            <div className="flex items-center justify-between p-4 bg-black/40 border border-white/10 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
+                                        <Github className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-white">GitHub</p>
+                                        <p className="text-xs text-white/50">
+                                            {currentUser.githubConnected
+                                                ? "Connected to your GitHub account"
+                                                : "Not connected"}
+                                        </p>
+                                    </div>
+                                </div>
+                                {currentUser.githubConnected ? (
+                                    <div className="flex items-center gap-2 text-[#10B981] px-3 py-1.5 bg-[#10B981]/10 rounded-lg text-sm font-medium">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        Connected
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={handleConnectGithub}
+                                        className="px-4 py-2 bg-white/10 hover:bg-white/15 text-white text-sm font-medium rounded-lg transition-colors"
+                                    >
+                                        Connect
+                                    </button>
+                                )}
+                            </div>
+                            <p className="text-xs text-white/40 leading-relaxed">
+                                Connect your GitHub account to enable committing and pushing code directly from the IDE to your repositories.
+                            </p>
                         </div>
                     </div>
                 )}

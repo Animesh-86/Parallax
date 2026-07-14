@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -113,5 +114,19 @@ public class ProjectFileController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectFileInfoDto.from(file));
+    }
+
+    // ------------------------------------------------
+    // Delete file / folder
+    // ------------------------------------------------
+    @DeleteMapping("/{projectId}/file")
+    public ResponseEntity<Void> deleteFile(
+            @PathVariable UUID projectId,
+            @RequestParam String path,
+            Authentication authentication
+    ) {
+        UUID userId = AuthUtil.requireUserId(authentication);
+        fileService.deleteFile(projectId, path, userId);
+        return ResponseEntity.noContent().build();
     }
 }

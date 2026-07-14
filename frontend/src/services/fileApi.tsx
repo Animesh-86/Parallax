@@ -1,24 +1,19 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "/api",
-  withCredentials: true,
-});
+import api from "./api";
 
 export async function fetchFileTree(projectId: string) {
-  const res = await api.get(`/projects/${projectId}/files/tree`);
+  const res = await api.get(`/api/v1/projects/${projectId}/files/tree`);
   return res.data;
 }
 
 export async function fetchFile(projectId: string, path: string) {
-  const res = await api.get(`/projects/${projectId}/file`, {
+  const res = await api.get(`/api/v1/projects/${projectId}/file`, {
     params: { path },
   });
   return res.data;
 }
 
 export async function saveFile(projectId: string, path: string, content: string) {
-  await api.put(`/projects/${projectId}/file`, content, {
+  await api.put(`/api/v1/projects/${projectId}/file`, content, {
     params: { path },
     headers: { "Content-Type": "text/plain" },
   });
@@ -29,9 +24,9 @@ export async function createFile(
   path: string,
   type: "FILE" | "FOLDER"
 ) {
-  await api.post(`/projects/${projectId}/files`, { path, type });
+  await api.post(`/api/v1/projects/${projectId}/files`, { path, type });
 }
 
 export async function deleteFile(projectId: string, path: string) {
-  await api.delete(`/projects/${projectId}/file`, { params: { path } });
+  await api.delete(`/api/v1/projects/${projectId}/file`, { params: { path } });
 }

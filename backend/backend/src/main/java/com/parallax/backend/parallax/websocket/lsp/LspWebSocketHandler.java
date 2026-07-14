@@ -34,7 +34,7 @@ public class LspWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String uri = session.getUri() != null ? session.getUri().toString() : "";
+        String uri = session.getUri() != null ? session.getUri().getPath() : "";
         String[] pathSegments = uri.split("/");
         
         // Expected URI: /ws/lsp/{projectId}/{language}

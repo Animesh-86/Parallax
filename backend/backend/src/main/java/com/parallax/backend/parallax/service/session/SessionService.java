@@ -151,7 +151,7 @@ public class SessionService {
                     .withCapDrop(Capability.ALL)
                     .withIpcMode("none")
                     .withPortBindings(PortBinding.parse(webPort + ":3000"))
-                    .withBinds(Bind.parse(hostMount + ":/workspace"));
+                    .withBinds(new Bind(hostMount, new Volume("/workspace")));
 
                 CreateContainerResponse container = dockerClient.createContainerCmd(sessionImage)
                     .withName(containerName)
@@ -161,8 +161,9 @@ public class SessionService {
                         "traefik.http.routers.proj-" + projectId + ".rule", "Host(`" + projectId + ".parallax.run`)",
                         "traefik.http.services.proj-" + projectId + ".loadbalancer.server.port", "3000"
                     ))
+                    .withEnv("HOME=/home/runner")
                     .withHostConfig(hostConfig)
-                    .withCmd("tail", "-f", "/dev/null")
+                    .withCmd("sh", "-c", "git config --global --add safe.directory /workspace && tail -f /dev/null")
                     .exec();
 
                 dockerClient.startContainerCmd(container.getId()).exec();

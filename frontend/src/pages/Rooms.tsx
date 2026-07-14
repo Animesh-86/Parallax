@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Users, Plus, Trash2 } from 'lucide-react';
+import { Users, Plus, Trash2, Search } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { RoomSkeleton } from "../components/DashboardSkeletons";
 import { collabApi, MeetingRoom } from "../services/collabApi";
@@ -10,6 +10,7 @@ export default function Rooms() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [rooms, setRooms] = useState<MeetingRoom[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
     const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
@@ -50,21 +51,38 @@ export default function Rooms() {
         fetchRooms();
     }, []);
 
+    const filteredRooms = rooms.filter(r => 
+        r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        r.roomCode.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <>
             <main className="pt-24 pb-16 px-6 max-w-[1800px] mx-auto relative z-10">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-bold mb-2">Collaboration Rooms</h1>
                         <p className="text-white/50">Join active discussions or create a new room</p>
                     </div>
-                    <button
-                        onClick={() => setIsCreateRoomModalOpen(true)}
-                        className="px-4 py-2 bg-[#D4AF37] text-black font-medium rounded-lg text-sm hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Create Room
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-64 hidden sm:block">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                            <input 
+                                type="text" 
+                                placeholder="Search rooms..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50 focus:bg-white/10 transition-all placeholder:text-white/30"
+                            />
+                        </div>
+                        <button
+                            onClick={() => setIsCreateRoomModalOpen(true)}
+                            className="px-4 py-2 bg-[#D4AF37] text-black font-medium rounded-lg text-sm hover:shadow-lg hover:shadow-[#D4AF37]/30 transition-all flex items-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Create Room
+                        </button>
+                    </div>
                 </div>
 
                 {loading ? (
@@ -81,12 +99,12 @@ export default function Rooms() {
                         {error}
                     </div>
                 ) : rooms.length === 0 ? (
-                    <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-4 text-center border border-white/10 bg-[#09090B]/70">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white">
+                    <div className="bg-white/5 backdrop-blur-md rounded-3xl py-16 flex flex-col items-center justify-center gap-2 text-center border border-white/10">
+                        <h2 className="text-lg md:text-xl font-medium text-white/70">
                             No Rooms Yet
                         </h2>
-                        <div className="text-white/45 text-lg max-w-md">
-                            You haven’t created or joined any rooms yet.
+                        <div className="text-sm text-white/40 max-w-sm mb-4">
+                            Looks like everyone's on a coffee break. Create a room to start collaborating!
                         </div>
                         <button
                             onClick={() => setIsCreateRoomModalOpen(true)}
@@ -96,9 +114,16 @@ export default function Rooms() {
                             Create Room
                         </button>
                     </div>
+                ) : filteredRooms.length === 0 ? (
+                    <div className="bg-white/5 backdrop-blur-md rounded-3xl py-16 flex flex-col items-center justify-center gap-2 text-center border border-white/10">
+                        <h2 className="text-lg font-medium text-white/70">No results found</h2>
+                        <div className="text-sm text-white/40 max-w-sm">
+                            We couldn't find any rooms matching "{searchQuery}"
+                        </div>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {rooms.map((room) => (
+                        {filteredRooms.map((room) => (
                             <div
                                 key={room.id}
                                 className="glass-panel rounded-2xl p-6 hover:border-[#A1A1AA]/30 transition-all duration-300 group hover:shadow-xl hover:shadow-[#A1A1AA]/10"

@@ -75,6 +75,9 @@ public class FileService {
         return file;
     }
 
+    private static final java.util.regex.Pattern SAFE_FILENAME_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z0-9._/\\- ]+$");
+
     // CREATE
     @Transactional
     public ProjectFile createFile(
@@ -85,6 +88,11 @@ public class FileService {
     ) {
 
         String safePath = fileSyncService.sanitizeUserPath(path);
+        if (!SAFE_FILENAME_PATTERN.matcher(safePath).matches()) {
+            throw new IllegalArgumentException(
+                    "Filename contains invalid characters. Only alphanumeric, dots, underscores, hyphens, and slashes are allowed."
+            );
+        }
         String t = type.toUpperCase();
 
         if ("FILE".equals(t)) {
@@ -181,6 +189,95 @@ public class FileService {
         }
 
         return file;
+    }
+
+    @Transactional
+    public void deleteFile(UUID projectId, String path, UUID userId) {
+        accessManager.require(projectId, userId, ProjectPermission.UPDATE_FILE);
+
+        String safePath = fileSyncService.sanitizeUserPath(path);
+
+        ProjectFile file = fileRepo.findByProjectIdAndPath(projectId, safePath);
+        if (file == null) {
+            throw new ResourceNotFoundException("File not found: " + safePath);
+        }
+
+        // DB Delete children if folder
+        if ("FOLDER".equalsIgnoreCase(file.getType())) {
+            List<ProjectFile> allFiles = fileRepo.findByProjectId(projectId);
+            List<ProjectFile> children = allFiles.stream()
+                    .filter(f -> f.getPath().startsWith(safePath + "/"))
+                    .toList();
+            fileRepo.deleteAll(children);
+        }
+
+        // DB Delete itself
+        fileRepo.delete(file);
+        fileRepo.flush();
+
+        // Filesystem Delete
+        Path resolved = resolveProjectPath(projectId, safePath);
+        try {
+            if (Files.exists(resolved)) {
+                if (Files.isDirectory(resolved)) {
+                    try (java.util.stream.Stream<Path> paths = Files.walk(resolved)) {
+                        paths.sorted(java.util.Comparator.reverseOrder())
+                             .forEach(p -> {
+                                 try {
+                                     Files.delete(p);
+                                 } catch (IOException e) {
+                                     log.error("Failed to delete child {}", p, e);
+                                 }
+                             });
+                    }
+                } else {
+                    Files.delete(resolved);
+                }
+            }
+        } catch (IOException e) {
+            log.error("Filesystem delete failed for {}", safePath, e);
+            throw new IllegalStateException("Failed to delete file on disk", e);
+        }
+    }
+
+    @Transactional
+    public void syncDbFromDisk(UUID projectId) {
+        Path root = Paths.get(storageProperties.getProjects())
+                .resolve(projectId.toString())
+                .toAbsolutePath()
+                .normalize();
+        if (!Files.exists(root)) {
+            return;
+        }
+
+        try {
+            fileRepo.deleteByProjectId(projectId);
+            fileRepo.flush();
+
+            try (java.util.stream.Stream<Path> paths = Files.walk(root)) {
+                paths.filter(p -> !p.equals(root))
+                     .filter(p -> !p.toString().replace("\\", "/").contains("/.git"))
+                     .forEach(p -> {
+                         String safePath = root.relativize(p).toString().replace("\\", "/");
+                         boolean isFolder = Files.isDirectory(p);
+                         String type = isFolder ? "FOLDER" : "FILE";
+                         
+                         ProjectFile pf = new ProjectFile(
+                                 UUID.randomUUID(),
+                                 projectId,
+                                 safePath,
+                                 null,
+                                 type
+                         );
+                         pf.setCreatedAt(Instant.now());
+                         pf.setUpdatedAt(Instant.now());
+                         fileRepo.save(pf);
+                     });
+            }
+            fileRepo.flush();
+        } catch (IOException e) {
+            log.error("Failed to sync DB from disk for project {}", projectId, e);
+        }
     }
 
     // HELPERS

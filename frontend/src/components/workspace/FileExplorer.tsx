@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   X,
   FilePlus,
@@ -8,6 +8,7 @@ import {
   ChevronDown,
   File as FileIcon,
   Folder as FolderIcon,
+  Trash2,
 } from "lucide-react";
 
 type FileNode = {
@@ -63,23 +64,34 @@ export function FileExplorer({
     }
   };
 
+  // Track whether we already submitted to prevent double-creation
+  const submittedRef = React.useRef(false);
+
   const handleCreationSubmit = () => {
+    if (submittedRef.current) return; // Already submitted via Enter or Blur
     if (!newItemName.trim() || !creationState) {
       setCreationState(null);
       return;
     }
 
+    submittedRef.current = true;
     const parentPath = creationState.parentPath ? `${creationState.parentPath}/` : "";
     const finalPath = `${parentPath}${newItemName.trim()}`;
 
     onCreate(finalPath, creationState.type);
     setCreationState(null);
     setNewItemName("");
+    // Reset the ref after a tick so future creations work
+    setTimeout(() => { submittedRef.current = false; }, 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleCreationSubmit();
-    if (e.key === "Escape") setCreationState(null);
+    if (e.key === "Escape") {
+      submittedRef.current = true; // Prevent onBlur from submitting
+      setCreationState(null);
+      setTimeout(() => { submittedRef.current = false; }, 0);
+    }
   };
 
   const renderCreationInput = (depth: number) => {
@@ -101,7 +113,7 @@ export function FileExplorer({
           value={newItemName}
           onChange={(e) => setNewItemName(e.target.value)}
           onKeyDown={handleKeyDown}
-          onBlur={() => setCreationState(null)}
+          onBlur={() => handleCreationSubmit()}
           placeholder={creationState?.type === "FILE" ? "File name..." : "Folder name..."}
           onClick={(e) => e.stopPropagation()}
         />
@@ -123,7 +135,7 @@ export function FileExplorer({
       return (
         <div key={node.path}>
           <div
-            className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded cursor-pointer transition-colors ${isSelected
+            className={`group flex items-center gap-1.5 text-xs px-2 py-1 rounded cursor-pointer transition-colors ${isSelected
               ? "bg-[#71717A]/20 text-[#D4AF37]"
               : "text-white/80 hover:bg-white/5"
               }`}
@@ -141,7 +153,19 @@ export function FileExplorer({
               )}
             </div>
             <FolderIcon className={`w-3.5 h-3.5 ${isSelected ? "text-[#A1A1AA]" : "text-[#F59E0B]"}`} />
-            <span className="truncate">{node.name}</span>
+            <span className="truncate flex-1">{node.name}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Delete folder "${node.name}" and all its contents?`)) {
+                  onDelete(node.path);
+                }
+              }}
+              className="opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/40 hover:text-red-400 p-1 rounded transition-all"
+              title="Delete folder"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
           </div>
 
           {isOpen && (
@@ -159,13 +183,25 @@ export function FileExplorer({
     return (
       <div
         key={node.path}
-        className="flex items-center gap-1.5 text-xs text-white/70 hover:bg-white/5 px-2 py-1 rounded cursor-pointer"
+        className="group flex items-center gap-1.5 text-xs text-white/70 hover:bg-white/5 px-2 py-1 rounded cursor-pointer"
         style={{ paddingLeft }}
         onClick={() => onSelect(node.path)}
       >
         <span className="w-3 inline-block" /> {/* Spacer for alignment since no chevron */}
         <FileIcon className="w-3.5 h-3.5 text-white/60" />
-        <span className="truncate">{node.name}</span>
+        <span className="truncate flex-1">{node.name}</span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (window.confirm(`Delete file "${node.name}"?`)) {
+              onDelete(node.path);
+            }
+          }}
+          className="opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/40 hover:text-red-400 p-1 rounded transition-all"
+          title="Delete file"
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
       </div>
     );
   };

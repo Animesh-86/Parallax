@@ -58,6 +58,9 @@ public class CustomOAuth2UserService
             );
         }
 
+        // Put the extracted/fallback email back into attributes so SuccessHandler can find it
+        attributes.put("email", email);
+
 
         // SINGLE LOCAL USER (email is the current trust anchor)
         User user = userRepo.findByEmail(email)

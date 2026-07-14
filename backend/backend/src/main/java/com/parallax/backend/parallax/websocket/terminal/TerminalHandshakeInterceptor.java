@@ -53,7 +53,7 @@ public class TerminalHandshakeInterceptor extends BaseAuthHandshakeInterceptor {
     private UUID extractProjectId(String path) {
         try {
             String[] parts = path.split("/");
-            if (parts.length >= 4 && "terminal".equals(parts[2])) {
+            if (parts.length >= 3 && "terminal".equals(parts[parts.length - 2])) {
                 return UUID.fromString(parts[parts.length - 1]);
             }
         } catch (Exception e) {

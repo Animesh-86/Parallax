@@ -6,6 +6,7 @@ import { IntegrationsSidebar } from "../components/workspace/IntegrationsSidebar
 import { FileExplorer } from "../components/workspace/FileExplorer";
 import { EditorTabs } from "../components/workspace/EditorTabs";
 import CodeEditor from "../components/workspace/CodeEditor";
+import { EditorErrorBoundary } from "../components/workspace/EditorErrorBoundary";
 import React, { useMemo } from "react";
 const Terminal = React.lazy(() => import("../components/workspace/Terminal").then(m => ({ default: m.Terminal })));
 const VideoPanel = React.lazy(() => import("../components/workspace/VideoPanel").then(m => ({ default: m.VideoPanel })));
@@ -32,7 +33,7 @@ type FileNode = {
 
 /* ✅ FIXED AXIOS INSTANCE (DO NOT REMOVE) */
 const api = axios.create({
-  baseURL: `${apiBaseUrl}/api`,
+  baseURL: apiBaseUrl,
   withCredentials: true,
 });
 
@@ -67,6 +68,7 @@ export default function Workspace() {
   const [fileContent, setFileContent] = useState("");
 
   const [terminalOpen, setTerminalOpen] = useState(false);
+  const [terminalActiveTab, setTerminalActiveTab] = useState("terminal");
   const [runSignal, setRunSignal] = useState(0);
   const [runOutput, setRunOutput] = useState("");
   const [runExitCode, setRunExitCode] = useState<number | null>(null);
@@ -86,9 +88,9 @@ export default function Workspace() {
   /* Right Panel Tools State */
   type RightTool = "video" | "chat" | "collaborators" | "ai" | "activity";
   const [activeRightTools, setActiveRightTools] = useState<RightTool[]>(["collaborators"]);
-  
+
   const toggleRightTool = (tool: RightTool) => {
-    setActiveRightTools((prev) => 
+    setActiveRightTools((prev) =>
       prev.includes(tool) ? prev.filter(t => t !== tool) : [...prev, tool]
     );
   };
@@ -124,8 +126,8 @@ export default function Workspace() {
     try {
       setLoadingName(true);
       setLoadingTree(true);
-      
-      const res = await api.get(`/workspace/${projectId}/bootstrap`);
+
+      const res = await api.get(`/api/v1/projects/${projectId}/bootstrap`);
       const data = res.data;
 
       // 1. Project details
@@ -165,6 +167,7 @@ export default function Workspace() {
     } catch (err) {
       console.error("Failed to bootstrap workspace", err);
       setProjectName("Parallax Workspace");
+      await loadTree();
     } finally {
       setLoadingName(false);
       setLoadingTree(false);
@@ -181,7 +184,7 @@ export default function Workspace() {
     if (!projectId) return;
     try {
       setLoadingTree(true);
-      const res = await api.get(`/projects/${projectId}/files/tree`);
+      const res = await api.get(`/api/v1/projects/${projectId}/files/tree`);
       setFileTree(res.data);
     } catch (e) {
       console.error("Tree load fail", e);
@@ -199,7 +202,7 @@ export default function Workspace() {
 
     try {
       setLoadingContent(true);
-      const res = await api.get(`/projects/${projectId}/file`, {
+      const res = await api.get(`/api/v1/projects/${projectId}/file`, {
         params: { path },
       });
 
@@ -225,21 +228,52 @@ export default function Workspace() {
     }
   };
 
-  const saveFile = async (content: string) => {
+  const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const saveFile = React.useCallback(async (content: string) => {
     if (!projectId || !activeFile) return;
     setFileContent(content);
-    // Server-side debounced save handled by WebSocket.
+
+    // Reliable REST API fallback save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await api.put(`/api/v1/projects/${projectId}/file`, content, {
+          params: { path: activeFile },
+          headers: { "Content-Type": "text/plain" }
+        });
+      } catch (err) {
+        console.error("REST save failed", err);
+      }
+    }, 1000);
+  }, [projectId, activeFile]);
+
+  const handleCreateNew = async (parentId: string | null, type: "FILE" | "FOLDER") => {
+    if (!projectId) return;
+    const name = prompt(`Enter new ${type.toLowerCase()} name:`);
+    if (!name) return;
+    const path = parentId ? `${parentId}/${name}` : name;
+    await createEntry(path, type);
   };
 
   const createEntry = async (path: string, type: "FILE" | "FOLDER") => {
     if (!projectId) return;
-    await api.post(`/projects/${projectId}/files`, { path, type });
-    await loadTree();
+    try {
+      await api.post(`/api/v1/projects/${projectId}/files`, { path, type });
+      await loadTree();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to create entry";
+      console.error("Create entry failed:", msg, err);
+      alert(`Failed to create ${type.toLowerCase()}: ${msg}`);
+    }
   };
 
   const deleteEntry = async (path: string) => {
     if (!projectId) return;
-    await api.delete(`/projects/${projectId}/file`, { params: { path } });
+    await api.delete(`/api/v1/projects/${projectId}/file`, { params: { path } });
     if (activeFile === path) {
       setActiveFile(null);
       setFileContent("");
@@ -355,7 +389,7 @@ export default function Workspace() {
                             await versioningApi.checkoutBranch(projectId, b.name);
                             // Refresh file tree if we switch branches
                             await loadTree();
-                            
+
                             // Reload active file content if one is open
                             if (activeFile) {
                               await openFile(activeFile);
@@ -365,6 +399,7 @@ export default function Workspace() {
                           }
                         }}
                         githubRepoUrl={projectSettings?.githubRepoUrl}
+                        onRemoteAdded={() => bootstrapWorkspace()}
                       />
                     </div>
                   </div>
@@ -379,16 +414,16 @@ export default function Workspace() {
 
 
                 {activeLeftTool === "settings" && projectId && (
-                  <ProjectSettingsPanel 
-                    projectId={projectId} 
-                    onClose={() => setActiveLeftTool(null)} 
+                  <ProjectSettingsPanel
+                    projectId={projectId}
+                    onClose={() => setActiveLeftTool(null)}
                     onUpdate={() => bootstrapWorkspace()}
                   />
                 )}
-                
+
                 {activeLeftTool === "ide-settings" && (
-                  <IdeSettingsPanel 
-                    onClose={() => setActiveLeftTool(null)} 
+                  <IdeSettingsPanel
+                    onClose={() => setActiveLeftTool(null)}
                     onSettingsChange={(newSettings) => setIdeSettings(newSettings)}
                   />
                 )}
@@ -413,14 +448,19 @@ export default function Workspace() {
               onClose={closeFile}
               onRun={() => {
                 setTerminalOpen(true);
+                setTerminalActiveTab("output");
                 setRunSignal((v) => v + 1);
               }}
-              onOpenPreview={() => {
-                if (!openFiles.includes("browser-preview")) {
-                  setOpenFiles(prev => [...prev, "browser-preview"]);
-                }
-                setActiveFile("browser-preview");
-              }}
+              onOpenPreview={
+                projectSettings && !['c', 'cpp', 'python', 'java'].includes(projectSettings?.language?.toLowerCase())
+                  ? () => {
+                    if (!openFiles.includes("browser-preview")) {
+                      setOpenFiles(prev => [...prev, "browser-preview"]);
+                    }
+                    setActiveFile("browser-preview");
+                  }
+                  : undefined
+              }
               teamId={teamId}
               teamName={teamName}
             />
@@ -438,27 +478,29 @@ export default function Workspace() {
               )}
               {activeFile === "browser-preview" ? (
                 <React.Suspense fallback={<div className="p-4 text-white/50">Loading preview...</div>}>
-                  <BrowserPreviewPanel projectId={projectId!} />
+                  <BrowserPreviewPanel projectId={projectId!} language={projectSettings?.language} />
                 </React.Suspense>
               ) : (
-                <CodeEditor
-                  filePath={activeFile}
-                  content={fileContent}
-                  onChange={saveFile}
-                  runSignal={runSignal}
-                  onRunResult={(out, code) => {
-                    setRunOutput(out);
-                    setRunExitCode(code);
-                  }}
-                  {...editorSettings}
-                  ideSettings={ideSettings}
-                  onAiAction={(prompt: string) => {
-                    if (!activeRightTools.includes("ai")) {
-                      toggleRightTool("ai");
-                    }
-                    window.dispatchEvent(new CustomEvent("trigger-ai-chat", { detail: prompt }));
-                  }}
-                />
+                <EditorErrorBoundary key={activeFile} onRetry={() => activeFile && openFile(activeFile)}>
+                  <CodeEditor
+                    filePath={activeFile}
+                    content={fileContent}
+                    onChange={saveFile}
+                    runSignal={runSignal}
+                    onRunResult={(out, code) => {
+                      setRunOutput(out);
+                      setRunExitCode(code);
+                    }}
+                    {...editorSettings}
+                    ideSettings={ideSettings}
+                    onAiAction={(prompt: string) => {
+                      if (!activeRightTools.includes("ai")) {
+                        toggleRightTool("ai");
+                      }
+                      window.dispatchEvent(new CustomEvent("trigger-ai-chat", { detail: prompt }));
+                    }}
+                  />
+                </EditorErrorBoundary>
               )}
             </div>
 
@@ -469,6 +511,8 @@ export default function Workspace() {
                 output={runOutput}
                 exitCode={runExitCode}
                 projectId={projectId}
+                activeTab={terminalActiveTab}
+                onTabChange={setTerminalActiveTab}
               />
             </React.Suspense>
           </div>
@@ -488,8 +532,8 @@ export default function Workspace() {
             style={{ width: rightPanelWidth }}
           >
             {activeRightTools.map((tool, index) => (
-              <div 
-                key={tool} 
+              <div
+                key={tool}
                 className={`flex-1 overflow-hidden flex flex-col min-h-[250px] ${index > 0 ? 'border-t border-white/10' : ''}`}
               >
                 {tool === "video" && (
@@ -497,19 +541,19 @@ export default function Workspace() {
                     <VideoPanel mode="video" onModeChange={() => { }} onClose={() => toggleRightTool("video")} />
                   </React.Suspense>
                 )}
-                
+
                 {tool === "chat" && projectId && (
-                  <UnifiedChatPanel 
-                    contextId={projectId} 
-                    contextType="PROJECT" 
+                  <UnifiedChatPanel
+                    contextId={projectId}
+                    contextType="PROJECT"
                     contextName={projectName}
                     wsClient={projectChatWs}
-                    onClose={() => toggleRightTool("chat")} 
+                    onClose={() => toggleRightTool("chat")}
                   />
                 )}
-                
+
                 {tool === "collaborators" && <ParticipantsList onClose={() => toggleRightTool("collaborators")} />}
-                
+
                 {tool === "ai" && (
                   <div className="flex flex-col h-full w-full">
                     <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 shrink-0">
@@ -561,7 +605,7 @@ export default function Workspace() {
           >
             <Bot size={20} />
           </button>
-          
+
         </div>
       </div>
     </div>

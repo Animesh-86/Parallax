@@ -106,7 +106,10 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                     .withAttachStdin(true)
                     .withTty(true) // TRUE PTY!
                     .withCmd("/bin/bash")
-                    .withEnv(java.util.Arrays.asList("TERM=xterm"))
+                    .withEnv(java.util.Arrays.asList(
+                            "TERM=xterm",
+                            "PS1=\\[\\033[1;32m\\]coder@parallax\\[\\033[0m\\]:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]$ "
+                    ))
                     .exec();
 
             // 🔒 Audit log: terminal session opened

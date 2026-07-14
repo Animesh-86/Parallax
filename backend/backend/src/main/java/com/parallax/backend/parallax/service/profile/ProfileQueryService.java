@@ -106,10 +106,11 @@ public class ProfileQueryService {
 
         PublicProfileResponse response;
         if (isPrivate) {
+            boolean githubConnected = user.getGithubAccessToken() != null && !user.getGithubAccessToken().isBlank();
             response = new ProfileResponse(
                     user.getUsername(), user.getFullName(), user.getBio(),
                     user.getLocation(), user.getAvatarUrl(), user.getCreatedAt(), user.getEmail(),
-                    user.getIdeSettings(), statsDto, badges, activities, graph
+                    user.getIdeSettings(), githubConnected, statsDto, badges, activities, graph
             );
         } else {
             response = new PublicProfileResponse(
