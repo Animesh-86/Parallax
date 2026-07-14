@@ -1,28 +1,58 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Bot, User, Loader2, Trash2 } from 'lucide-react';
 import { aiApi } from '../../services/aiApi';
 
 interface AiChatPanelProps {
   activeFileContent?: string;
   activeFileName?: string | null;
+  projectId?: string;
 }
 
 interface Message {
   id: string;
   sender: 'user' | 'ai';
   text: string;
-  timestamp: Date;
+  timestamp: string; // ISO string for JSON serialization
 }
 
-export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      sender: 'ai',
-      text: 'Hello! I am Parallax AI. How can I help you with your code today?',
-      timestamp: new Date()
+const WELCOME_MESSAGE: Message = {
+  id: 'welcome',
+  sender: 'ai',
+  text: 'Hello! I am Parallax AI. How can I help you with your code today?',
+  timestamp: new Date().toISOString()
+};
+
+function getStorageKey(projectId?: string) {
+  return projectId ? `parallax-ai-chat-${projectId}` : null;
+}
+
+function loadMessages(projectId?: string): Message[] {
+  const key = getStorageKey(projectId);
+  if (!key) return [WELCOME_MESSAGE];
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored) as Message[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
-  ]);
+  } catch {
+    // Corrupted data — fall back to welcome
+  }
+  return [WELCOME_MESSAGE];
+}
+
+function saveMessages(projectId: string | undefined, messages: Message[]) {
+  const key = getStorageKey(projectId);
+  if (!key) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(messages));
+  } catch {
+    // Storage full — silently fail
+  }
+}
+
+export function AiChatPanel({ activeFileContent, activeFileName, projectId }: AiChatPanelProps) {
+  const [messages, setMessages] = useState<Message[]>(() => loadMessages(projectId));
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,9 +61,19 @@ export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Persist messages whenever they change
+  useEffect(() => {
+    saveMessages(projectId, messages);
+  }, [messages, projectId]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // Reload messages when projectId changes
+  useEffect(() => {
+    setMessages(loadMessages(projectId));
+  }, [projectId]);
 
   useEffect(() => {
     const handleTrigger = (e: Event) => {
@@ -59,7 +99,7 @@ export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelPr
       id: Date.now().toString(),
       sender: 'user',
       text: input.trim(),
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -77,7 +117,7 @@ export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelPr
         id: (Date.now() + 1).toString(),
         sender: 'ai',
         text: response.reply,
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
@@ -86,13 +126,17 @@ export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelPr
         id: (Date.now() + 1).toString(),
         sender: 'ai',
         text: 'Sorry, I encountered an error while processing your request.',
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleClearChat = useCallback(() => {
+    setMessages([WELCOME_MESSAGE]);
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-[#09090B]">
@@ -102,6 +146,13 @@ export function AiChatPanel({ activeFileContent, activeFileName }: AiChatPanelPr
           <Bot className="w-4 h-4 text-[#D4AF37]" />
           <h3 className="text-sm font-semibold text-white/90">Parallax AI</h3>
         </div>
+        <button
+          onClick={handleClearChat}
+          title="Clear chat history"
+          className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* Messages */}

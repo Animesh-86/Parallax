@@ -76,6 +76,7 @@ export default function Workspace() {
 
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
   const [leftPanelWidth, setLeftPanelWidth] = useState(320);
+  const [rightPanelSplitRatio, setRightPanelSplitRatio] = useState(0.4);
   const [loadingTree, setLoadingTree] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
 
@@ -294,6 +295,30 @@ export default function Workspace() {
     const onMove = (ev: MouseEvent) => {
       const delta = startX - ev.clientX; // Dragging left increases width
       setRightPanelWidth(Math.min(Math.max(startWidth + delta, 260), 600));
+    };
+    const onUp = () => {
+      document.body.style.cursor = "default";
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
+  // Resize handler - RIGHT PANEL VERTICAL SPLIT
+  const rightPanelRef = React.useRef<HTMLDivElement>(null);
+  const handleRightSplitMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startRatio = rightPanelSplitRatio;
+    const panelEl = rightPanelRef.current;
+    if (!panelEl) return;
+    const panelHeight = panelEl.getBoundingClientRect().height;
+    document.body.style.cursor = "row-resize";
+    const onMove = (ev: MouseEvent) => {
+      const deltaY = ev.clientY - startY;
+      const deltaRatio = deltaY / panelHeight;
+      setRightPanelSplitRatio(Math.min(Math.max(startRatio + deltaRatio, 0.15), 0.85));
     };
     const onUp = () => {
       document.body.style.cursor = "default";
@@ -545,49 +570,67 @@ export default function Workspace() {
         {/* Right Panel Content */}
         {activeRightTools.length > 0 && (
           <div
+            ref={rightPanelRef}
             className="flex flex-col h-full flex-shrink-0 bg-[#09090B] border-l border-white/5"
             style={{ width: rightPanelWidth }}
           >
-            {activeRightTools.map((tool, index) => (
-              <div
-                key={tool}
-                className={`flex-1 overflow-hidden flex flex-col min-h-[250px] ${index > 0 ? 'border-t border-white/10' : ''}`}
-              >
-                {tool === "video" && (
-                  <React.Suspense fallback={<div className="p-4 text-white/50">Loading video...</div>}>
-                    <VideoPanel mode="video" onModeChange={() => { }} onClose={() => toggleRightTool("video")} />
-                  </React.Suspense>
-                )}
+            {activeRightTools.map((tool, index) => {
+              // Calculate height: if multiple tools, use split ratio; if single, use full height
+              const isSplit = activeRightTools.length > 1;
+              const heightStyle = isSplit
+                ? { height: index === 0 ? `calc(${rightPanelSplitRatio * 100}% - 2px)` : `calc(${(1 - rightPanelSplitRatio) * 100}% - 2px)`, flex: 'none' as const }
+                : { flex: '1 1 0%' as const };
 
-                {tool === "chat" && projectId && (
-                  <UnifiedChatPanel
-                    contextId={projectId}
-                    contextType="PROJECT"
-                    contextName={projectName}
-                    wsClient={projectChatWs}
-                    onClose={() => toggleRightTool("chat")}
-                  />
-                )}
+              return (
+                <React.Fragment key={tool}>
+                  {/* Draggable vertical splitter between tools */}
+                  {index > 0 && activeRightTools.length > 1 && (
+                    <div
+                      className="h-1 cursor-row-resize bg-white/5 hover:bg-white/20 active:bg-[#D4AF37]/30 transition-colors shrink-0"
+                      onMouseDown={handleRightSplitMouseDown}
+                    />
+                  )}
+                  <div
+                    className="overflow-hidden flex flex-col"
+                    style={heightStyle}
+                  >
+                    {tool === "video" && (
+                      <React.Suspense fallback={<div className="p-4 text-white/50">Loading video...</div>}>
+                        <VideoPanel mode="video" onModeChange={() => { }} onClose={() => toggleRightTool("video")} />
+                      </React.Suspense>
+                    )}
 
-                {tool === "collaborators" && <ParticipantsList onClose={() => toggleRightTool("collaborators")} />}
+                    {tool === "chat" && projectId && (
+                      <UnifiedChatPanel
+                        contextId={projectId}
+                        contextType="PROJECT"
+                        contextName={projectName}
+                        wsClient={projectChatWs}
+                        onClose={() => toggleRightTool("chat")}
+                      />
+                    )}
 
-                {tool === "ai" && (
-                  <div className="flex flex-col h-full w-full">
-                    <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 shrink-0">
-                      <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
-                      <button onClick={() => toggleRightTool("ai")} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      {ideSettings.enableAiChat && (
-                        <React.Suspense fallback={<div className="p-4 text-white/50">Loading AI...</div>}>
-                          <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile || undefined} />
-                        </React.Suspense>
-                      )}
-                    </div>
+                    {tool === "collaborators" && <ParticipantsList onClose={() => toggleRightTool("collaborators")} />}
+
+                    {tool === "ai" && (
+                      <div className="flex flex-col h-full w-full">
+                        <div className="px-3 py-2 flex items-center justify-between border-b border-white/5 shrink-0">
+                          <span className="text-xs font-semibold tracking-wide text-white/60">AI ASSISTANT</span>
+                          <button onClick={() => toggleRightTool("ai")} className="hover:bg-white/10 p-1 rounded"><X className="w-4 h-4 text-white/60" /></button>
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                          {ideSettings.enableAiChat && (
+                            <React.Suspense fallback={<div className="p-4 text-white/50">Loading AI...</div>}>
+                              <AiChatPanel activeFileContent={fileContent} activeFileName={activeFile || undefined} projectId={projectId} />
+                            </React.Suspense>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </React.Fragment>
+              );
+            })}
           </div>
         )}
 
