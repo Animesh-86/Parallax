@@ -59,6 +59,11 @@ export default function CodeEditor({
   const [editorInstance, setEditorInstance] = useState<any>(null);
   const [monacoInstance, setMonacoInstance] = useState<any>(null);
   const decorationsCollection = useRef<any>(null);
+  
+  const ideSettingsRef = useRef(ideSettings);
+  useEffect(() => {
+    ideSettingsRef.current = ideSettings;
+  }, [ideSettings]);
 
   useEffect(() => {
     return () => {
@@ -493,64 +498,61 @@ export default function CodeEditor({
     }
 
     // Register Inline Autocomplete Provider
-    if (ideSettings.enableAiAutocomplete) {
-      let autocompleteDebounceTimer: number;
-      const provider = monaco.languages.registerInlineCompletionsProvider('*', {
-        provideInlineCompletions: async (model: any, position: any) => {
-          return new Promise((resolve) => {
-            clearTimeout(autocompleteDebounceTimer);
-            autocompleteDebounceTimer = window.setTimeout(async () => {
-              try {
-                // Get prefix and suffix text around cursor
-                const textUntilPosition = model.getValueInRange({
-                  startLineNumber: 1,
-                  startColumn: 1,
-                  endLineNumber: position.lineNumber,
-                  endColumn: position.column
-                });
-                
-                const textAfterPosition = model.getValueInRange({
-                  startLineNumber: position.lineNumber,
-                  startColumn: position.column,
-                  endLineNumber: model.getLineCount(),
-                  endColumn: model.getLineMaxColumn(model.getLineCount())
-                });
+    let autocompleteDebounceTimer: number;
+    const provider = monaco.languages.registerInlineCompletionsProvider('*', {
+      provideInlineCompletions: async (model: any, position: any) => {
+        if (!ideSettingsRef.current?.enableAiAutocomplete) {
+          return { items: [] };
+        }
+        return new Promise((resolve) => {
+          clearTimeout(autocompleteDebounceTimer);
+          autocompleteDebounceTimer = window.setTimeout(async () => {
+            try {
+              const textUntilPosition = model.getValueInRange({
+                startLineNumber: 1,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column
+              });
+              
+              const textAfterPosition = model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: position.column,
+                endLineNumber: model.getLineCount(),
+                endColumn: model.getLineMaxColumn(model.getLineCount())
+              });
 
-                // Dynamically import aiApi here or at the top of file
-                // I will assume it's imported or I can use fetch directly. 
-                // Let's use fetch directly to avoid import issues for now
-                const res = await api.post('/api/v1/ai/autocomplete', {
-                  prefix: textUntilPosition,
-                  suffix: textAfterPosition
-                });
-                
-                if (res.status === 200) {
-                  const data = res.data;
-                  if (data.completion) {
-                    resolve({
-                      items: [{
-                        insertText: data.completion,
-                        range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column)
-                      }]
-                    });
-                    return;
-                  }
+              const res = await api.post('/api/v1/ai/autocomplete', {
+                prefix: textUntilPosition,
+                suffix: textAfterPosition
+              });
+              
+              if (res.status === 200) {
+                const data = res.data;
+                if (data.completion) {
+                  resolve({
+                    items: [{
+                      insertText: data.completion,
+                      range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column)
+                    }]
+                  });
+                  return;
                 }
-                resolve({ items: [] });
-              } catch (e) {
-                console.error("Autocomplete failed:", e);
-                resolve({ items: [] });
               }
-            }, 500); // 500ms debounce
-          });
-        },
-        freeInlineCompletions: () => {}
-      });
+              resolve({ items: [] });
+            } catch (e) {
+              console.error("Autocomplete failed:", e);
+              resolve({ items: [] });
+            }
+          }, 500);
+        });
+      },
+      freeInlineCompletions: (completions: any) => {}
+    });
 
-      editor.onDidDispose(() => {
-        provider.dispose();
-      });
-    }
+    editor.onDidDispose(() => {
+      provider.dispose();
+    });
   };
 
   if (!filePath) {

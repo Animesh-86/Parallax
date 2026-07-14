@@ -20,7 +20,6 @@ import { Skeleton } from "../components/ui/skeleton";
 import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
 import { ExtensionsPanel } from "../components/workspace/ExtensionsPanel";
-import { IdeSettingsPanel } from "../components/workspace/IdeSettingsPanel";
 import { SearchPanel } from "../components/workspace/SearchPanel";
 import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
 import { ParticipantsList } from "../components/workspace/ParticipantsList";
@@ -50,7 +49,7 @@ export default function Workspace() {
   const { projectId } = useParams();
 
   /* Left Panel Tools State */
-  type LeftTool = "explorer" | "git" | "extensions" | "settings" | "ide-settings" | "search" | null;
+  type LeftTool = "explorer" | "git" | "extensions" | "settings" | "search" | null;
   const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("explorer");
 
   const toggleLeftTool = (tool: LeftTool) => {
@@ -108,6 +107,7 @@ export default function Workspace() {
     formatOnSave: true,
     enableAiReview: true,
     enableAiChat: true,
+    enableAiAutocomplete: true,
   });
 
   const templates = [
@@ -445,13 +445,7 @@ export default function Workspace() {
                     projectId={projectId}
                     onClose={() => setActiveLeftTool(null)}
                     onUpdate={() => bootstrapWorkspace()}
-                  />
-                )}
-
-                {activeLeftTool === "ide-settings" && (
-                  <IdeSettingsPanel
-                    onClose={() => setActiveLeftTool(null)}
-                    onSettingsChange={(newSettings) => setIdeSettings(newSettings)}
+                    onIdeSettingsChange={(newSettings) => setIdeSettings(newSettings)}
                   />
                 )}
 

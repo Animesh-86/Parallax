@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Shield, Terminal, Trash2, Users, Info, ChevronRight, Check, X, Type, Layout, Cpu, Globe, ChevronDown } from 'lucide-react';
+import { Settings, Save, Shield, Terminal, Trash2, Users, Info, ChevronRight, Check, X, Type, Layout, Cpu, Globe, ChevronDown, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { projectSettingsApi } from '../../services/projectSettingsApi';
 import { collabApi, Collaborator } from '../../services/collabApi';
 import { ConfirmModal } from '../modals/ConfirmModal';
+import api from '../../services/api';
 
 interface ProjectSettingsPanelProps {
   projectId: string;
   onUpdate?: () => void;
   onClose?: () => void;
+  onIdeSettingsChange?: (settings: any) => void;
 }
 
-export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSettingsPanelProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'editor' | 'environment' | 'collaborators' | 'danger'>('general');
+export function ProjectSettingsPanel({ projectId, onUpdate, onClose, onIdeSettingsChange }: ProjectSettingsPanelProps) {
+  const [activeTab, setActiveTab] = useState<'general' | 'editor' | 'environment' | 'collaborators' | 'ide' | 'danger'>('general');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +42,10 @@ export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSe
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [teamInfo, setTeamInfo] = useState<{ id?: string; name?: string }>({});
   const [runtimeName, setRuntimeName] = useState('Standard Sandbox');
+  const [ideSettings, setIdeSettings] = useState<any>({
+    enableAiAutocomplete: true,
+    enableAiChat: true,
+  });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
@@ -66,9 +72,18 @@ export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSe
       }
     } catch (err) {
       setError('Failed to load project settings');
-    } finally {
-      setLoading(false);
     }
+
+    try {
+      const res = await api.get("/api/v1/profiles/me");
+      if (res.data.ideSettings) {
+        setIdeSettings(JSON.parse(res.data.ideSettings));
+      }
+    } catch (err) {
+      console.error('Failed to load IDE settings', err);
+    }
+
+    setLoading(false);
   };
 
   const handleSave = async () => {
@@ -83,6 +98,15 @@ export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSe
         aiReviewEnabled,
         settingsJson: JSON.stringify(settings)
       });
+      
+      await api.patch("/api/v1/profiles/me/settings", {
+        ideSettings: JSON.stringify(ideSettings),
+      });
+
+      if (onIdeSettingsChange) {
+        onIdeSettingsChange(ideSettings);
+      }
+
       setSuccess(true);
       if (onUpdate) onUpdate();
       setTimeout(() => setSuccess(false), 3000);
@@ -144,9 +168,10 @@ export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSe
             {activeTab === 'editor' && <Type className="w-4 h-4 text-[#D4AF37]" />}
             {activeTab === 'environment' && <Cpu className="w-4 h-4 text-[#D4AF37]" />}
             {activeTab === 'collaborators' && <Users className="w-4 h-4 text-[#D4AF37]" />}
+            {activeTab === 'ide' && <Bot className="w-4 h-4 text-[#D4AF37]" />}
             {activeTab === 'danger' && <Shield className="w-4 h-4 text-[#EF6461]" />}
             <span className="uppercase tracking-wider font-bold text-[10px]">
-              {activeTab === 'general' ? 'General' : activeTab === 'editor' ? 'Editor' : activeTab === 'environment' ? 'Runtime' : activeTab === 'collaborators' ? 'Team' : 'Danger'}
+              {activeTab === 'general' ? 'General' : activeTab === 'editor' ? 'Editor' : activeTab === 'environment' ? 'Runtime' : activeTab === 'collaborators' ? 'Team' : activeTab === 'ide' ? 'Global IDE' : 'Danger'}
             </span>
           </div>
           <ChevronDown className={`w-4 h-4 text-white/50 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -179,6 +204,7 @@ export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSe
                   { id: 'editor', icon: Type, label: 'Editor' },
                   { id: 'environment', icon: Cpu, label: 'Runtime' },
                   { id: 'collaborators', icon: Users, label: 'Team' },
+                  { id: 'ide', icon: Bot, label: 'Global IDE' },
                   { id: 'danger', icon: Shield, label: 'Danger' }
                 ].map((tab) => {
                   if (tab.id === 'collaborators' && !teamInfo.id) return null;
@@ -407,6 +433,46 @@ export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSe
           </div>
         )}
 
+        {activeTab === 'ide' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-white/80 border-b border-white/10 pb-2">AI Features</h3>
+              
+              <label className="flex items-center justify-between cursor-pointer group">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Inline Autocomplete</span>
+                  <span className="text-xs text-white/40">Show AI ghost text while typing</span>
+                </div>
+                <div className={`w-10 h-5 rounded-full p-1 transition-colors ${ideSettings.enableAiAutocomplete ? 'bg-[#D4AF37]' : 'bg-white/10'}`}>
+                  <div className={`w-3 h-3 rounded-full bg-white transition-transform ${ideSettings.enableAiAutocomplete ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
+                <input 
+                  type="checkbox" 
+                  className="hidden" 
+                  checked={ideSettings.enableAiAutocomplete}
+                  onChange={(e) => setIdeSettings({...ideSettings, enableAiAutocomplete: e.target.checked})}
+                />
+              </label>
+
+              <label className="flex items-center justify-between cursor-pointer group">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">AI Chat Panel</span>
+                  <span className="text-xs text-white/40">Enable the AI assistant sidebar</span>
+                </div>
+                <div className={`w-10 h-5 rounded-full p-1 transition-colors ${ideSettings.enableAiChat ? 'bg-[#D4AF37]' : 'bg-white/10'}`}>
+                  <div className={`w-3 h-3 rounded-full bg-white transition-transform ${ideSettings.enableAiChat ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
+                <input 
+                  type="checkbox" 
+                  className="hidden" 
+                  checked={ideSettings.enableAiChat}
+                  onChange={(e) => setIdeSettings({...ideSettings, enableAiChat: e.target.checked})}
+                />
+              </label>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'danger' && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl space-y-4">
@@ -436,35 +502,25 @@ export function ProjectSettingsPanel({ projectId, onUpdate, onClose }: ProjectSe
         )}
       </div>
 
-      {/* Footer / Save Button - Floating Style */}
+      {/* Simple Footer / Save Button */}
       {activeTab !== 'danger' && activeTab !== 'collaborators' && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#09090B] via-[#09090B] to-transparent">
-          <div className="p-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl flex items-center justify-between shadow-2xl">
-            <div className="flex flex-col">
-              {error && <span className="text-[10px] text-red-500 font-bold">{error}</span>}
-              {success && <span className="text-[10px] text-[#D4AF37] font-bold flex items-center gap-1 animate-bounce"><Check className="w-3 h-3" /> SAVED!</span>}
-              {!error && !success && (
-                <>
-                  <span className="text-[10px] text-white/40 font-bold uppercase tracking-tighter">Draft Changes</span>
-                  <span className="text-[9px] text-white/20">Pending sync...</span>
-                </>
-              )}
-            </div>
-            <button 
-              onClick={handleSave}
-              disabled={saving}
-              className={`px-6 py-2.5 rounded-lg bg-[#D4AF37] text-black text-[11px] font-bold shadow-lg shadow-[#D4AF37]/20 flex items-center gap-2 transition-all active:scale-95 hover:shadow-[#D4AF37]/40 ${saving ? 'opacity-50' : ''}`}
-            >
-              {saving ? (
-                <div className="animate-spin w-3 h-3 border-2 border-black/30 border-t-black rounded-full" />
-              ) : (
-                <>
-                  <Save className="w-3.5 h-3.5" />
-                  SAVE SETTINGS
-                </>
-              )}
-            </button>
-          </div>
+        <div className="p-4 border-t border-white/10 bg-[#09090B]">
+          {error && <div className="text-[10px] text-red-500 font-bold mb-2 text-center">{error}</div>}
+          {success && <div className="text-[10px] text-[#D4AF37] font-bold mb-2 text-center flex items-center justify-center gap-1 animate-pulse"><Check className="w-3 h-3" /> SAVED SUCCESSFULLY</div>}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#D4AF37] text-black font-medium rounded hover:bg-[#D4AF37]/90 transition-colors disabled:opacity-50`}
+          >
+            {saving ? (
+              <div className="animate-spin w-4 h-4 border-2 border-black/30 border-t-black rounded-full" />
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save Settings
+              </>
+            )}
+          </button>
         </div>
       )}
 
