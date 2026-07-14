@@ -22,7 +22,7 @@ const Contact = React.lazy(() => import("./pages/Contact"));
 const Privacy = React.lazy(() => import("./pages/Privacy"));
 const Terms = React.lazy(() => import("./pages/Terms"));
 import RequireAuth from "./auth/RequireAuth";
-import OAuthSuccessPage from "./pages/0AuthSuccessPage";
+import OAuthSuccessPage from "./pages/OAuthSuccessPage";
 import OAuthFailurePage from "./pages/OAuthFailurePage";
 import Onboarding from "./pages/Onboarding";
 import { Outlet } from "react-router-dom";
