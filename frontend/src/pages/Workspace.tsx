@@ -21,6 +21,8 @@ import { apiBaseUrl } from "../services/env";
 import { ProjectSettingsPanel } from "../components/workspace/ProjectSettingsPanel";
 import { ExtensionsPanel } from "../components/workspace/ExtensionsPanel";
 import { SearchPanel } from "../components/workspace/SearchPanel";
+import { DebuggerPanel } from "../components/workspace/DebuggerPanel";
+import { wsDap } from "../services/wsDap";
 import { UnifiedChatPanel } from "../components/chat/UnifiedChatPanel";
 import { ParticipantsList } from "../components/workspace/ParticipantsList";
 
@@ -49,7 +51,7 @@ export default function Workspace() {
   const { projectId } = useParams();
 
   /* Left Panel Tools State */
-  type LeftTool = "explorer" | "git" | "extensions" | "settings" | "search" | null;
+  type LeftTool = "explorer" | "git" | "extensions" | "settings" | "search" | "debug" | null;
   const [activeLeftTool, setActiveLeftTool] = useState<LeftTool>("explorer");
 
   const toggleLeftTool = (tool: LeftTool) => {
@@ -57,6 +59,193 @@ export default function Workspace() {
       setActiveLeftTool(null); // Toggle off if already active
     } else {
       setActiveLeftTool(tool);
+    }
+  };
+
+  /* Debugger State */
+  const [breakpoints, setBreakpoints] = useState<Record<string, number[]>>({});
+  const [debugState, setDebugState] = useState<'inactive' | 'running' | 'paused'>('inactive');
+  const [debugVariables, setDebugVariables] = useState<Record<string, any>>({});
+  const [debugCallStack, setDebugCallStack] = useState<any[]>([]);
+  const [pausedLine, setPausedLine] = useState<{ filePath: string; lineNumber: number } | null>(null);
+
+  const cleanupDebugState = () => {
+    setDebugState("inactive");
+    setDebugCallStack([]);
+    setDebugVariables({});
+    setPausedLine(null);
+    wsDap.disconnect();
+  };
+
+  useEffect(() => {
+    return () => {
+      wsDap.disconnect();
+    };
+  }, []);
+
+  const handleDapEvent = async (event: any) => {
+    console.log("DAP Event received:", event);
+    if (event.event === "stopped") {
+      setDebugState("paused");
+      const threadId = event.body.threadId || 1;
+      
+      try {
+        const stackRes = await wsDap.sendRequest("stackTrace", { threadId });
+        const frames = stackRes.body.stackFrames || [];
+        setDebugCallStack(frames);
+        
+        if (frames.length > 0) {
+          const topFrame = frames[0];
+          let relativePath = topFrame.source?.path || "";
+          if (relativePath.startsWith("/workspace/")) {
+            relativePath = relativePath.replace("/workspace/", "");
+          }
+          if (relativePath) {
+            setPausedLine({ filePath: relativePath, lineNumber: topFrame.line });
+            openFile(relativePath);
+          }
+
+          // Fetch scopes
+          const scopesRes = await wsDap.sendRequest("scopes", { frameId: topFrame.id });
+          const scopes = scopesRes.body.scopes || [];
+          
+          const newVars: Record<string, any> = {};
+          for (const scope of scopes) {
+            const varsRes = await wsDap.sendRequest("variables", { variablesReference: scope.variablesReference });
+            newVars[scope.name] = varsRes.body.variables || [];
+          }
+          setDebugVariables(newVars);
+        }
+      } catch (err) {
+        console.error("DAP failed to fetch pause info:", err);
+      }
+    } else if (event.event === "terminated" || event.event === "exited") {
+      cleanupDebugState();
+    } else if (event.event === "output") {
+      setTerminalOpen(true);
+      setTerminalActiveTab("output");
+      setRunOutput(prev => prev + (event.body.output || ""));
+    }
+  };
+
+  const startDebugging = async () => {
+    if (!projectId || !activeFile) return;
+    setDebugState("running");
+    setRunOutput("(Starting Debugger...)\n");
+    setTerminalOpen(true);
+    setTerminalActiveTab("output");
+
+    try {
+      wsDap.connect(projectId, "python", handleDapEvent, () => {
+        cleanupDebugState();
+      });
+
+      await wsDap.sendRequest("initialize", {
+        clientID: "parallax-ide",
+        adapterID: "python",
+        linesStartAt1: true,
+        columnsStartAt1: true,
+        pathFormat: "path"
+      });
+
+      for (const [file, lines] of Object.entries(breakpoints)) {
+        if (lines.length > 0) {
+          await wsDap.sendRequest("setBreakpoints", {
+            source: { path: `/workspace/${file}` },
+            breakpoints: lines.map(l => ({ line: l }))
+          });
+        }
+      }
+
+      await wsDap.sendRequest("launch", {
+        program: `/workspace/${activeFile}`,
+        request: "launch",
+        stopOnEntry: true
+      });
+
+      await wsDap.sendRequest("configurationDone");
+
+    } catch (err: any) {
+      setRunOutput(prev => prev + `\nDebugger Error: ${err.message || err}\n`);
+      cleanupDebugState();
+    }
+  };
+
+  const continueDebugging = () => {
+    setPausedLine(null);
+    setDebugState("running");
+    wsDap.sendRequest("continue", { threadId: 1 }).catch(console.error);
+  };
+
+  const pauseDebugging = () => {
+    wsDap.sendRequest("pause", { threadId: 1 }).catch(console.error);
+  };
+
+  const stepOverDebugging = () => {
+    setPausedLine(null);
+    setDebugState("running");
+    wsDap.sendRequest("next", { threadId: 1 }).catch(console.error);
+  };
+
+  const stepIntoDebugging = () => {
+    setPausedLine(null);
+    setDebugState("running");
+    wsDap.sendRequest("stepIn", { threadId: 1 }).catch(console.error);
+  };
+
+  const stepOutDebugging = () => {
+    setPausedLine(null);
+    setDebugState("running");
+    wsDap.sendRequest("stepOut", { threadId: 1 }).catch(console.error);
+  };
+
+  const stopDebugging = () => {
+    wsDap.sendRequest("disconnect").catch(() => {});
+    cleanupDebugState();
+  };
+
+  const toggleBreakpoint = (filePath: string, line: number) => {
+    setBreakpoints(prev => {
+      const fileBps = prev[filePath] || [];
+      const updated = fileBps.includes(line)
+        ? fileBps.filter(l => l !== line)
+        : [...fileBps, line].sort((a, b) => a - b);
+      
+      const newBps = { ...prev, [filePath]: updated };
+      
+      if (debugState !== "inactive") {
+        wsDap.sendRequest("setBreakpoints", {
+          source: { path: `/workspace/${filePath}` },
+          breakpoints: updated.map(l => ({ line: l }))
+        }).catch(console.error);
+      }
+      
+      return newBps;
+    });
+  };
+
+  const selectFrame = async (frameId: number) => {
+    try {
+      const scopesRes = await wsDap.sendRequest("scopes", { frameId });
+      const scopes = scopesRes.body.scopes || [];
+      
+      const newVars: Record<string, any> = {};
+      for (const scope of scopes) {
+        const varsRes = await wsDap.sendRequest("variables", { variablesReference: scope.variablesReference });
+        newVars[scope.name] = varsRes.body.variables || [];
+      }
+      setDebugVariables(newVars);
+      
+      const frame = debugCallStack.find(f => f.id === frameId);
+      if (frame && frame.source) {
+        let relativePath = frame.source.path;
+        if (relativePath.startsWith("/workspace/")) {
+          relativePath = relativePath.replace("/workspace/", "");
+        }
+        setPausedLine({ filePath: relativePath, lineNumber: frame.line });
+      }
+    } catch (e) {
+      console.error("Failed to select frame", e);
     }
   };
 
@@ -460,6 +649,27 @@ export default function Workspace() {
                     }}
                   />
                 )}
+
+                {activeLeftTool === "debug" && projectId && (
+                  <DebuggerPanel
+                    activeFile={activeFile}
+                    language={projectSettings?.language}
+                    debugState={debugState}
+                    allBreakpoints={breakpoints}
+                    variables={debugVariables}
+                    callStack={debugCallStack}
+                    onStartDebug={startDebugging}
+                    onStopDebug={stopDebugging}
+                    onContinue={continueDebugging}
+                    onPause={pauseDebugging}
+                    onStepOver={stepOverDebugging}
+                    onStepInto={stepIntoDebugging}
+                    onStepOut={stepOutDebugging}
+                    onToggleBreakpoint={toggleBreakpoint}
+                    onSelectFrame={selectFrame}
+                    onClose={() => setActiveLeftTool(null)}
+                  />
+                )}
               </div>
               <div
                 className="w-1 cursor-col-resize hover:bg-white/20 active:bg-[#D4AF37]/30 transition-colors"
@@ -535,6 +745,9 @@ export default function Workspace() {
                       }
                       window.dispatchEvent(new CustomEvent("trigger-ai-chat", { detail: prompt }));
                     }}
+                    breakpoints={activeFile ? (breakpoints[activeFile] || []) : []}
+                    pausedLine={pausedLine}
+                    onToggleBreakpoint={(line) => activeFile && toggleBreakpoint(activeFile, line)}
                   />
                 </EditorErrorBoundary>
               )}

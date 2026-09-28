@@ -35,3 +35,25 @@
     scrollbar-width: none; /* Firefox */
   }
 }
+
+/* Monaco Debugger Glyphs */
+.debug-breakpoint-glyph {
+  background: #ef4444;
+  border-radius: 50%;
+  width: 10px !important;
+  height: 10px !important;
+  margin-left: 5px;
+  margin-top: 5px;
+  cursor: pointer;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+.debug-paused-glyph {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid #fbbf24;
+  margin-left: 6px;
+  margin-top: 4px;
+}

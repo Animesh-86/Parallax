@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     git \
     g++ \
     build-essential \
+    && pip3 install debugpy \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20

@@ -1,13 +1,13 @@
-import { GitBranch, Puzzle, Settings, Bot, FolderOpen, Search } from 'lucide-react';
+import { GitBranch, Puzzle, Settings, Bot, FolderOpen, Search, Bug } from 'lucide-react';
 
 type IntegrationsSidebarProps = {
-  activeTool: "explorer" | "git" | "extensions" | "settings" | "search" | null;
-  onSelectTool: (tool: "explorer" | "git" | "extensions" | "settings" | "search" | null) => void;
+  activeTool: "explorer" | "git" | "extensions" | "settings" | "search" | "debug" | null;
+  onSelectTool: (tool: "explorer" | "git" | "extensions" | "settings" | "search" | "debug" | null) => void;
 };
 
 export function IntegrationsSidebar({ activeTool, onSelectTool }: IntegrationsSidebarProps) {
 
-  const handleToolClick = (tool: "explorer" | "git" | "extensions" | "settings" | "search") => {
+  const handleToolClick = (tool: "explorer" | "git" | "extensions" | "settings" | "search" | "debug") => {
     if (activeTool === tool) {
       onSelectTool(null); // Toggle off
     } else {
@@ -74,6 +74,21 @@ export function IntegrationsSidebar({ activeTool, onSelectTool }: IntegrationsSi
       >
         <Puzzle className="w-5 h-5" />
         {activeTool === 'extensions' && (
+          <div className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-[#A1A1AA] rounded-r" />
+        )}
+      </button>
+
+      {/* Debug */}
+      <button
+        onClick={() => handleToolClick('debug')}
+        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group relative ${activeTool === 'debug'
+            ? 'bg-gradient-to-br from-[#D4AF37]/20 to-[#A1A1AA]/20 text-[#A1A1AA] shadow-lg shadow-[#D4AF37]/20'
+            : 'hover:bg-white/10 text-white/60 hover:text-white'
+          }`}
+        title="Run and Debug"
+      >
+        <Bug className="w-5 h-5" />
+        {activeTool === 'debug' && (
           <div className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-[#A1A1AA] rounded-r" />
         )}
       </button>

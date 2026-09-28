@@ -73,6 +73,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         private final com.parallax.backend.parallax.websocket.terminal.TerminalHandshakeInterceptor terminalInterceptor;
         private final com.parallax.backend.parallax.websocket.lsp.LspWebSocketHandler lspHandler;
         private final com.parallax.backend.parallax.websocket.lsp.LspHandshakeInterceptor lspInterceptor;
+        private final com.parallax.backend.parallax.websocket.dap.DapWebSocketHandler dapHandler;
+        private final com.parallax.backend.parallax.websocket.dap.DapHandshakeInterceptor dapInterceptor;
 
         RawWebSocketConfig(com.parallax.backend.parallax.websocket.chat.ChatWebSocketHandler chatHandler,
                 com.parallax.backend.parallax.websocket.chat.ChatHandshakeInterceptor chatInterceptor,
@@ -83,7 +85,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 TerminalWebSocketHandler terminalHandler,
                 com.parallax.backend.parallax.websocket.terminal.TerminalHandshakeInterceptor terminalInterceptor,
                 com.parallax.backend.parallax.websocket.lsp.LspWebSocketHandler lspHandler,
-                com.parallax.backend.parallax.websocket.lsp.LspHandshakeInterceptor lspInterceptor) {
+                com.parallax.backend.parallax.websocket.lsp.LspHandshakeInterceptor lspInterceptor,
+                com.parallax.backend.parallax.websocket.dap.DapWebSocketHandler dapHandler,
+                com.parallax.backend.parallax.websocket.dap.DapHandshakeInterceptor dapInterceptor) {
             this.chatHandler = chatHandler;
             this.chatInterceptor = chatInterceptor;
             this.teamChatHandler = teamChatHandler;
@@ -94,6 +98,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             this.terminalInterceptor = terminalInterceptor;
             this.lspHandler = lspHandler;
             this.lspInterceptor = lspInterceptor;
+            this.dapHandler = dapHandler;
+            this.dapInterceptor = dapInterceptor;
         }
 
         @Override
@@ -117,6 +123,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     
             registry.addHandler(lspHandler, "/ws/lsp/{projectId}/{language}")
                     .addInterceptors(lspInterceptor)
+                    .setAllowedOriginPatterns(frontendUrl);
+
+            registry.addHandler(dapHandler, "/ws/dap/{projectId}/{language}")
+                    .addInterceptors(dapInterceptor)
                     .setAllowedOriginPatterns(frontendUrl);
         }
     }
