@@ -32,6 +32,9 @@ type CodeEditorProps = {
   autoSave?: boolean;
   ideSettings?: { enableAiAutocomplete: boolean; enableAiChat: boolean };
   onAiAction?: (prompt: string) => void;
+  breakpoints?: number[];
+  pausedLine?: { filePath: string; lineNumber: number } | null;
+  onToggleBreakpoint?: (line: number) => void;
 };
 
 export default function CodeEditor({
@@ -48,6 +51,9 @@ export default function CodeEditor({
   autoSave = true,
   ideSettings = { enableAiAutocomplete: true, enableAiChat: true },
   onAiAction,
+  breakpoints = [],
+  pausedLine = null,
+  onToggleBreakpoint,
 }: CodeEditorProps) {
   const { projectId } = useParams();
 
@@ -158,6 +164,60 @@ export default function CodeEditor({
       decorationsCollection.current = editorInstance.createDecorationsCollection(decs);
     }
   }, [comments, monacoInstance, editorInstance]);
+
+  // --------------------------------------------------
+  // Render Breakpoints
+  // --------------------------------------------------
+  const breakpointDecsRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!editorInstance || !monacoInstance) return;
+
+    const decs = breakpoints.map(line => ({
+      range: new monacoInstance.Range(line, 1, line, 1),
+      options: {
+        isWholeLine: false,
+        glyphMarginClassName: 'debug-breakpoint-glyph',
+        glyphMarginHoverMessage: { value: 'Breakpoint' }
+      }
+    }));
+
+    if (breakpointDecsRef.current) {
+      breakpointDecsRef.current.set(decs);
+    } else {
+      breakpointDecsRef.current = editorInstance.createDecorationsCollection(decs);
+    }
+  }, [breakpoints, editorInstance, monacoInstance]);
+
+  // --------------------------------------------------
+  // Render Paused Line
+  // --------------------------------------------------
+  const pausedLineDecsRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!editorInstance || !monacoInstance) return;
+
+    const decs: any[] = [];
+    if (pausedLine && filePath && pausedLine.filePath === filePath) {
+      const line = pausedLine.lineNumber;
+      decs.push({
+        range: new monacoInstance.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'bg-yellow-500/15',
+          glyphMarginClassName: 'debug-paused-glyph',
+          glyphMarginHoverMessage: { value: 'Paused here' }
+        }
+      });
+      editorInstance.revealLineInCenter(line);
+    }
+
+    if (pausedLineDecsRef.current) {
+      pausedLineDecsRef.current.set(decs);
+    } else {
+      pausedLineDecsRef.current = editorInstance.createDecorationsCollection(decs);
+    }
+  }, [pausedLine, filePath, editorInstance, monacoInstance]);
 
   // --------------------------------------------------
   // Start execution session
@@ -380,6 +440,16 @@ export default function CodeEditor({
       fontFamily: fontFamily,
       minimap: { enabled: minimap },
       wordWrap: wordWrap,
+      glyphMargin: true,
+    });
+
+    editor.onMouseDown((e: any) => {
+      if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+        const line = e.target.position?.lineNumber;
+        if (line && onToggleBreakpoint) {
+          onToggleBreakpoint(line);
+        }
+      }
     });
 
     setEditorInstance(editor);
